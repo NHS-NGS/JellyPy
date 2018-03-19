@@ -21,7 +21,7 @@ and are never changed.
 | number | title                                                            | author              | type          |
 |--------|------------------------------------------------------------------|---------------------|---------------|
 |        | [JEP Index](./JEPs.md)                                           |                     | informational |
-|  0-000 | [JEP Purpose and Guidelines](./JEP-0-000.md)                     |                     | informational |
+|  0-000 | [JEP Purpose and Guidelines](./0/JEP-0-000.md)                   |                     | informational |
 |  0-001 | [JellyPy Organization Definition](./0/JEP-0-001.md)              |                     | process       |
 |  0-002 | [JellyPy Board Membership List](./0/JEP-0-002.md)                |                     | informational |
 |  1-000 | [Standard file formats used](./1/JEP-1-000.md)                   |                     | standard      |
