@@ -1,0 +1,81 @@
+# JEP-0-001 - JEP Purpose and Guidelines
+
+| SEP           | 1                          |
+|---------------|----------------------------|
+| title         | SEP Purpose and Guidelines |
+| author(s)     | Steven Christe             |
+| contact email | steven.d.christe@nasa.gov  |
+| date-creation | 2014-03-05                 |
+| type          | process                    |
+| discussion    | none                       |
+| status        | accepted                   |
+
+# What is a JEP?
+JEP stands for JellyPy Enhancement Proposal. A JEP is a design document modeled after the Python Enhancement Proposal which describes a new SunPy feature, process, or major changes to existing processes or features.
+The purpose of the document is to present a concise technical specification and rationale for the new feature or change. *Anyone* can submit an SEP.
+
+Changes that typically require a JEP
+* major new features in JallyPy
+* major changes to the user-facing API
+* major refactoring of the backend
+
+Changes that do not typically require a JEP
+* the addition of new 3rd party tools
+* bug fixes
+* minor enhancements
+
+# JEP Types
+There are generally three types of SEP.
+
+* **Standard**: This JEP introduces and describes a new feature or changes to an existing feature (e.g. API change). The purpose of this type of SEP is to be at first a proposal and eventually mature into a design document (if accepted). It is generally a good idea for a Standard SEP to come _before_ any code has been written.
+
+* **Process**: This type of JEP describes a new process or a change to an existing process in the management of the JellyPy project. Examples include procedures, guidelines, changes to the SunPy decision-making process or management structure, and changes to the tools or environment used in SunPy. Any meta-SEP (proposed changes to the SEP process) is also considered a Process SEP.
+
+* **Informational**: This JEP provides information and does not introduce any new features or changes nor describes a new process.
+
+# JEP Workflow
+
+## Creation
+JEPs should contain a concise description of a single new idea or proposal. JEPs are generally not necessary for small enhancements through a SEP may sometimes be requested by the SunPy board in some cases even for small changes. A SEP begins its life as a proposal. Legibility, organization, and focus are key features of a successful SEP. SEPs can be rejected out-right if they lack any of those characteristics. All SEPs must identify a champion (usually the author) whose job it is to present and defend the proposal. It is generally a good idea to discuss the new idea with the community and the board before going to the trouble of writing a SEP in order to gauge general opinion however, it is not required. All JEPs will have a JellyPy board member assigned to them.
+
+All JEPs creators should begin with the SEP template which is stored as SEP-template.md. All SEPs are stored in the sunpy/sunpy-SEP repository. Fork the repo and create a new file with your SEP. SEP are written with markdown.
+
+### Amending a SEP
+If a topic is already covered by an existing SEP and the change is not a major one than it is appropriate to propose an amendment to an existing SEP. All the usual rules apply and processes apply to the amendment of a SEP as for the creation of a new SEP.
+
+## Submission
+All new SEP should be submitted into the sunpy/sunpy-SEP repository by pull request.
+
+## Review Process
+Once an SEP is submitted it will be discussed via normal development channels, primarily the sunpy-dev mailing list. The SunPy board is tasked with making the final decision although in general community consensus is enough. Once an SEP is accepted, its implementation can be reviewed through the usual process. Once the implementation is complete and accepted the status of the SEP shall be changed to implemented. A member of the SunPy board may request that a change to SunPy (e.g. Pull Request) requires an SEP to enable the change to be documented, and discussed and reviewed by the community.
+
+New SEPs currently undergoing discussion are pull requests into the sunpy-SEP repository. Discussions about the SEP shall take place primarily using a sunpy mailing list, which should be linked from the SEP. Once a SEP is officially submitted by pull request a SunPy editor must be assigned by the SunPy board. This is generally the job of the SunPy board sponsor but this role can be delegated. The role of the editor is to aid the submitter and make sure that the SEP follows the accepted standard. The author and editor can be the same person. A SEP must be accepted by a majority of the SunPy board. The status of a SEP can be any of the following
+
+* **Discussion**: This means that SEP is currently being considered and a decision has not been made.
+* **Accepted**: The SEP has been accepted and it will be assigned a number and merged into the sunpy-SEP repository. A decision rationale must be drafted and added to the SEP by the SunPy board sponsor. If the SEP is of the Standard type then it can now be implemented.
+* **Implemented**: Only valid for a Standard SEP. This status means that the feature discussed in the SEP is implemented and has been merged into the main SunPy repository. At least X members of the SunPy board must sign off on implementation for it to be accepted.
+* **Rejected**: The SEP has been rejected. A decision rationale should be provided by the board and the SEP should still be assigned a number and merged in order to close the issue. It should be noted that a future SEP can supersede the decision.
+
+# SEP Template
+Also stored in SEP-template.md
+
+# SEP-num -- SEP Title
+
+| SEP           | num |
+|---------------|---|
+| title         | SEP Title |
+| author(s)     | First Last, First Last |
+| contact email | me@myemail.org |
+| date-creation | YYYY-MM-DD |
+| type          | process, standard, informational |
+| status        | discussiom, accepted, rejected |
+| discussion    | link to discussion if available |
+
+# Introduction
+A short description of the SEP including a statement of the problem the SEP is seeking to solve
+
+# Detailed Description
+If this is a standard SEP this section should contain usage examples.
+
+# Decision Rationale
+This is a great idea because...
