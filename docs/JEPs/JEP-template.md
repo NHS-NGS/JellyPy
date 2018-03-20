@@ -7,7 +7,7 @@
 | contact email | me@myemail.org                   |
 | date-creation | YYYY-MM-DD                       |
 | type          | process, standard, informational |
-| status        | discussiom, accepted, rejected   |
+| status        | discussion, accepted, rejected   |
 | discussion    | link to discussion if available  |
 
 # Introduction
