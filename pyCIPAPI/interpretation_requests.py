@@ -28,22 +28,26 @@ def get_interpretation_request_list(page_size=100):
 def get_pedigree_dict(interpretation_request):
     """Make a simple dictionary representation of the pedigree.
 
-    Create a dictionary corresponding to gelId: relation_to_proband pairs.
+    Create a dictionary corresponding to relation_to_proband: gelId pairs.
 
     Args:
         interpretation_request: JSON representation of an
             interpretation_request (output of get_interpretation_request_json).
 
     Returns:
-        pedigree: Dictionary of 'gelId' keys and 'relation_to_proband' pairs
+        pedigree: Dictionary of keys 'relation_to_proband' and 'gelId' pairs
             extracted from the interpretation_request object.
     """
     pedigree = {}
     for p in (interpretation_request['interpretation_request_data']
-              ['json_request']['pedigree']['participants']):
-        if p['additionalInformation']['relation_to_proband'] == '-':
-            pedigree[p['gelId']] = 'Proband'
+              ['interpretation_request_data']['json_request']['pedigree']
+              ['participants']):
+        if p['isProband']:
+            pedigree['Proband'] = p['gelId']
         else:
-            pedigree[p['gelId']] = (p['additionalInformation']
-                                    ['relation_to_proband'])
+            try:
+                pedigree[p['additionalInformation']['relation_to_proband']] = (
+                    p['gelId'])
+            except KeyError:
+                pass
     return pedigree
