@@ -51,3 +51,25 @@ def get_pedigree_dict(interpretation_request):
             except KeyError:
                 pass
     return pedigree
+
+
+def get_variant_tier(variant):
+    """Get the most significant tier (lowest) for a variant.
+
+    Look through the report events for a given variant and return the most
+    significant (lower is more significant) tier value.
+
+    Args:
+        variant: Variant object from the TieredVariants in an interpretation
+            request.
+
+    Returns:
+        tier: Integer tier value (1, 2, or 3)
+
+    """
+    tiering = []
+    for reportevent in variant['reportEvents']:
+        re_tier = int(reportevent['tier'].strip('TIER'))
+        tiering.append(re_tier)
+    tier = min(tiering)
+    return tier
