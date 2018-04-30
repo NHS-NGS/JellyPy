@@ -1,8 +1,7 @@
 import datetime
-import json
 from pyCIPAPI.interpretation_requests import (
     get_interpretation_request_list, get_interpretation_request_json,
-    get_variant_tier)
+    get_variant_tier, save_interpretation_request_list_json)
 
 
 def _main():
@@ -10,7 +9,7 @@ def _main():
     for case in interpretation_requests_list:
         count_tiered_variants(case)
     output_tsv(interpretation_requests_list)
-    output_json(interpretation_requests_list)
+    save_interpretation_request_list_json(interpretation_requests_list)
 
 
 def count_tiered_variants(case):
@@ -43,14 +42,6 @@ def output_tsv(interpretation_requests_list):
                         ','.join(case['sites']), case['sample_type'],
                         case['T1'], case['T2'], case['T3']]]))
             fout.write(line + '\n')
-
-
-def output_json(interpretation_requests_list):
-    """Output a date stamped JSON file of the interpretation_requests_list."""
-    output_file = ('{}_interpretation_request_audit.json'
-                   .format(datetime.datetime.today().strftime('%Y%m%d')))
-    with open(output_file, 'w') as fout:
-        json.dump(interpretation_requests_list, fout)
 
 
 if __name__ == '__main__':
