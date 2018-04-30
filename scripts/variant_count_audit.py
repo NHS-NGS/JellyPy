@@ -1,7 +1,8 @@
 import datetime
 import json
 from pyCIPAPI.interpretation_requests import (
-    get_interpretation_request_list, get_interpretation_request_json)
+    get_interpretation_request_list, get_interpretation_request_json,
+    get_variant_tier)
 
 
 def _main():
@@ -22,11 +23,7 @@ def count_tiered_variants(case):
     case['interpretation-request_data'] = interpretation_request
     for variant in (interpretation_request['interpretation_request_data']
                     ['json_request']['TieredVariants']):
-        tiering = []
-        for reportevent in variant['reportEvents']:
-            re_tier = int(reportevent['tier'].strip('TIER'))
-            tiering.append(re_tier)
-        tier = min(tiering)
+        tier = get_variant_tier(variant)
         case['T{}'.format(tier)] += 1
 
 
