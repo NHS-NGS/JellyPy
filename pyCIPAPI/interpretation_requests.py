@@ -1,5 +1,8 @@
 """Functions for getting and manipulating interpretation requests."""
 
+import os
+import datetime
+import json
 from .auth import AuthenticatedSession
 
 
@@ -73,3 +76,16 @@ def get_variant_tier(variant):
         tiering.append(re_tier)
     tier = min(tiering)
     return tier
+
+
+def save_interpretation_request_list_json(interpretation_request_list,
+                                          force_update=False):
+    """Save a list of interpretation requests as a datestamped JSON."""
+    output_file = ('{}_interpretation_request_audit.json'
+                   .format(datetime.datetime.today().strftime('%Y%m%d')))
+    output_file_path = os.path.join(os.getcwd(), 'output', output_file)
+    if not (os.path.isfile(output_file_path)) or (force_update is True):
+        print('Writing interprettion requests data to {}'
+              .format(output_file_path))
+        with open(output_file_path, 'w') as fout:
+            json.dump(interpretation_request_list, fout)
