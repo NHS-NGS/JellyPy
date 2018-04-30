@@ -4,7 +4,7 @@ from pyCIPAPI.interpretation_requests import (
     get_interpretation_request_list, get_interpretation_request_json)
 
 
-def main():
+def _main():
     interpretation_requests_list = get_interpretation_request_list()
     for case in interpretation_requests_list:
         count_tiered_variants(case)
@@ -13,6 +13,7 @@ def main():
 
 
 def count_tiered_variants(case):
+    """Count the number of variants in each tier for a case."""
     case['T1'] = 0
     case['T2'] = 0
     case['T3'] = 0
@@ -30,6 +31,11 @@ def count_tiered_variants(case):
 
 
 def output_tsv(interpretation_requests_list):
+    """Output a date stamped TSV file of the interpretation_requests_list.
+
+    Output file fields: Gel Family ID, Number of samples, Site(s), Sample Type,
+    Tier 1, Tier 2, and Tier 3 variant counts.
+    """
     output_file = ('{}_interpretation_request_audit.tsv'
                    .format(datetime.datetime.today().strftime('%Y%m%d')))
     with open(output_file, 'w') as fout:
@@ -43,6 +49,7 @@ def output_tsv(interpretation_requests_list):
 
 
 def output_json(interpretation_requests_list):
+    """Output a date stamped JSON file of the interpretation_requests_list."""
     output_file = ('{}_interpretation_request_audit.json'
                    .format(datetime.datetime.today().strftime('%Y%m%d')))
     with open(output_file, 'w') as fout:
@@ -50,4 +57,4 @@ def output_json(interpretation_requests_list):
 
 
 if __name__ == '__main__':
-    main()
+    _main()
