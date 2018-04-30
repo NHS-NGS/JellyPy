@@ -1,6 +1,6 @@
 """Functions for getting and manipulating interpretation requests."""
 
-from auth import AuthenticatedSession
+from .auth import AuthenticatedSession
 
 
 def get_interpretation_request_json(ir_id, ir_version):
