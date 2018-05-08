@@ -7,11 +7,11 @@ from .auth_credentials import auth_credentials
 
 
 # get an authenticated session
-class AuthenticatedSession(requests.Session):
-    """Subclass of requests Session for a."""
+class AuthenticatedCIPAPISession(requests.Session):
+    """Subclass of requests Session for authenticating against GEL CIPAPI."""
 
     def __init__(self):
-        """Init AuthenticatedSession and run authenticate function.
+        """Init AuthenticatedCIPAPISession and run authenticate function.
 
         Authentication credentials are stored in auth_credentials.py and are in
         dictionary format:
@@ -30,8 +30,8 @@ class AuthenticatedSession(requests.Session):
         API.
 
         Returns:
-            The current instance of AuthenticatedSession with the headers set
-            to include token, the auth_time and auth_expires time.
+            The current instance of AuthenticatedCIPAPISession with the headers
+            set to include token, the auth_time and auth_expires time.
         """
         cip_auth_url = 'https://cipapi.genomicsengland.nhs.uk/api/2/get-token/'
         try:

@@ -3,12 +3,12 @@
 import os
 import datetime
 import json
-from .auth import AuthenticatedSession
+from .auth import AuthenticatedCIPAPISession
 
 
 def get_interpretation_request_json(ir_id, ir_version):
     """Get an interpretation request as a json."""
-    s = AuthenticatedSession()
+    s = AuthenticatedCIPAPISession()
     request_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
                    'interpretation-request/{}/{}/'.format(ir_id, ir_version))
     r = s.get(request_url)
@@ -17,7 +17,7 @@ def get_interpretation_request_json(ir_id, ir_version):
 
 def get_interpretation_request_list(page_size=100):
     """Get a list of interpretation requests."""
-    s = AuthenticatedSession()
+    s = AuthenticatedCIPAPISession()
     interpretation_request_list = []
     next = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
             'interpretation-request?page_size={}'.format(page_size))
