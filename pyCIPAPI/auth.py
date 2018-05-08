@@ -68,6 +68,8 @@ class AuthenticatedOpenCGASession(requests.Session):
 
         """
         requests.Session.__init__(self)
+        self.host_url = ('https://apps.genomicsengland.nhs.uk/opencga/'
+                         'webservices/rest/v1')
         self.authenticate()
 
     def authenticate(self):
@@ -81,9 +83,9 @@ class AuthenticatedOpenCGASession(requests.Session):
             The current instance of AuthenticatedOpenCGASession with the sid
             value as an attribute, plus the auth_time and auth_expires time.
         """
-        opencga_auth_url = ('https://apps.genomicsengland.nhs.uk/opencga/'
-                            'webservices/rest/v1/users/{username}/login'
-                            .format(username=auth_credentials['username']))
+        opencga_auth_url = ('{host}/users/{username}/login'
+                            .format(host=self.host_url,
+                                    username=auth_credentials['username']))
         try:
             self.headers.update({"Accept": "application/json",
                                  "Content-Type": "application/json",
