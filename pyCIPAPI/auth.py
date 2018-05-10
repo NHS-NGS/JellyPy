@@ -2,8 +2,8 @@
 
 from __future__ import print_function, absolute_import
 import json
+from datetime import datetime, timedelta
 import requests
-import maya
 from .auth_credentials import auth_credentials
 
 
@@ -40,8 +40,8 @@ class AuthenticatedCIPAPISession(requests.Session):
                         cip_auth_url, data=(auth_credentials))
                      .json()['token'])
             self.headers.update({"Authorization": "JWT " + token})
-            self.auth_time = maya.now()
-            self.auth_expires = self.auth_time.add(minutes=30)
+            self.auth_time = datetime.utcnow()
+            self.auth_expires = self.auth_time + timedelta(minutes=30)
         except KeyError:
             self.auth_time = False
             print('Authentication Error')
@@ -49,7 +49,7 @@ class AuthenticatedCIPAPISession(requests.Session):
 
     def check_auth(self):
         """Check whether the session is still authenticated."""
-        if maya.now() > self.auth_expires():
+        if datetime.utcnow() > self.auth_expires():
             self.authenticate()
         else:
             pass
@@ -94,8 +94,8 @@ class AuthenticatedOpenCGASession(requests.Session):
                                       data=json.dumps(auth_credentials))
                             .json())
             self.sid = sid_response['response'][0]['result'][0]['sessionId']
-            self.auth_time = maya.now()
-            self.auth_expires = self.auth_time.add(minutes=30)
+            self.auth_time = datetime.utcnow()
+            self.auth_expires = self.auth_time + timedelta(minutes=30)
         except KeyError:
             self.auth_time = False
             print('Authentication Error')
@@ -103,7 +103,7 @@ class AuthenticatedOpenCGASession(requests.Session):
 
     def check_auth(self):
         """Check whether the session is still authenticated."""
-        if maya.now() > self.auth_expires():
+        if datetime.utcnow() > self.auth_expires():
             self.authenticate()
         else:
             pass
