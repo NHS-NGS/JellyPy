@@ -3,12 +3,12 @@
 Usage:
     get_tiered_variants.py [--force-update] [--site SITE ...]
     get_tiered_variants.py (-h | --help)
-    get_tiered_variants.py --version
+    get_tiered_variants.py [--version]
 
 Options:
     -h, --help      Show this screen.
     --version       Show version.
-    --force_update  Get data from API even if a cached version exists.
+    --force-update  Get data from API even if a cached version exists.
     --site          One or more site codes to limit output by site, eg: RR8.
 
 """
@@ -194,5 +194,5 @@ def get_call_zygosity(variant, simple_pedigree, family_member):
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='1.0')
+    arguments = docopt(__doc__, version='1.1')
     _main(arguments)
