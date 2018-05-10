@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+
+# pyCIPAPI
+
+pyCIPAPI/auth_credentials.py
+pyCIPAPI/output/*
