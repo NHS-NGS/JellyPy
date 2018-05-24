@@ -15,12 +15,58 @@ def get_interpretation_request_json(ir_id, ir_version):
     return r.json()
 
 
-def get_interpretation_request_list(page_size=100):
+def get_interpretation_request_list(page_size=100,
+                                    cip=None,
+                                    group_id=None,
+                                    version=None,
+                                    interpretation_request_id=None,
+                                    workspace=None,
+                                    status=None,
+                                    last_status=None,
+                                    members=None,
+                                    cohort_id=None,
+                                    workflow_status=None,
+                                    update_date=None,
+                                    case_id=None,
+                                    sample_type=None,
+                                    assembly=None,
+                                    case_priority=None,
+                                    family_id=None,
+                                    proband_id=None,
+                                    long_name=None,
+                                    tags=None,
+                                    search=None):
     """Get a list of interpretation requests."""
     s = AuthenticatedCIPAPISession()
     interpretation_request_list = []
-    next = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
-            'interpretation-request?page_size={}'.format(page_size))
+    base_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
+                'interpretation-request')
+    payload = {
+            'page_size': page_size,
+            'cip': cip,
+            'group_id': group_id,
+            'version': version,
+            'interpretation_request_id': interpretation_request_id,
+            'workspace': workspace,
+            'status': status,
+            'last_status': last_status,
+            'members': members,
+            'cohort_id': cohort_id,
+            'workflow_status': workflow_status,
+            'update_date': update_date,
+            'case_id': case_id,
+            'sample_type': sample_type,
+            'assembly': assembly,
+            'case_priority': case_priority,
+            'family_id': family_id,
+            'proband_id': proband_id,
+            'long_name': long_name,
+            'tags': tags,
+            'search': search
+            }
+    r = s.get(base_url, params=payload)
+    interpretation_request_list += r.json()['results']
+    next = r.json().get('next', False)
     while next:
         r = s.get(next)
         interpretation_request_list += r.json()['results']
