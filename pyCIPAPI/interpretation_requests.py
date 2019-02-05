@@ -6,7 +6,7 @@ import json
 from .auth import AuthenticatedCIPAPISession
 
 
-def get_interpretation_request_json(ir_id, ir_version, reports_v6=None):
+def get_interpretation_request_json(ir_id, ir_version, reports_v6=False):
     """Get an interpretation request as a json."""
     s = AuthenticatedCIPAPISession()
     payload = {
