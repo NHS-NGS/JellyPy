@@ -6,12 +6,15 @@ import json
 from .auth import AuthenticatedCIPAPISession
 
 
-def get_interpretation_request_json(ir_id, ir_version):
+def get_interpretation_request_json(ir_id, ir_version, reports_v6=False):
     """Get an interpretation request as a json."""
     s = AuthenticatedCIPAPISession()
+    payload = {
+        'reports_v6': reports_v6
+    }
     request_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
                    'interpretation-request/{}/{}/'.format(ir_id, ir_version))
-    r = s.get(request_url)
+    r = s.get(request_url, params=payload)
     return r.json()
 
 
