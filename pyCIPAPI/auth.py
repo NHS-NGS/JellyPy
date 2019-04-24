@@ -5,6 +5,7 @@ import json
 import requests
 import maya
 from .auth_credentials import auth_credentials
+import config as cfg
 
 
 # get an authenticated session
@@ -35,13 +36,13 @@ class AuthenticatedCIPAPISession(requests.Session):
             set to include token, the auth_time and auth_expires time.
         """
         
-        # Use the correct url if using beta data set for testing:
+        # Use the correct url if using beta dataset for testing:
         if testing_on == False:
             # Live data
-            cip_auth_url = 'https://cipapi.genomicsengland.nhs.uk/api/2/get-token/'
+            cip_auth_url = (cfg.live_100k_data_base_url + 'get-token/')
         else:
             # Beta test data
-            cip_auth_url = 'https://cipapi-beta.genomicsengland.co.uk/api/2/get-token/'
+            cip_auth_url = cfg.beta_testing_base_url + 'get-token/')
 
         try:
             token = (self.post(

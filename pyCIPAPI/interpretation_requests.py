@@ -4,6 +4,7 @@ import os
 import datetime
 import json
 from .auth import AuthenticatedCIPAPISession
+import config as cfg
 
 
 def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False):
@@ -14,14 +15,10 @@ def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing
     }
     # Use the correct url if using beta dataset for testing:
     if testing_on == False:
-        # Live data
-        request_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
-                'interpretation-request/{}/{}/'.format(ir_id, ir_version))
+        request_url = (cfg.live_100k_data_base_url + 'interpretation-request/{}/{}/'.format(ir_id, ir_version)
     else:
-        # Beta test data
-        request_url = ('https://cipapi-beta.genomicsengland.co.uk/api/2/'
-                   'interpretation-request/{}/{}/'.format(ir_id, ir_version))
-                   
+        request_url = (cfg.beta_testing_base_url + 'interpretation-request/{}/{}/'.format(ir_id, ir_version))
+
     r = s.get(request_url, params=payload)
     return r.json()
 
@@ -55,12 +52,10 @@ def get_interpretation_request_list(page_size=100,
     # Use the correct url if using beta dataset for testing:
     if testing_on == False:
         # Live data
-        base_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
-            'interpretation-request')
+        base_url = (cfg.live_100k_data_base_url + 'interpretation-request')
     else:
         # Beta test data
-        base_url = ('https://cipapi-beta.genomicsengland.co.uk/api/2/'
-            'interpretation-request')
+        base_url = (cfg.beta_testing_base_url + 'interpretation-request')
 
     payload = {
             'page_size': page_size,
