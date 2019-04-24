@@ -6,14 +6,22 @@ import json
 from .auth import AuthenticatedCIPAPISession
 
 
-def get_interpretation_request_json(ir_id, ir_version, reports_v6=False):
+def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False):
     """Get an interpretation request as a json."""
     s = AuthenticatedCIPAPISession()
     payload = {
         'reports_v6': reports_v6
     }
-    request_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
+    # Use the correct url if using beta dataset for testing:
+    if testing_on == False:
+        # Live data
+        request_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
+                'interpretation-request/{}/{}/'.format(ir_id, ir_version))
+    else:
+        # Beta test data
+        request_url = ('https://cipapi-beta.genomicsengland.co.uk/api/2/'
                    'interpretation-request/{}/{}/'.format(ir_id, ir_version))
+                   
     r = s.get(request_url, params=payload)
     return r.json()
 
@@ -38,12 +46,22 @@ def get_interpretation_request_list(page_size=100,
                                     proband_id=None,
                                     long_name=None,
                                     tags=None,
-                                    search=None):
+                                    search=None,
+                                    testing_on=False):
     """Get a list of interpretation requests."""
     s = AuthenticatedCIPAPISession()
     interpretation_request_list = []
-    base_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
-                'interpretation-request')
+
+    # Use the correct url if using beta dataset for testing:
+    if testing_on == False:
+        # Live data
+        base_url = ('https://cipapi.genomicsengland.nhs.uk/api/2/'
+            'interpretation-request')
+    else:
+        # Beta test data
+        base_url = ('https://cipapi-beta.genomicsengland.co.uk/api/2/'
+            'interpretation-request')
+
     payload = {
             'page_size': page_size,
             'cip': cip,

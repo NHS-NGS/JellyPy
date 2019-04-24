@@ -11,7 +11,7 @@ from .auth_credentials import auth_credentials
 class AuthenticatedCIPAPISession(requests.Session):
     """Subclass of requests Session for authenticating against GEL CIPAPI."""
 
-    def __init__(self):
+    def __init__(self, testing_on=False):
         """Init AuthenticatedCIPAPISession and run authenticate function.
 
         Authentication credentials are stored in auth_credentials.py and are in
@@ -23,7 +23,7 @@ class AuthenticatedCIPAPISession(requests.Session):
         requests.Session.__init__(self)
         self.authenticate()
 
-    def authenticate(self):
+    def authenticate(self, testing_on):
         """Use auth_credentials to generate an authenticated session.
 
         Uses the cip_auth_url hard coded in and credentials in the
@@ -34,7 +34,15 @@ class AuthenticatedCIPAPISession(requests.Session):
             The current instance of AuthenticatedCIPAPISession with the headers
             set to include token, the auth_time and auth_expires time.
         """
-        cip_auth_url = 'https://cipapi.genomicsengland.nhs.uk/api/2/get-token/'
+        
+        # Use the correct url if using beta data set for testing:
+        if testing_on == False:
+            # Live data
+            cip_auth_url = 'https://cipapi.genomicsengland.nhs.uk/api/2/get-token/'
+        else:
+            # Beta test data
+            cip_auth_url = 'https://cipapi-beta.genomicsengland.co.uk/api/2/get-token/'
+
         try:
             token = (self.post(
                         cip_auth_url, data=(auth_credentials))
