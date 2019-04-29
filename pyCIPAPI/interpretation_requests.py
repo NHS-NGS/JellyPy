@@ -4,20 +4,20 @@ import os
 import datetime
 import json
 from .auth import AuthenticatedCIPAPISession
-import config as cfg
+from .config import live_100k_data_base_url, beta_testing_base_url
 
 
 def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False):
     """Get an interpretation request as a json."""
-    s = AuthenticatedCIPAPISession()
+    s = AuthenticatedCIPAPISession(testing_on=testing_on)
     payload = {
         'reports_v6': reports_v6
     }
-    # Use the correct url if using beta dataset for testing:
+    # Use the correct url if using beta dataset for testing (imported form config.py):
     if testing_on == False:
-        request_url = (cfg.live_100k_data_base_url + 'interpretation-request/{}/{}/'.format(ir_id, ir_version)
+        request_url = (live_100k_data_base_url + 'interpretation-request/{}/{}/'.format(ir_id, ir_version))
     else:
-        request_url = (cfg.beta_testing_base_url + 'interpretation-request/{}/{}/'.format(ir_id, ir_version))
+        request_url = (beta_testing_base_url + 'interpretation-request/{}/{}/'.format(ir_id, ir_version))
 
     r = s.get(request_url, params=payload)
     return r.json()
@@ -46,16 +46,16 @@ def get_interpretation_request_list(page_size=100,
                                     search=None,
                                     testing_on=False):
     """Get a list of interpretation requests."""
-    s = AuthenticatedCIPAPISession()
+    s = AuthenticatedCIPAPISession(testing_on=testing_on)
     interpretation_request_list = []
 
-    # Use the correct url if using beta dataset for testing:
+    # Use the correct url if using beta dataset for testing (imported form config.py):
     if testing_on == False:
         # Live data
-        base_url = (cfg.live_100k_data_base_url + 'interpretation-request')
+        base_url = (live_100k_data_base_url + 'interpretation-request')
     else:
         # Beta test data
-        base_url = (cfg.beta_testing_base_url + 'interpretation-request')
+        base_url = (beta_testing_base_url + 'interpretation-request')
 
     payload = {
             'page_size': page_size,
