@@ -5,7 +5,7 @@ import json
 import requests
 import maya
 from .auth_credentials import auth_credentials
-import config as cfg
+from .config import live_100k_data_base_url, beta_testing_base_url
 
 
 # get an authenticated session
@@ -22,9 +22,9 @@ class AuthenticatedCIPAPISession(requests.Session):
 
         """
         requests.Session.__init__(self)
-        self.authenticate()
+        self.authenticate(testing_on=testing_on)
 
-    def authenticate(self, testing_on):
+    def authenticate(self, testing_on=False):
         """Use auth_credentials to generate an authenticated session.
 
         Uses the cip_auth_url hard coded in and credentials in the
@@ -39,10 +39,10 @@ class AuthenticatedCIPAPISession(requests.Session):
         # Use the correct url if using beta dataset for testing:
         if testing_on == False:
             # Live data
-            cip_auth_url = (cfg.live_100k_data_base_url + 'get-token/')
+            cip_auth_url = (live_100k_data_base_url + 'get-token/')
         else:
             # Beta test data
-            cip_auth_url = cfg.beta_testing_base_url + 'get-token/')
+            cip_auth_url = (beta_testing_base_url + 'get-token/')
 
         try:
             token = (self.post(
@@ -56,10 +56,10 @@ class AuthenticatedCIPAPISession(requests.Session):
             print('Authentication Error')
         return self
 
-    def check_auth(self):
+    def check_auth(self, testing_on=False):
         """Check whether the session is still authenticated."""
         if maya.now() > self.auth_expires():
-            self.authenticate()
+            self.authenticate(testing_on=testing_on)
         else:
             pass
 
@@ -110,9 +110,9 @@ class AuthenticatedOpenCGASession(requests.Session):
             print('Authentication Error')
         return self
 
-    def check_auth(self):
+    def check_auth(self, testing_on=False):
         """Check whether the session is still authenticated."""
         if maya.now() > self.auth_expires():
-            self.authenticate()
+            self.authenticate(testing_on=testing_on)
         else:
             pass
