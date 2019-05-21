@@ -2,7 +2,7 @@
 Functions for creating a clinical report (aka summary of findings). This is designed to emulate the closing of a case via the interpretation portal.
 """
 import datetime
-from protocols.reports_6_0_0 import ClinicalReport, InterpretedGenome
+from protocols.reports_6_0_0 import ClinicalReport, InterpretedGenome, FamilyLevelQuestions, RareDiseaseExitQuestionnaire
 from .auth import AuthenticatedCIPAPISession
 from .config import live_100k_data_base_url, beta_testing_base_url
      
@@ -75,6 +75,38 @@ def create_cr(
         raise TypeError("Clinical report object not valid. See details:\n{message}".format(message=cr.validate(cr.toJsonDict(), verbose=True).messages))
     else:
         return cr
+
+
+def create_flq(caseSolvedFamily, segregationQuestion, additionalComments):
+    """instantiate FamilyLevelQuestions (FLQs) using GeL Report Models module"""
+    flqs = FLQs(
+        caseSolvedFamily=caseSolvedFamily,
+        segregationQuestion=segregationQuestion,
+        additionalComments=additionalComments
+    )
+    # Check family level questions object is valid using inbuilt validate method. Report errors if not.
+    if not flqs.validate(flqs.toJsonDict()):
+        raise TypeError("Family level questions object not valid. See details:\n{message}".format(message=flqs.validate(flqs.toJsonDict(), verbose=True).messages))
+    else:
+        return flqs
+
+def create_eq(eventDate, reporter, familyLevelQuestions, variantGroupLevelQuestions=[]):
+    """Create, populate and return an ExitQuestionnaire (EQ) object from GelReportModels."""
+    # Get date into correct format (YYYY-MM-DD) by converting to datetime object 
+    eventDate = datetime.datetime.strptime(eventDate, "%Y-%m-%d")
+    # Then convert back to string ready for submission
+    eventDate = eventDate.strftime("%Y-%m-%d")
+    eq = EQ(
+        eventDate=eventDate,
+        reporter=reporter,
+        familyLevelQuestions=familyLevelQuestions,
+        variantGroupLevelQuestions=variantGroupLevelQuestions
+    )
+    # Check exit questionnaire object is valid using inbuilt validate method. Report errors if not.
+    if not eq.validate(eq.toJsonDict()):
+        raise TypeError("Family level questions object not valid. See details:\n{message}".format(message=eq.validate(eq.toJsonDict(), verbose=True).messages))
+    else:
+        return eq
 
 def post_cr(ir_json_v6, clinical_report, testing_on=False):
     """
