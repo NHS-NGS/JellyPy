@@ -1,11 +1,12 @@
 """
-Functions for creating a clinical report (aka summary of findings) and submitting an exit questionnaire.
+Functions for creating a clinical report (aka summary of findings), submitting an exit questionnaire and downloading summary of findings html.
 This is designed to emulate the closing of a case via the interpretation portal.
 """
 import datetime
 from protocols.reports_6_0_0 import ClinicalReport, InterpretedGenome, FamilyLevelQuestions, RareDiseaseExitQuestionnaire
 from .auth import AuthenticatedCIPAPISession
 from .config import live_100k_data_base_url, beta_testing_base_url
+from .interpretation_requests import get_interpretation_request_list
 
 
 def create_cr(
@@ -235,3 +236,33 @@ def gel_software_versions(ir_json_v6):
         cip = ig_obj.interpretationService.lower()
         if cip == 'genomics_england_tiering':
             return ig_obj.softwareVersions
+
+
+def download_sum_findings(ir_id, ir_version, clinical_report_version=1):
+    """
+    Downloads summary of findings HTML for a given case
+
+    Args:
+        ir_id = interpretation request ID (without cip prefix or version, i.e. would be '12345' for SAP-12345-1)
+        ir_version = interpretation request version (the version following the ir-id, i.e. would be '1' for SAP-12345-1)
+        clinical_report_version = If there are multiple summary of findings for a case (use num_existing_reports() to check)
+        which one should be downloaded? default = 1
+    """
+    ir_details = get_interpretation_request_list(interpretation_request_id=ir_id, version=ir_version)
+    # Check only one record is returned
+    if len(ir_details) != 1:
+        raise Exception(
+            "Expected 1 case to be returned from get_interpretation_request_list() but got {num} "
+            "for interpretation request {ir_id}-{ir_version}".format(
+                num=len(ir_details),
+                ir_id=ir_id,
+                ir_version=ir_version
+                )
+            )
+    # Download the report from CIP API
+    session = AuthenticatedCIPAPISession()
+    response = session.get(ir_details[0]["clinical_reports"][clinical_report_version-1]['url'])
+    # Raise error if unsuccessful status code returned
+    response.raise_for_status()
+    # Return the html as a string ready for further processing or writing to file
+    return response.text
