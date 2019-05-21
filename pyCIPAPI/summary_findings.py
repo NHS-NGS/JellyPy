@@ -5,7 +5,7 @@ import datetime
 from protocols.reports_6_0_0 import ClinicalReport, InterpretedGenome
 from .auth import AuthenticatedCIPAPISession
 from .config import live_100k_data_base_url, beta_testing_base_url
-     
+
 def create_cr(
     interpretationRequestId,
     interpretationRequestVersion,
