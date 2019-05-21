@@ -104,7 +104,7 @@ def post_cr(ir_json_v6, clinical_report, testing_on=False):
     # Upload Summary of findings:    
     response = gel_session.post(url=summary_of_findings_url, json=clinical_report.toJsonDict())
     if response.status_code not in [200, 201]:
-        raise HTTPError("When submitting clinical-report expected result code 200/201 but got {r}".format(r=response.status_code))
+        raise Exception("When submitting clinical-report expected result code 200/201 but got {r}".format(r=response.status_code))
 
 def num_existing_reports(ir_json_v6):
     """
