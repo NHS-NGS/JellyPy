@@ -74,7 +74,10 @@ def create_cr(
         )
     # Check clinical report object is valid using inbuilt validate method. Report errors if not.
     if not cr.validate(cr.toJsonDict()):
-        raise TypeError("Clinical report object not valid. See details:\n{message}".format(message=cr.validate(cr.toJsonDict(), verbose=True).messages))
+        raise TypeError("Clinical report object not valid. See details:\n{message}".format(
+            message=cr.validate(cr.toJsonDict(), verbose=True).messages
+            )
+        )
     else:
         return cr
 
@@ -82,7 +85,8 @@ def create_cr(
 def post_cr(ir_json_v6, clinical_report, testing_on=False):
     """
     Submit clinical report (aka summary of findings) to CIP-API.
-    This uses genomics_england_tiering as the analysis partner, emulating the closing of a case through the interpretation portal
+    This uses genomics_england_tiering as the analysis partner, emulating the closing of a case through
+    the interpretation portal
     Args:
         ir_json_v6 = get using interpretation_requests.get_interpretation_request_json() with reports_v6=True
         clinical_report = populated clinical report object output from create_cr()

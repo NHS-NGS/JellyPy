@@ -48,7 +48,11 @@ def main():
     ir_json_v6 = get_interpretation_request_json(ir_id, ir_version, reports_v6=True, testing_on=parsed_args.testing)
     # Check that there is not already an exisitng clinical report
     if num_existing_reports(ir_json_v6):
-        sys.exit("Existing clinical reports detected for interpretation request {ir_id}-{ir_version}".format(ir_id=ir_id, ir_version=ir_version))
+        sys.exit("Existing clinical reports detected for interpretation request {ir_id}-{ir_version}".format(
+            ir_id=ir_id,
+            ir_version=ir_version
+            )
+        )
     # Create clinical report object
     cr = create_cr(
         interpretationRequestId=ir_id,
