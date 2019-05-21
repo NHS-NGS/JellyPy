@@ -1,5 +1,5 @@
 """
-Functions for creating a clinical report (aka summary of findings).
+Functions for creating a clinical report (aka summary of findings) and submitting an exit questionnaire.
 This is designed to emulate the closing of a case via the interpretation portal.
 """
 import datetime
@@ -83,25 +83,51 @@ def create_cr(
 
 
 def create_flq(caseSolvedFamily, segregationQuestion, additionalComments):
-    """instantiate FamilyLevelQuestions (FLQs) using GeL Report Models module"""
-    flqs = FLQs(
+    """Create a GeL Report Models v6 Family Level Questionnaire (submitted with exit questionnaire)
+
+    See here for field definitions:
+    https://gelreportmodels.genomicsengland.co.uk/html_schemas/org.gel.models.report.avro/6.0.1/ExitQuestionnaire.html#/schema/org.gel.models.report.avro.FamilyLevelQuestions
+
+    Args:
+        caseSolvedFamily: "yes", "no", "partially" or "unknown"
+        segregationQuestion: "yes" or "no"
+        additionalComments: string
+    """
+    # Create the Family Level Questions object
+    flqs = FamilyLevelQuestions(
         caseSolvedFamily=caseSolvedFamily,
         segregationQuestion=segregationQuestion,
         additionalComments=additionalComments
     )
     # Check family level questions object is valid using inbuilt validate method. Report errors if not.
     if not flqs.validate(flqs.toJsonDict()):
-        raise TypeError("Family level questions object not valid. See details:\n{message}".format(message=flqs.validate(flqs.toJsonDict(), verbose=True).messages))
+        raise TypeError("Family level questions object not valid. See details:\n{message}".format(
+            message=flqs.validate(flqs.toJsonDict(), verbose=True).messages
+            )
+        )
     else:
         return flqs
 
+
 def create_eq(eventDate, reporter, familyLevelQuestions, variantGroupLevelQuestions=[]):
-    """Create, populate and return an ExitQuestionnaire (EQ) object from GelReportModels."""
-    # Get date into correct format (YYYY-MM-DD) by converting to datetime object 
+    """Create a GeL Report Models v6 Exit Questionnaire
+
+    See here for field definitions:
+    https://gelreportmodels.genomicsengland.co.uk/html_schemas/org.gel.models.report.avro/6.0.1/ExitQuestionnaire.html#/schema/org.gel.models.report.avro.RareDiseaseExitQuestionnaire
+
+    Args:
+        eventDate: string (YYYY-MM-DD)
+        reporter: string
+        familyLevelQuestions: populated FamilyLevelQuestions object (output from create_flq())
+        variantGroupLevelQuestions: VariantGroupLevelQuestions object (optional - for negatives
+        with no variants just submit empty list, this emulates closing a case through interpretation portal)
+    """
+    # Get date into correct format (YYYY-MM-DD) by converting to datetime object
     eventDate = datetime.datetime.strptime(eventDate, "%Y-%m-%d")
     # Then convert back to string ready for submission
     eventDate = eventDate.strftime("%Y-%m-%d")
-    eq = EQ(
+    # Create the Exit Questionnaire object
+    eq = RareDiseaseExitQuestionnaire(
         eventDate=eventDate,
         reporter=reporter,
         familyLevelQuestions=familyLevelQuestions,
@@ -109,15 +135,16 @@ def create_eq(eventDate, reporter, familyLevelQuestions, variantGroupLevelQuesti
     )
     # Check exit questionnaire object is valid using inbuilt validate method. Report errors if not.
     if not eq.validate(eq.toJsonDict()):
-        raise TypeError("Family level questions object not valid. See details:\n{message}".format(message=eq.validate(eq.toJsonDict(), verbose=True).messages))
+        raise TypeError("Exit questionnaire object not valid. See details:\n{message}".format(message=eq.validate(eq.toJsonDict(), verbose=True).messages))
     else:
         return eq
+
 
 def post_cr(ir_json_v6, clinical_report, testing_on=False):
     """
     Submit clinical report (aka summary of findings) to CIP-API.
     This uses genomics_england_tiering as the analysis partner, emulating the closing of a case through
-    the interpretation portal
+    the interpretation portal. It is currently hardcoded for raredisease.
     Args:
         ir_json_v6 = get using interpretation_requests.get_interpretation_request_json() with reports_v6=True
         clinical_report = populated clinical report object output from create_cr()
@@ -125,8 +152,8 @@ def post_cr(ir_json_v6, clinical_report, testing_on=False):
     """
     # Get the full interpretation request ID (including cip prefix and version e.g. SAP-12345-1)
     ir_id = ir_json_v6.get('case_id')
-    # Create endpoint from user supplied variables ir_id and ir_version (hardcoded clinical_report_version 1 is OK
-    # because script checks no other clinical reports have been generated before calling this function:
+    # Create endpoint using supplied ir-id. Have hardcoded 'genomics_england_tiering' and 'raredisease' since we've only tried this
+    # for rare disease cases with no tier 1/2 variants
     cr_endpoint = "clinical-report/genomics_england_tiering/raredisease/{ir_id}/?reports_v6=true".format(
         ir_id=ir_id
         )
@@ -135,12 +162,43 @@ def post_cr(ir_json_v6, clinical_report, testing_on=False):
         cip_api_url = beta_testing_base_url
     else:
         cip_api_url = live_100k_data_base_url
-    # Create urls for uploading exit questionnaire and summary of findings
+    # Create urls for uploading summary of findings
     summary_of_findings_url = cip_api_url + cr_endpoint
     # Open Authenticated CIP-API session:
     gel_session = AuthenticatedCIPAPISession(testing_on=testing_on)
     # Upload Summary of findings:
     response = gel_session.post(url=summary_of_findings_url, json=clinical_report.toJsonDict())
+    # Raise error if unsuccessful status code returned
+    response.raise_for_status()
+
+
+def put_eq(exit_questionnaire, ir_id, ir_version, clinical_report_version=1, testing_on=False):
+    """
+    Submit exit questionnaire to CIP-API.
+    Args:
+        exit_questionnaire = populated exit_questionnaire object output from create_cr()
+        ir_id = interpretation request ID (without cip prefix or version, i.e. would be '12345' for SAP-12345-1)
+        ir_version = interpretation request version (the version following the ir-id, i.e. would be '1' for SAP-12345-1)
+        clinical_report_version = If there are multiple summary of findings for a case (use num_existing_reports() to check)
+        which one should the exit questionnaire be attached to? default = 1
+        testing_on = setting to True will use beta cip-api rather than live
+    """
+    # Create endpoint from user supplied variables ir_id and ir_version (hardcoded clinical_report_version 1 is OK
+    # because script checks no other clinical reports have been generated before calling this function:
+    eq_endpoint = "exit-questionnaire/{ir_id}/{ir_version}/{clinical_report_version}/?reports_v6=true".format(
+        ir_id=ir_id, ir_version=ir_version, clinical_report_version=clinical_report_version
+    )
+    # Set base url based on testing status
+    if testing_on:
+        cip_api_url = beta_testing_base_url
+    else:
+        cip_api_url = live_100k_data_base_url
+    # Create urls for uploading exit questionnaire
+    exit_questionnaire_url = cip_api_url + eq_endpoint
+    # Open Authenticated CIP-API session:
+    gel_session = AuthenticatedCIPAPISession(testing_on=testing_on)
+    # Upload Exit Questionnaire:
+    response = gel_session.put(url=exit_questionnaire_url, json=exit_questionnaire.toJsonDict())
     # Raise error if unsuccessful status code returned
     response.raise_for_status()
 
