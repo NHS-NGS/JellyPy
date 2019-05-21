@@ -48,7 +48,7 @@ def create_cr(
         referenceDatabasesVersions: dictionary (required) - Use get_reference_db_versions()
         softwareVersions: dictionary (required) - Use gel_software_versions()
     """
-    # Get date into correct format (YYYY-MM-DD) by converting to datetime object 
+    # Check date in correct format (YYYY-MM-DD) by converting to datetime object 
     reportingDate = datetime.datetime.strptime(reportingDate, "%Y-%m-%d")
     # Then convert back to string ready for submission
     reportingDate = reportingDate.strftime("%Y-%m-%d")
@@ -103,8 +103,8 @@ def post_cr(ir_json_v6, clinical_report, testing_on=False):
     gel_session = AuthenticatedCIPAPISession(testing_on=testing_on)
     # Upload Summary of findings:    
     response = gel_session.post(url=summary_of_findings_url, json=clinical_report.toJsonDict())
-    if response.status_code not in [200, 201]:
-        raise Exception("When submitting clinical-report expected result code 200/201 but got {r}".format(r=response.status_code))
+    # Raise error if unsuccessful status code returned
+    response.raise_for_status()
 
 def num_existing_reports(ir_json_v6):
     """
