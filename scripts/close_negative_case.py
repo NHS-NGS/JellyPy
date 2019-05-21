@@ -5,6 +5,7 @@ import sys
 from pyCIPAPI.interpretation_requests import get_interpretation_request_json
 from pyCIPAPI.summary_findings import create_cr, post_cr, num_existing_reports, get_ref_db_versions, gel_software_versions
 
+
 def parser_args():
     """Parse arguments from the command line"""
     parser = argparse.ArgumentParser(
@@ -26,15 +27,17 @@ def parser_args():
         required=True, type=str)
     return parser.parse_args()
 
+
 def get_request_details(_irid):
     """Check the format of the entered Interpretation request ID and version number"""
     # Regex to check that entered value is digits separated by -
-    if bool(re.match(r"^\d+-\d+$", _irid)) == False:
+    if not bool(re.match(r"^\d+-\d+$", _irid)):
         sys.exit("Interpretation request ID doesn't match the format 11111-1, please check entry")
     else:
         # If correctly formatted split interpretation_request on '-' and allocate to request_id, request_version
         request_id, request_version = _irid.split('-')
     return request_id, request_version
+
 
 def main():
     # Parse arguments from the command line
@@ -58,6 +61,7 @@ def main():
     )
     # Push clinical report to CIP-API
     post_cr(clinical_report=cr, ir_json_v6=ir_json_v6, testing_on=parsed_args.testing)
+
 
 if __name__ == '__main__':
     main()
