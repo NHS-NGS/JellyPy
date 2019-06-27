@@ -2,8 +2,11 @@
 
 from __future__ import print_function, absolute_import
 import json
+import jwt
+from jwt.exceptions import ExpiredSignatureError, DecodeError, InvalidTokenError
 import requests
 import maya
+from datetime import datetime
 from .auth_credentials import auth_credentials
 from .config import live_100k_data_base_url, beta_testing_base_url
 
@@ -12,7 +15,7 @@ from .config import live_100k_data_base_url, beta_testing_base_url
 class AuthenticatedCIPAPISession(requests.Session):
     """Subclass of requests Session for authenticating against GEL CIPAPI."""
 
-    def __init__(self, testing_on=False):
+    def __init__(self, testing_on=False, token=None):
         """Init AuthenticatedCIPAPISession and run authenticate function.
 
         Authentication credentials are stored in auth_credentials.py and are in
@@ -22,7 +25,40 @@ class AuthenticatedCIPAPISession(requests.Session):
 
         """
         requests.Session.__init__(self)
-        self.authenticate(testing_on=testing_on)
+
+        if token:
+            self.update_token(token)
+        else:
+            self.authenticate(testing_on=testing_on)
+
+    def update_token(self, token):
+        """Update session token with a user supplied one.
+
+        Stores the JWT token and updates creation and expiration time from payload.
+
+        Returns:
+            The current instance of AuthenticatedCIPAPISession with the headers
+            set to include token, the auth_time and auth_expires time.
+        """
+
+        try:
+            decoded_token = jwt.decode(token, verify=False)
+            self.headers.update({"Authorization": "JWT " + token})
+            self.auth_time = datetime.fromtimestamp(decoded_token['orig_iat'])
+            self.auth_expires = datetime.fromtimestamp(decoded_token['exp'])
+        except (InvalidTokenError, DecodeError, ExpiredSignatureError, KeyError):
+            self.auth_time = False
+            raise Exception('Invalid or expired JWT token')
+        except:
+            raise
+
+        # Check whether the token has expired
+        if datetime.now() > self.auth_expires:
+            raise Exception('JWT token has expired')
+        else:
+            pass
+
+        return self
 
     def authenticate(self, testing_on=False):
         """Use auth_credentials to generate an authenticated session.
@@ -35,7 +71,7 @@ class AuthenticatedCIPAPISession(requests.Session):
             The current instance of AuthenticatedCIPAPISession with the headers
             set to include token, the auth_time and auth_expires time.
         """
-        
+
         # Use the correct url if using beta dataset for testing:
         if testing_on == False:
             # Live data
@@ -48,20 +84,14 @@ class AuthenticatedCIPAPISession(requests.Session):
             token = (self.post(
                         cip_auth_url, data=(auth_credentials))
                      .json()['token'])
+            decoded_token = jwt.decode(token, verify=False)
             self.headers.update({"Authorization": "JWT " + token})
-            self.auth_time = maya.now()
-            self.auth_expires = self.auth_time.add(minutes=30)
+            self.auth_time = datetime.fromtimestamp(decoded_token['orig_iat'])
+            self.auth_expires = datetime.fromtimestamp(decoded_token['exp'])
         except KeyError:
             self.auth_time = False
             print('Authentication Error')
         return self
-
-    def check_auth(self, testing_on=False):
-        """Check whether the session is still authenticated."""
-        if maya.now() > self.auth_expires():
-            self.authenticate(testing_on=testing_on)
-        else:
-            pass
 
 
 class AuthenticatedOpenCGASession(requests.Session):
