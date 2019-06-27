@@ -61,9 +61,6 @@ local_settings.py
 instance/
 .webassets-cache
 
-# Pycharm stuff:
-.idea
-
 # Scrapy stuff:
 .scrapy
 
