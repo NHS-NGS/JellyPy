@@ -62,6 +62,7 @@ class AuthenticatedCIPAPISession(requests.Session):
 
     def authenticate(self, testing_on=False):
         """Use auth_credentials to generate an authenticated session.
+
         Uses the cip_auth_url hard coded in and credentials in the
         auth_credentials file to retrieve an authentication token from the CIP
         API.
@@ -70,6 +71,7 @@ class AuthenticatedCIPAPISession(requests.Session):
             The current instance of AuthenticatedCIPAPISession with the headers
             set to include token, the auth_time and auth_expires time.
         """
+
         # Use the correct url if using beta dataset for testing:
         if testing_on == False:
             # Live data
@@ -77,6 +79,7 @@ class AuthenticatedCIPAPISession(requests.Session):
         else:
             # Beta test data
             cip_auth_url = (beta_testing_base_url + 'get-token/')
+
         try:
             token = (self.post(
                         cip_auth_url, data=(auth_credentials))
