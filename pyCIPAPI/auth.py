@@ -6,7 +6,7 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, DecodeError, InvalidTokenError
 import requests
 import maya
-from datetime import datetime
+from datetime import datetime, timedelta
 from .auth_credentials import auth_credentials
 from .config import live_100k_data_base_url, beta_testing_base_url
 
@@ -53,7 +53,7 @@ class AuthenticatedCIPAPISession(requests.Session):
             raise
 
         # Check whether the token has expired
-        if datetime.now() > self.auth_expires:
+        if datetime.now() > self.auth_expires - timedelta(minutes=10):
             raise Exception('JWT token has expired')
         else:
             pass
@@ -90,7 +90,10 @@ class AuthenticatedCIPAPISession(requests.Session):
             self.auth_expires = datetime.fromtimestamp(decoded_token['exp'])
         except KeyError:
             self.auth_time = False
-            print('Authentication Error')
+            raise Exception('Authentication Error')
+        except:
+            raise
+
         return self
 
 

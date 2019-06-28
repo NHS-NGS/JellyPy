@@ -82,7 +82,7 @@ def create_cr(
         return cr
 
 
-def post_cr(ir_json_v6, clinical_report, testing_on=False):
+def post_cr(ir_json_v6, clinical_report, testing_on=False, token=None):
     """
     Submit clinical report (aka summary of findings) to CIP-API.
     This uses genomics_england_tiering as the analysis partner, emulating the closing of a case through
@@ -107,11 +107,13 @@ def post_cr(ir_json_v6, clinical_report, testing_on=False):
     # Create urls for uploading exit questionnaire and summary of findings
     summary_of_findings_url = cip_api_url + cr_endpoint
     # Open Authenticated CIP-API session:
-    gel_session = AuthenticatedCIPAPISession(testing_on=testing_on)
+    gel_session = AuthenticatedCIPAPISession(testing_on=testing_on, token=token)
     # Upload Summary of findings:
     response = gel_session.post(url=summary_of_findings_url, json=clinical_report.toJsonDict())
     # Raise error if unsuccessful status code returned
     response.raise_for_status()
+
+    return response.json()
 
 
 def num_existing_reports(ir_json_v6):

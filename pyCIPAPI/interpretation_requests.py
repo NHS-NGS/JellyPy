@@ -7,9 +7,9 @@ from .auth import AuthenticatedCIPAPISession
 from .config import live_100k_data_base_url, beta_testing_base_url
 
 
-def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False):
+def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False, token=None):
     """Get an interpretation request as a json."""
-    s = AuthenticatedCIPAPISession(testing_on=testing_on)
+    s = AuthenticatedCIPAPISession(testing_on=testing_on, token=token)
     payload = {
         'reports_v6': reports_v6
     }
@@ -44,9 +44,10 @@ def get_interpretation_request_list(page_size=100,
                                     long_name=None,
                                     tags=None,
                                     search=None,
-                                    testing_on=False):
+                                    testing_on=False,
+                                    token=None):
     """Get a list of interpretation requests."""
-    s = AuthenticatedCIPAPISession(testing_on=testing_on)
+    s = AuthenticatedCIPAPISession(testing_on=testing_on, token=token)
     interpretation_request_list = []
 
     # Use the correct url if using beta dataset for testing (imported form config.py):
