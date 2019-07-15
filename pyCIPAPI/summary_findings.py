@@ -204,6 +204,8 @@ def put_eq(exit_questionnaire, ir_id, ir_version, clinical_report_version=1, tes
     # Raise error if unsuccessful status code returned
     response.raise_for_status()
 
+    return response.json()
+
 
 def num_existing_reports(ir_json_v6):
     """
