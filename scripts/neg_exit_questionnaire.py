@@ -3,7 +3,7 @@ import datetime
 import re
 import sys
 from pyCIPAPI.interpretation_requests import get_interpretation_request_json
-from pyCIPAPI.summary_findings import create_cr, create_flq, create_eq, post_cr, put_eq, num_existing_reports, get_ref_db_versions, gel_software_versions
+from pyCIPAPI.summary_findings import create_flq, create_eq, put_eq, num_existing_reports
 
 
 def parser_args():
@@ -46,25 +46,14 @@ def main():
     ir_id, ir_version = get_request_details(parsed_args.interpretation_request)
     # Get v6 of interpretation request JSON
     ir_json_v6 = get_interpretation_request_json(ir_id, ir_version, reports_v6=True, testing_on=parsed_args.testing)
-    # Check that there is not already an exisitng clinical report
-    if num_existing_reports(ir_json_v6):
-        sys.exit("Existing clinical reports detected for interpretation request {ir_id}-{ir_version}".format(
+    # Check that there is only one exisitng clinical report
+    if num_existing_reports(ir_json_v6) != 1:
+        sys.exit("Expected 1 clinical report but found {num} for interpretation request {ir_id}-{ir_version}".format(
+            num=num_existing_reports(ir_json_v6),
             ir_id=ir_id,
             ir_version=ir_version
             )
         )
-    # Create clinical report object
-    cr = create_cr(
-        interpretationRequestId=ir_id,
-        interpretationRequestVersion=int(ir_version),
-        reportingDate=parsed_args.date,
-        user=parsed_args.reporter,
-        referenceDatabasesVersions=get_ref_db_versions(ir_json_v6),
-        softwareVersions=gel_software_versions(ir_json_v6),
-        genomicInterpretation="No tier 1 or 2 variants detected"
-    )
-    # Push clinical report to CIP-API
-    post_cr(clinical_report=cr, ir_json_v6=ir_json_v6, testing_on=parsed_args.testing)
     # Create exit questionnaire
     eq = create_eq(
         eventDate=parsed_args.date,
