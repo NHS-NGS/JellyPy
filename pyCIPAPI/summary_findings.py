@@ -207,6 +207,37 @@ def put_eq(exit_questionnaire, ir_id, ir_version, clinical_report_version=1, tes
     return response.json()
 
 
+def put_eq(exit_questionnaire, ir_id, ir_version, clinical_report_version=1, testing_on=False):
+    """
+    Submit exit questionnaire to CIP-API.
+    Args:
+        exit_questionnaire = populated exit_questionnaire object output from create_cr()
+        ir_id = interpretation request ID (without cip prefix or version, i.e. would be '12345' for SAP-12345-1)
+        ir_version = interpretation request version (the version following the ir-id, i.e. would be '1' for SAP-12345-1)
+        clinical_report_version = If there are multiple summary of findings for a case (use num_existing_reports() to check)
+        which one should the exit questionnaire be attached to? default = 1
+        testing_on = setting to True will use beta cip-api rather than live
+    """
+    # Create endpoint from user supplied variables ir_id and ir_version (hardcoded clinical_report_version 1 is OK
+    # because script checks no other clinical reports have been generated before calling this function:
+    eq_endpoint = "exit-questionnaire/{ir_id}/{ir_version}/{clinical_report_version}/?reports_v6=true".format(
+        ir_id=ir_id, ir_version=ir_version, clinical_report_version=clinical_report_version
+    )
+    # Set base url based on testing status
+    if testing_on:
+        cip_api_url = beta_testing_base_url
+    else:
+        cip_api_url = live_100k_data_base_url
+    # Create urls for uploading exit questionnaire
+    exit_questionnaire_url = cip_api_url + eq_endpoint
+    # Open Authenticated CIP-API session:
+    gel_session = AuthenticatedCIPAPISession(testing_on=testing_on)
+    # Upload Exit Questionnaire:
+    response = gel_session.put(url=exit_questionnaire_url, json=exit_questionnaire.toJsonDict())
+    # Raise error if unsuccessful status code returned
+    response.raise_for_status()
+
+
 def num_existing_reports(ir_json_v6):
     """
     This returns the number of existing clinical reports (i.e. summary of findings) for a case
