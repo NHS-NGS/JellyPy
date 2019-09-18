@@ -64,7 +64,7 @@ class AuthenticatedCIPAPISession(requests.Session):
         """Use auth_credentials to generate an authenticated session.
 
         Uses the cip_auth_url hard coded in and credentials in the
-        auth_credentials file to retrieve an authentication token from the CIP
+        auth_credentials.py file to retrieve an authentication token from the CIP
         API.
 
         Returns:
@@ -118,7 +118,7 @@ class AuthenticatedOpenCGASession(requests.Session):
         """Use auth_credentials to generate an authenticated session.
 
         Uses the cip_auth_url hard coded in and credentials in the
-        auth_credentials file to retrieve an authentication token from the CIP
+        auth_credentials.py file to retrieve an authentication token from the CIP
         API.
 
         Returns:
