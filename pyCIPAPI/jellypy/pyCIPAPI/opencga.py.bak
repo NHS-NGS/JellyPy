@@ -1,7 +1,8 @@
 """Functions for interacting with GEL instance of openCGA."""
 
-from .auth import AuthenticatedOpenCGASession
 import os
+
+from .auth import AuthenticatedOpenCGASession
 
 
 def get_study_id(study_type, assembly=None, sample_type=None):

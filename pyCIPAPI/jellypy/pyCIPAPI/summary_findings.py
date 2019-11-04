@@ -3,9 +3,13 @@ Functions for creating a clinical report (aka summary of findings), submitting a
 This is designed to emulate the closing of a case via the interpretation portal.
 """
 import datetime
-from protocols.reports_6_0_0 import ClinicalReport, InterpretedGenome, FamilyLevelQuestions, RareDiseaseExitQuestionnaire
+
+from protocols.reports_6_0_0 import (ClinicalReport, FamilyLevelQuestions,
+                                     InterpretedGenome,
+                                     RareDiseaseExitQuestionnaire)
+
 from .auth import AuthenticatedCIPAPISession
-from .config import live_100k_data_base_url, beta_testing_base_url
+from .config import beta_testing_base_url, live_100k_data_base_url
 from .interpretation_requests import get_interpretation_request_list
 
 

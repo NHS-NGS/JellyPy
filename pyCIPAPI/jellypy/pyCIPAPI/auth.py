@@ -1,14 +1,18 @@
 """Objects for authenticating with the GEL CIP API."""
 
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import, print_function
+
 import json
-import jwt
-from jwt.exceptions import ExpiredSignatureError, DecodeError, InvalidTokenError
-import requests
-import maya
 from datetime import datetime, timedelta
+
+import jwt
+import maya
+import requests
+from jwt.exceptions import (DecodeError, ExpiredSignatureError,
+                            InvalidTokenError)
+
 from .auth_credentials import auth_credentials
-from .config import live_100k_data_base_url, beta_testing_base_url
+from .config import beta_testing_base_url, live_100k_data_base_url
 
 
 # get an authenticated session
