@@ -1,6 +1,7 @@
 # credentials
 **/.auth_credentials.py
 **/test/config.ini
+pyCIPAPI/**/*_config.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

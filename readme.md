@@ -10,10 +10,8 @@ Run `pip install pyCIPAPI/` to install the pyCIPAPI package.
 
 ## Tests
 
-Uses pytest >=5.2.2:
-```
-pass
-```
+Testing pyCIPAPI (requires credentials in config file)
+> pytest pyCIPAPI/ --pconfig=pyCIPAPI/test/pyCIPAPI_config.ini
 
 ## Further documentation
 https://acgs.gitbook.io/bioinformatics/jellypy-docs

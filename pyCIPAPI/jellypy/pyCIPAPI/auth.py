@@ -19,7 +19,7 @@ from .config import beta_testing_base_url, live_100k_data_base_url
 class AuthenticatedCIPAPISession(requests.Session):
     """Subclass of requests Session for authenticating against GEL CIPAPI."""
 
-    def __init__(self, testing_on=False, token=None):
+    def __init__(self, testing_on=False, token=None, auth_credentials=auth_credentials):
         """Init AuthenticatedCIPAPISession and run authenticate function.
 
         Authentication credentials are stored in auth_credentials.py and are in
@@ -29,6 +29,7 @@ class AuthenticatedCIPAPISession(requests.Session):
 
         """
         requests.Session.__init__(self)
+        self.auth_credentials = auth_credentials
 
         if token:
             self.update_token(token)
@@ -86,7 +87,7 @@ class AuthenticatedCIPAPISession(requests.Session):
 
         try:
             token = (self.post(
-                        cip_auth_url, data=(auth_credentials))
+                        cip_auth_url, data=(self.auth_credentials))
                      .json()['token'])
             decoded_token = jwt.decode(token, verify=False)
             self.headers.update({"Authorization": "JWT " + token})

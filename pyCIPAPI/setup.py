@@ -16,6 +16,7 @@ setup(
         'PyJWT == 1.7.1',
         'requests == 2.22.0',
         'pandas == 0.24.1',
-        'openpyxl == 2.6.3'
+        'openpyxl == 2.6.3',
+        'confgiparser == 4.0.2'
     ]
 )
