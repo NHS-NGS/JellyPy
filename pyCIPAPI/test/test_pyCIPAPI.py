@@ -19,13 +19,16 @@ def test_config(pycipapi_config):
     """pyCIPAPI_config.ini accurately passed to pytest and readable"""
     assert bool(pycipapi_config['DEFAULT']['username']), "ERROR: Could not read pytestconfig file"
 
-def test_auth(pycipapi_config):
-    """auth.AuthenticatedCIPAPISession can authenticate users. Requires pre-populated config.ini
-    file passed to pytest instance"""
+@pytest.fixture
+def cipapi_session(pycipapi_config):
     auth_credentials = {
         'username': pycipapi_config['DEFAULT']['username'],
         'password': pycipapi_config['DEFAULT']['password']
     }
-    session = auth.AuthenticatedCIPAPISession(auth_credentials=auth_credentials)
+    return auth.AuthenticatedCIPAPISession(auth_credentials=auth_credentials)
+
+def test_auth(cipapi_session):
+    """auth.AuthenticatedCIPAPISession can authenticate users. Requires pre-populated config.ini
+    file passed to pytest instance"""
     # Session auth time is set to false if error raised
-    assert session.auth_time != False
+    assert cipapi_session.auth_time != False
