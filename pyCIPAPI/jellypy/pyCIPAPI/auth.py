@@ -1,7 +1,5 @@
 """Objects for authenticating with the GEL CIP API."""
 
-from __future__ import absolute_import, print_function
-
 import json
 from datetime import datetime, timedelta
 

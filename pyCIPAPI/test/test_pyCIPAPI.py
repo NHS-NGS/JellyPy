@@ -15,15 +15,15 @@ def test_import():
     """pyCIPAPI modules can be imported. Config string is readable from module."""
     assert bool(config.live_100k_data_base_url)
 
-def test_config(pycipapi_config):
+def test_config(jellypy_config):
     """pyCIPAPI_config.ini accurately passed to pytest and readable"""
-    assert bool(pycipapi_config['DEFAULT']['username']), "ERROR: Could not read pytestconfig file"
+    assert bool(jellypy_config['pyCIPAPI']['username']), "ERROR: Could not read pytestconfig file"
 
 @pytest.fixture
-def cipapi_session(pycipapi_config):
+def cipapi_session(jellypy_config):
     auth_credentials = {
-        'username': pycipapi_config['DEFAULT']['username'],
-        'password': pycipapi_config['DEFAULT']['password']
+        'username': jellypy_config['pyCIPAPI']['username'],
+        'password': jellypy_config['pyCIPAPI']['password']
     }
     return auth.AuthenticatedCIPAPISession(auth_credentials=auth_credentials)
 

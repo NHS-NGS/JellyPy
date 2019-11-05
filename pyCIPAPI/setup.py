@@ -15,8 +15,7 @@ setup(
         'maya == 0.6.1',
         'PyJWT == 1.7.1',
         'requests == 2.22.0',
-        'pandas == 0.24.1',
-        'openpyxl == 2.6.3',
-        'confgiparser == 4.0.2'
+        'pandas == 0.25.1',
+        'openpyxl == 2.6.3'
     ]
 )
