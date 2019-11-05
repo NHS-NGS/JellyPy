@@ -78,9 +78,11 @@ class AuthenticatedCIPAPISession(requests.Session):
         # Use the correct url if using beta dataset for testing:
         if testing_on == False:
             # Live data
+            self.url = live_100k_data_base_url.rstrip('/')
             cip_auth_url = (live_100k_data_base_url + 'get-token/')
         else:
             # Beta test data
+            self.url = beta_testing_base_url.rstrip('/')
             cip_auth_url = (beta_testing_base_url + 'get-token/')
 
         try:

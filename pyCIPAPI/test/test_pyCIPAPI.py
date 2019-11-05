@@ -9,6 +9,7 @@ import pytest
 
 import jellypy.pyCIPAPI.config as config
 import jellypy.pyCIPAPI.auth as auth
+import jellypy.pyCIPAPI.interpretation_requests as irs
 
 
 def test_import():
@@ -32,3 +33,16 @@ def test_auth(cipapi_session):
     file passed to pytest instance"""
     # Session auth time is set to false if error raised
     assert cipapi_session.auth_time != False
+
+class TestIRTools():
+    def test_get_irjson(self, cipapi_session):
+        """Interpretation request jsons can be downloaded from the CIPAPI"""
+        data = irs.get_ir_json(2202,2,cipapi_session,{'reports_v6':True})
+        assert 'interpreted_genome' in data.keys()
+    
+    def test_v6_model(self, cipapi_session):
+        """Returned json is GeL v6 model"""
+        is_v6 = irs.get_ir_json(2202,2,cipapi_session,{'reports_v6':True})
+        not_v6 = irs.get_ir_json(2202,2,cipapi_session,{'reports_v6':True})
+
+        pass

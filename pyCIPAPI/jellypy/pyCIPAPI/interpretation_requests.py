@@ -9,6 +9,19 @@ from time import strptime
 from .auth import AuthenticatedCIPAPISession
 from .config import beta_testing_base_url, live_100k_data_base_url
 
+def get_ir_json(ir_id, ir_version, session, payload):
+    """Return an interpretation request json from the CIPAPI endpoint.
+    Args:
+        ir_id(int): Interpretation request ID
+        ir_version(int): Interpretation request version
+        session(jellypy.pyCIPAPI.auth.AuthenticatedCIPAPISession): An authorised CIP API session.
+            Requires url attribute with the API endpoint.
+        payload(dict): A dictionary of parameters for requests to the CIPAPI
+    """
+    request_url = f"{session.url}/interpretation-request/{ir_id}/{ir_version}"
+    response = session.get(request_url, params=payload)
+    response.raise_for_status()
+    return response.json()
 
 def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False, token=None):
     """Get an interpretation request as a json."""
