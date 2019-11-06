@@ -6,22 +6,33 @@ import json
 import os
 from time import strptime
 
+from protocols.util.dependency_manager import VERSION_61
+from protocols.util.factories.avro_factory import GenericFactoryAvro
+from protocols.reports_6_0_1 import InterpretedGenome
+
 from .auth import AuthenticatedCIPAPISession
 from .config import beta_testing_base_url, live_100k_data_base_url
 
-def get_ir_json(ir_id, ir_version, session, payload):
-    """Return an interpretation request json from the CIPAPI endpoint.
+def get_ir_json(ir_id, ir_version, session, payload={'reports_v6':True}, host=live_100k_data_base_url):
+    """Return an interpretation request from the CIPAPI endpoint in JSON format.
     Args:
-        ir_id(int): Interpretation request ID
-        ir_version(int): Interpretation request version
-        session(jellypy.pyCIPAPI.auth.AuthenticatedCIPAPISession): An authorised CIP API session.
-            Requires url attribute with the API endpoint.
-        payload(dict): A dictionary of parameters for requests to the CIPAPI
+        ir_id (int): Interpretation request ID
+        ir_version (int): Interpretation request version
+        session (jellypy.pyCIPAPI.auth.AuthenticatedCIPAPISession): An authenticated CIP API session instance.
+        payload (dict): A dictionary of parameters to send in the request body
+    Returns:
+        resonse (dict): A GeL interpretation request endpoint json response
     """
-    request_url = f"{session.url}/interpretation-request/{ir_id}/{ir_version}"
+    request_url = f"{host.rstrip('/')}/interpretation-request/{ir_id}/{ir_version}"
     response = session.get(request_url, params=payload)
     response.raise_for_status()
     return response.json()
+
+def get_v6_interpreted_genome_validator():
+    """Return a GeLModels object for validating interpreted_genome dictionaries under the v6 model"""
+    ir_factory = GenericFactoryAvro.get_factory_avro(InterpretedGenome, version=VERSION_61)
+    ir_factory_instance = ir_factory()
+    return ir_factory_instance
 
 def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False, token=None):
     """Get an interpretation request as a json."""
