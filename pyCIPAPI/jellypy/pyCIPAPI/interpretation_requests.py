@@ -34,9 +34,9 @@ def get_v6_interpreted_genome_validator():
     ir_factory_instance = ir_factory()
     return ir_factory_instance
 
-def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False, token=None):
+def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False, token=None, session=None):
     """Get an interpretation request as a json."""
-    s = AuthenticatedCIPAPISession(testing_on=testing_on, token=token)
+    s = session if session else AuthenticatedCIPAPISession(testing_on=testing_on, token=token)
     payload = {
         'reports_v6': reports_v6
     }
