@@ -1,6 +1,5 @@
 # content of conftest.py
 import pytest
-import pathlib
 from configparser import ConfigParser
 
 def read_config(ini_path):
