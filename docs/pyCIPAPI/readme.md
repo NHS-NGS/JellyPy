@@ -8,7 +8,9 @@
 pip install ./pyCIPAPI
 ```
 
-## Download interpretation request by id and version
+## Guides
+
+### Download interpretation request json by id and version
 
 A GeL interpretation request can be downloaded using pyCIPAPI.
 
