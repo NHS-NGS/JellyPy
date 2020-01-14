@@ -3,6 +3,3 @@ root: ./
 ​structure:  
     readme: README.md  
     pycipapi: docs/pyCIPAPI/readme.md​
-    
-redirects:  
-    previous/page: new-folder/page.md
