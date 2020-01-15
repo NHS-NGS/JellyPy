@@ -2,6 +2,6 @@
 root: ./docs
 ​structure: 
   summary: summary.md
-  readme: readme.md
-  pycipapi: ./pyCIPAPI/index.md​
+  readme: ./readme.md
+
   

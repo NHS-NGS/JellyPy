@@ -1,4 +1,8 @@
-# Summary
+# Site Map
+
+## JellyPy
+
+* [About](readme.md)]
 
 ## pyCIPAPI
 
@@ -6,4 +10,4 @@
 
 ## TierUp
 
-* [User Guide](tierup/guide.md)
+* [User Guide](tierup/User-Guide.md)
