@@ -2,7 +2,7 @@
 
 ## JellyPy
 
-* [About](readme.md)]
+* [About](readme.md)
 
 ## pyCIPAPI
 
@@ -10,4 +10,4 @@
 
 ## TierUp
 
-* [User Guide](tierup/User-Guide.md)
+* [User Guide](tierup/index.md)

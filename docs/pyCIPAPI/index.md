@@ -1,4 +1,4 @@
-## pyCIPAPI
+# Developer Guide
 
 `jellypy.pyCIPAPI` provides helper functions for interacting with GeL APIs.
 
