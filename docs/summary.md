@@ -10,4 +10,4 @@
 
 ## TierUp
 
-* [User Guide](tierup/index.md)
+* [User Guide](TierUp/guide.md)
