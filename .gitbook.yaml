@@ -1,5 +1,4 @@
 --- 
-root: ./
+root: ./docs
 ​structure: 
-  readme: readme.md
   pycipapi: ./docs/pyCIPAPI/readme.md​
