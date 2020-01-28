@@ -1,4 +1,4 @@
-# Summary
+# Index
 
 ## JellyPy
 
@@ -10,4 +10,4 @@
 
 ## TierUp
 
-* [User Guide](TierUp/guide.md)
+* [User Guide](TierUp/index.md)
