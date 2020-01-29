@@ -1,12 +1,18 @@
 # JellyPy
 
-## Introduction
-.
+![jellypy_logo](assets/jellypy_logo_v2.png)
 
-## Installation
+## Python packages for juggling GeL data
 
-Simply run `pip install .` to install the pyCIPAPI package and its associated prequisites
+Find documentation at https://acgs.gitbook.io/jellypy
 
-## Further documentation
-https://acgs.gitbook.io/bioinformatics/jellypy-docs
-(log in link for editing docs - https://app.gitbook.com/ - please ask for an invite link)
+Batteries included:
+
+* `jellypy-pyCIPAPI` : Client library for the Clinical Interpretation Portal
+* `jellypy-tierup` : Find Tier 3 variants to PanelApp Green genes
+
+## Contributing
+
+Please raise an issue to request new functions or features: https://github.com/NHS-NGS/JellyPy/issues
+
+To develop a new function or feature, please take a look at the issues raised. If there's something that you would like to code up, then (you are awesome and) start a discussion in the #jellypy channel at https://binfx.slack.com/messages

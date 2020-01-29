@@ -1,16 +1,17 @@
 """Functions for getting and manipulating interpretation requests."""
+from __future__ import print_function
 
-import os
 import datetime
 import json
+import os
 from time import strptime
+
 from .auth import AuthenticatedCIPAPISession
-from .config import live_100k_data_base_url, beta_testing_base_url
+from .config import beta_testing_base_url, live_100k_data_base_url
 
-
-def get_interpretation_request_json(ir_id, ir_version, reports_v6=False, testing_on=False, token=None):
+def get_interpretation_request_json(ir_id, ir_version, reports_v6=True, testing_on=False, token=None, session=None):
     """Get an interpretation request as a json."""
-    s = AuthenticatedCIPAPISession(testing_on=testing_on, token=token)
+    s = session if session else AuthenticatedCIPAPISession(testing_on=testing_on, token=token)
     payload = {
         'reports_v6': reports_v6
     }

@@ -1,5 +1,12 @@
-# credentials
-pyCIPAPI/auth_credentials.py
+# JellyPy
+**/.auth_credentials.py
+config.ini
+
+# JellyPy dev
+.pytest_cache/
+.vscode/
+_data/
+tierup/docs/_build/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
