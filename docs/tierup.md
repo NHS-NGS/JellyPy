@@ -1,4 +1,4 @@
-# User Guide
+# tierup
 
 `tierup` finds Tier 3 variants in GeL cases with PanelApp Green genes.
 
