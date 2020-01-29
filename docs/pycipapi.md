@@ -1,6 +1,6 @@
 # pyCIPAPI
 
-A client libary for interacting with `jellypy.pyCIPAPI` provides helper functions for interacting with GeL APIs.
+`jellypy.pyCIPAPI` provides helper functions for interacting with GeL APIs.
 
 ## Installation
 

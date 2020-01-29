@@ -169,7 +169,7 @@ def access_date_summary_content(date1, date2, testing_on=False, token=None):
     try:
         assert strptime(date1, '%d-%m-%Y') < strptime(date2, '%d-%m-%Y'), 'Dates provided in wrong order'
     except ValueError as v:
-        print(('Date Values provided couldn\'t be converted:', v))
+        print('Date Values provided couldn\'t be converted:', v)
         quit()
 
     date_summary_ext = 'interpretation-request/date-summary/{start}/{fin}/'.format(start=date1, fin=date2)
