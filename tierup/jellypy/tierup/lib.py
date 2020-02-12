@@ -45,7 +45,7 @@ class ReportEvent:
 
 class PanelUpdater:
     """Update panel IDs in IRJson object panels.
-    
+
     Panels applied when tier 3 variants were reported can have different PanelApp IDs today.
     This class searches PanelApp to update panel identifiers where possible.
     """
@@ -68,7 +68,7 @@ class PanelUpdater:
 
     def _search_panelapp(self, missing_panels) -> list:
         """Search the relevant disorders section of panelapp for given panel names.
-    
+
         Args:
             missing_panels: Panel names to find in panelapp.
         Returns:
@@ -202,7 +202,7 @@ class TierUpRunner:
 
 class TierUpWriter:
     """Write TierUp results as CSV file.
-    
+
     Args:
         outfile(str): Output file path
         schema(str): A json.schema file with output file headers expected in data
