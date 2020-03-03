@@ -11,6 +11,7 @@ from jwt.exceptions import (DecodeError, ExpiredSignatureError,
 
 from .auth_credentials import auth_credentials
 from .config import beta_testing_base_url, live_100k_data_base_url
+from .config import beta_testing_auth_url, live_100K_auth_url
 
 
 # get an authenticated session
@@ -78,19 +79,20 @@ class AuthenticatedCIPAPISession(requests.Session):
         # Use the correct url if using beta dataset for testing:
         if testing_on == False:
             # Live data
-            cip_auth_url = (live_100k_data_base_url + 'get-token/')
+            cip_auth_url = (live_100K_auth_url)
         else:
             # Beta test data
-            cip_auth_url = (beta_testing_base_url + 'get-token/')
+            cip_auth_url = (beta_testing_auth_url)
 
         try:
-            token = (self.post(
-                        cip_auth_url, data=(self.auth_credentials))
-                     .json()['token'])
-            decoded_token = jwt.decode(token, verify=False)
-            self.headers.update({"Authorization": "JWT " + token})
-            self.auth_time = datetime.fromtimestamp(decoded_token['orig_iat'])
-            self.auth_expires = datetime.fromtimestamp(decoded_token['exp'])
+            auth_response = self.post(
+                cip_auth_url,
+                data="grant_type=client_credentials",
+                auth=(auth_credentials['client_id'], auth_credentials['client_secret'])
+            ).json()
+            self.headers.update({"Authorization": "JWT " + auth_response['access_token']})
+            self.auth_time = datetime.fromtimestamp(int(auth_response['not_before']))
+            self.auth_expires = datetime.fromtimestamp(int(auth_response['expires_on']))
         except KeyError:
             self.auth_time = False
             raise Exception('Authentication Error')
