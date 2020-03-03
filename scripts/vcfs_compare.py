@@ -95,23 +95,23 @@ def compare_vcfs( vcf_file1, vcf_file2, exit_on_error = False):
         # so as long as the qual score is with in +/- 1 I am happy
         # with it.
         if ( abs(vcf1_rec.qual - vcf2_rec.qual) > 1 ):
-        if ( vcf1_rec.qual != vcf2_rec.qual ):
-            errors.append('qual')
+            if ( vcf1_rec.qual != vcf2_rec.qual ):
+                errors.append('qual')
 
-        if ( vcf1_rec.filter != vcf2_rec.filter ):
-            errors.append('filter')
+            if ( vcf1_rec.filter != vcf2_rec.filter ):
+                errors.append('filter')
 
-        if ( list(vcf1_rec.format) != list(vcf2_rec.format) ):
-            errors.append('format')
+            if ( list(vcf1_rec.format) != list(vcf2_rec.format) ):
+                errors.append('format')
 
-        for sample in vcf1_samples:
-            if ( vcf1_rec.samples[ sample] != vcf2_rec.samples[ sample] ):
-                errors.append('sample {}'.format( sample ))
+            for sample in vcf1_samples:
+                if ( vcf1_rec.samples[ sample] != vcf2_rec.samples[ sample] ):
+                    errors.append('sample {}'.format( sample ))
 
-        if (errors ):
-            errors = handle_error( error_string.format( type="Error(s) on: {}".format( ", ".join(errors))), exit_on_error  )
+            if (errors ):
+                errors = handle_error( error_string.format( type="Error(s) on: {}".format( ", ".join(errors))), exit_on_error  )
 
-            
+                
         # Track the positions in the vcf files so one does not come ahead of the other 
         if ( vcf1_rec.pos > vcf2_rec.pos ):
             vcf2_rec = next_vcf_rec(vcf2 )
