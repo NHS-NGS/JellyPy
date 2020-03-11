@@ -1,1 +1,2 @@
-biopython==1.70
+entrezpy == 2.0.2
+pandas==0.24.2

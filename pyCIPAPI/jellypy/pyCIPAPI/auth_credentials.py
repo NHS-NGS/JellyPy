@@ -1,1 +1,1 @@
-auth_credentials = None
+auth_credentials = {"username": "jrainford", "password": ""}
