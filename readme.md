@@ -19,6 +19,9 @@ To develop a new function or feature, please take a look at the issues raised. I
 
 ## Changelog
 
+### jellypy-pyCIPAPI
+
 * 0.1.0 - Make JellyPy a namespace package
 * 0.2.0 - Update pyCIPAPI to work with GeL client token/secret GMS authentication
-* 0.2.1 - Support legacy authentication by allowing AD to be toggled on/off in config file 
+* 0.2.1 - Support legacy authentication by allowing AD to be toggled on/off in config file
+* 0.2.2 - Add sub-heading to README changelog
