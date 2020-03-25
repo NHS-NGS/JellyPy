@@ -1,5 +1,5 @@
 import datetime
-from pyCIPAPI.interpretation_requests import (
+from jellypy.pyCIPAPI.interpretation_requests import (
     get_interpretation_request_list, get_interpretation_request_json,
     get_variant_tier, save_interpretation_request_list_json)
 

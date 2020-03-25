@@ -5,10 +5,14 @@ README = ( pathlib.Path(__file__).parent / 'readme.md').read_text()
 
 setup(
     name='jellypy_pyCIPAPI',
-    version='0.1.0',
+    version='0.2.2',
     author="NHS Bioinformatics Group",
     author_email="joowook.ahn@nhs.net",
     description='Python client library the Genomics England CIPAPI',
+    long_description='#pyCIPAPI \
+        A library of utilities for interfacing with the GeL CIP API \
+        Documentation at https://acgs.gitbook.io/jellypy/pycipapi',
+    long_description_content_type='text/markdown',
     url='https://github.com/NHS-NGS/JellyPy/pyCIPAPI',
     packages=find_packages(),
     python_requires='>=3.6.*',

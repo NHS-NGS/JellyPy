@@ -2,8 +2,8 @@ import argparse
 import datetime
 import re
 import sys
-from pyCIPAPI.interpretation_requests import get_interpretation_request_json
-from pyCIPAPI.summary_findings import create_cr, post_cr, num_existing_reports, get_ref_db_versions, gel_software_versions
+from jellypy.pyCIPAPI.interpretation_requests import get_interpretation_request_json
+from jellypy.pyCIPAPI.summary_findings import create_cr, post_cr, num_existing_reports, get_ref_db_versions, gel_software_versions
 
 
 def parser_args():
