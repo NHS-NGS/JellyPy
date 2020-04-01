@@ -191,7 +191,7 @@ class IRJIO:
     def get(
         cls: object, irid: int, irversion: int, session: AuthenticatedCIPAPISession
     ) -> IRJson:
-        """Get an interpretation request json from the CPIAPI using jellpy.pyCIPAPI library
+        """Get an interpretation request json from the CPIAPI using jellypy.pyCIPAPI library
 
         Args:
             irid: Interpretation request id
