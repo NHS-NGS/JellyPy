@@ -11,8 +11,6 @@ import jellypy.tierup.panelapp as pa
 from collections import Counter
 from jellypy.pyCIPAPI.auth import AuthenticatedCIPAPISession
 from protocols.reports_6_0_1 import InterpretedGenome
-from protocols.util.dependency_manager import VERSION_500
-from protocols.util.factories.avro_factory import GenericFactoryAvro
 
 
 logger = logging.getLogger(__name__)
@@ -57,17 +55,12 @@ class IRJValidator:
     @staticmethod
     def is_v6(irjson: dict) -> bool:
         """Returns true if the interpreted genome of an irjson is GeL v6 model.
-        Despite using the report_v6 argument, older interpretation requests are not returned with this schema.
+        Even when using the report_v6 API flag, older interpretation requests won't match this schema.
         
         Args:
             irjson: Interpretation request data in json format.
         """
-        irj_genome = irjson["interpreted_genome"][0]["interpreted_genome_data"]
-        ir_factory = GenericFactoryAvro.get_factory_avro(
-            InterpretedGenome, version=VERSION_500
-        )
-        ir_factory_instance = ir_factory()
-        return ir_factory_instance.validate(irj_genome)
+        return InterpretedGenome.validate(irjson["interpreted_genome"][0]["interpreted_genome_data"])
 
     @staticmethod
     def is_sent(irjson: dict) -> bool:
