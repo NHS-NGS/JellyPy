@@ -19,6 +19,8 @@ pip install jellypy-tierup
     username = your_username
     password = your_password
     ```
+    
+    Please note: jellypy-tierup authenticates users using their LDAP credentials and is not yet compatible with the GeL active directory authentication.
 
 1. Run tierup
     For example, interpretation request 1234 version 2 could be analysed with:
@@ -27,12 +29,12 @@ pip install jellypy-tierup
     ```
 
 1. View results
-    * \*.tierup.summary.csv - A list of any tierup (PanelApp Green) variants found
+    * \*.tierup.summary.csv - A list of any tierup (PanelApp Green) variants found. This is file is *blank* if no variants are found.
     * \*.tierup.csv - Complete data from all Tier 3 variants anlaysed
 
 ## Constraints
 
-* `tierup` analyses undiagnosed rare disease cases
+* `tierup` is designed for undiagnosed rare disease cases. The tool therefore raises an error if users attempt to process a solved case.
 * Access to case data from GeL is only possible on the [HSCN](https://digital.nhs.uk/services/health-and-social-care-network)
 * Case data must comply with the GeL v6 interpretation request model
 
