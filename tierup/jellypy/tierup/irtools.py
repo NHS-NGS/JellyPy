@@ -81,7 +81,7 @@ class IRJValidator:
 
         """
         # If a report has not been issued, the clinical_report field will be an empty list. Return True.
-        if irjson["clinical_report"] == []:
+        if not irjson["clinical_report"]:
             return True
 
         reports = irjson["clinical_report"]
