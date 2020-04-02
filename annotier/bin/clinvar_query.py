@@ -1,5 +1,15 @@
+"""
+Functions to take a json of GEL variants, query against ClinVar VCF 
+if present, and then return full ClinVar entry for those that are.
+
+To do more than 3 requests per second to ClinVar this requires an NCBI account,
+and the email and api key passing to entrezpy. These are stored in ncbi_credentials.py
+in /bin.
+"""
+
 import json
 import sys
+import re
 import os
 import pandas as pd
 import pprint
@@ -12,23 +22,38 @@ variant_list = []
 position_list = []
 clinvar_list = []
 
+dirname = os.path.dirname(__file__)
+data_dir = os.path.join(dirname, "../data/")
+
 def get_json_data():
     # temporary test json until using cipapi
     sample_json = os.path.expanduser("~/annoTier_local_data/sample_ir.json")
 
     with open(sample_json) as json_file:
         ir_json = json.load(json_file)
-    
+
     return ir_json
 
 def vcf_to_df():
-    # Read in clinvar vcf to df for querying
-    vcf = os.path.expanduser("../data/annoTier_local_data/clinvar.vcf")
-    clinvar_df = pd.read_csv(vcf, header = [27], sep='\t')
+    """
+    Read in clinvar vcf to df for querying
+    """
+    
+    data_files = []
 
+    for (dirpath, dirnames, filenames) in os.walk(data_dir):
+        data_files.extend(filenames)
+
+    for file in data_files:
+        if re.match("^clinvar_[0-9]+\.vcf$", file):
+            # get just the clinvar vcf
+            vcf = os.path.join(data_dir, file)
+
+    clinvar_df = pd.read_csv(vcf, header = [27], sep='\t')
+    
     return clinvar_df
 
-def json_variants():
+def json_variants(ir_json):
     """
     Function to pull out variant positions from JSON
     """
@@ -46,23 +71,35 @@ def json_variants():
     
     return variant_list
 
-def get_clinvar_ids():
+def get_clinvar_ids(clinvar_df):
     """
-    Function to query all variants in JSON against ClinVar VCF
+    Function to query all variants in JSON against ClinVar VCF, returns those pathogenic and likely pathogenic
     """
-    for pos in position_list:
-        if len(clinvar_df[clinvar_df['POS'].isin([pos])]) != 0:
-            match = clinvar_df[clinvar_df['POS'].isin([pos])]
-            print(match)
+    for position in position_list:
+        # check if variant position is in clinvar df
+        if len(clinvar_df[clinvar_df['POS'].isin([position])]) != 0:
+            
+            match = clinvar_df[clinvar_df['POS'].isin([position])]
+            match_info = match.iloc[0]["INFO"] # get info field with pathogenicity
 
-            if match["INFO"].str.contains("pathogenic").bool():
+            if "CLNSIG=Pathogenic" in match_info or "CLNSIG=Likely_pathogenic" in match_info:
+                # add variant if classified as pathogenic or likely pathogenic
                 clinvar_list.append(int(match.iloc[0]["ID"]))
-                          
+            
+            if "CLNSIG=Conflicting_interpretations_of_pathogenicity" in match_info:
+                clnsigconf = [i for i in match_info.split(";") if i.startswith("CLNSIGCONF")]
+
+                if "pathogenic" in clnsigconf[0].casefold():
+                    # add variant if classified as pathogenic or likely pathogenic but with conflicts
+                    clinvar_list.append(int(match.iloc[0]["ID"]))
+    
     return clinvar_list
 
 def get_clinvar_data(clinvar_list):
     """
-    Take list of variants with clinvar entries and return full clinvar entry
+    Take list of variants with pathogenic / likely pathogenic 
+    clinvar entries and return full clinvar information
+    Requires NCBI email and api_key adding to ncbi_credentials.py to do more than 3 requests per second
     """
     e = entrezpy.esummary.esummarizer.Esummarizer("clinvar_summary",
                 ncbi_credentials["email"],
@@ -78,6 +115,8 @@ def get_clinvar_data(clinvar_list):
        
 if __name__ == "__main__":
 
-    json_variants()
-    get_clinvar_ids()
+    ir_json = get_json_data()
+    clinvar_df = vcf_to_df()
+    json_variants(ir_json)
+    get_clinvar_ids(clinvar_df)
     get_clinvar_data(clinvar_list)
