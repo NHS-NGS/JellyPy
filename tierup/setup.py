@@ -1,7 +1,7 @@
 import pathlib
 from setuptools import find_packages, setup
 
-README = ( pathlib.Path(__file__).parent / 'readme.md').read_text()
+README = ( pathlib.Path(__file__).parent / 'pypi_readme.md').read_text()
 
 setup(
     name='jellypy_tierup',
@@ -19,7 +19,7 @@ setup(
     install_requires=[
         'click==7.0',
         'jsonschema==3.2.0',
-        'jellypy-pyCIPAPI==0.1.0'
+        'jellypy-pyCIPAPI==0.2.2'
     ],
     entry_points = {
         'console_scripts': 'tierup=jellypy.tierup.interface:cli'
