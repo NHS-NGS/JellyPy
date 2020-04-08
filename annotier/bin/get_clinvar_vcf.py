@@ -12,25 +12,33 @@ from ftplib import FTP
 dirname = os.path.dirname(__file__)
 data_dir = os.path.join(dirname, "../data/")
 
+# compile required regex 
+clinvar_vcf_regex = re.compile("^clinvar_([0-9]+)\.vcf$")
+clinvar_gz_regex = re.compile("^clinvar_[0-9]+\.vcf.gz$")
+
 def local_vcf():
     """
     Check for local ClinVar vcf, and return version (date)
     """
-    data_files = []
     local_vcf_ver = 0
 
     for (dirpath, dirnames, filenames) in os.walk(data_dir):
-        data_files.extend(filenames)
-
-    for file in data_files:
-        if re.match("^clinvar_[0-9]+\.vcf$", file):
-            # get just the clinvar vcf
-            local_vcf_ver = int(file.split("_")[1].split(".")[0])
-            print("Current version of ClinVar downloaded: {}".format(local_vcf_ver))
+        for filename in filenames:
+            match = clinvar_vcf_regex.match(filename)
+            if match:
+                # get just the clinvar vcf
+                vcf_ver = int(filename.split("_")[1].split(".")[0])
+                if vcf_ver > local_vcf_ver:
+                    # if multiple vcfs in data select just the latest
+                    local_vcf_ver = vcf_ver
+                else:
+                    continue
 
     if local_vcf_ver == 0:
         # no vcf downloaded
-        print("No vcf found locally")
+        print("No vcf found locally, latest will be downloaded")
+    else:
+        print("Current version of ClinVar downloaded: {}".format(local_vcf_ver))
 
     return local_vcf_ver
 
@@ -46,13 +54,14 @@ def get_ftp_files():
     file_list = []
     ftp.retrlines('LIST', file_list.append)
 
-    for file in file_list:
-        file_name = file.split()[-1]
-        if re.match("^clinvar_[0-9]+\.vcf.gz$", file_name):
+    for f in file_list:
+        file_name = f.split()[-1]
+        if clinvar_gz_regex.match(file_name):
             # get just the full clinvar vcf
             ftp_vcf = file_name
-    
-    ftp_vcf_ver = int(ftp_vcf.split("_")[1].split(".")[0])
+            ftp_vcf_ver = int(ftp_vcf.split("_")[1].split(".")[0])
+
+            break
     
     print("Latest available ClinVar version available: {}".format(ftp_vcf_ver))
 
@@ -68,12 +77,11 @@ def get_vcf(filename):
     ftp.cwd("/pub/clinvar/vcf_GRCh38/")
 
     file_to_download = os.path.join(data_dir, filename)
-    localfile = open(file_to_download, 'wb')
-
-    ftp.retrbinary('RETR ' + filename, localfile.write, 1024)
+    
+    with open(file_to_download, 'wb') as localfile:
+        ftp.retrbinary('RETR ' + filename, localfile.write, 1024)
 
     ftp.quit()
-    localfile.close()
 
 def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
     """
@@ -86,7 +94,7 @@ def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
         get_vcf(ftp_vcf) # downloads latest vcf
         
         vcf_to_unzip = os.path.join(data_dir, ftp_vcf)
-        decompressed_vcf = os.path.join(data_dir, str(ftp_vcf).strip(".gz"))
+        decompressed_vcf = os.path.join(data_dir, str(ftp_vcf)[:-3]) # removes .gz extension
 
         with gzip.open(vcf_to_unzip, 'rb') as f:
             print("Decompressing {}".format(ftp_vcf))
@@ -99,7 +107,7 @@ def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
             f.write(vcf_data)
             f.close
         
-        os.unlink(vcf_to_unzip) # delete original vcf.gz
+        os. remove(vcf_to_unzip) # delete original vcf.gz
 
     else:
         print("Latest ClinVar vcf already downloaded")

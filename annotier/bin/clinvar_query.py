@@ -49,7 +49,7 @@ def vcf_to_df():
             # get just the clinvar vcf
             vcf = os.path.join(data_dir, file)
 
-    clinvar_df = pd.read_csv(vcf, header = [27], sep='\t')
+    clinvar_df = pd.read_csv(vcf, header = [27], sep='\t', low_memory=False)
     
     return clinvar_df
 
@@ -73,7 +73,7 @@ def json_variants(ir_json):
 
 def get_clinvar_ids(clinvar_df):
     """
-    Function to query all variants in JSON against ClinVar VCF, returns those pathogenic and likely pathogenic
+    Function to query all variants in JSON against ClinVar df, returns ids of those pathogenic and likely pathogenic
     """
     for position in position_list:
         # check if variant position is in clinvar df
@@ -112,6 +112,8 @@ def get_clinvar_data(clinvar_list):
     a = e.inquire({'db': 'clinvar', 'id': clinvar_list})
     pp = pprint.PrettyPrinter(indent=1)
     pp.pprint(a.get_result().summaries)
+
+    # need to decide what needs returning from .summaries, probably clinvar_id and clinsig
        
 if __name__ == "__main__":
 
