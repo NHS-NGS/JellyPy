@@ -1,9 +1,19 @@
 
 """
-Tests for jellypy-pyCIPAPI package
+Tests for jellypy-pyCIPAPI package. 
+
+Ensure you have installed jellypy-pyCIPAPI from the repository: 
+    $ pip install ./pyCIPAPI
 
 Usage:
-    pytest tierup/test/test_requests.py --jpconfig=tierup/test/config.ini
+    pytest pyCIPAPI/test/test_pyCIPAPI.py --jpconfig=config.ini
+
+Example config.ini format:
+    [pyCIPAPI]
+    client_id = YOUR_CLIENT_ID
+    client_secret = YOUR_CLIENT_SECRET
+    test_irid = VALID_INTERPRETATION_REQUEST_ID
+    test_irversion = VALID_INTERPRETATION_REQUEST_VERSION
 """
 import pytest
 
@@ -17,25 +27,32 @@ def test_import():
     assert bool(config.live_100k_data_base_url)
 
 def test_config(jpconfig):
-    """A jellypy config.ini file has been parsed by pytest"""
+    """Test that a valid config.ini file has been parsed by pytest"""
     assert jpconfig is not None, \
         "ERROR: Jellypy tests require config file. Please pass --jpconfig <yourfile.ini>"
     try:
-        assert bool(jpconfig['pyCIPAPI']['username'])
-        assert bool(jpconfig['pyCIPAPI']['password'])
+        assert bool(jpconfig['pyCIPAPI']['client_id'])
+        assert bool(jpconfig['pyCIPAPI']['client_secret'])
     except KeyError:
         raise ValueError("ERROR: Could not read expected key from jpconfig. See example in docs.")
 
-def test_get_irjson(jpconfig):
-    """Interpretation requests json files can be downloaded from the CIPAPI"""
-    irid = jpconfig.get('pyCIPAPI', 'test_irid')
-    irversion = jpconfig.get('pyCIPAPI', 'test_irversion')
+@pytest.fixture()
+def authenticated_session(jpconfig):
     session = auth.AuthenticatedCIPAPISession(
             auth_credentials={
-            'username': jpconfig.get('pyCIPAPI', 'username'),
-            'password': jpconfig.get('pyCIPAPI', 'password')
+            'client_id': jpconfig.get('pyCIPAPI', 'client_id'),
+            'client_secret': jpconfig.get('pyCIPAPI', 'client_secret')
         }
     )
-    # Attempt to get a known interpretation request. This can be changed in the test config.
-    data = irs.get_interpretation_request_json(irid, irversion, reports_v6=True, session=session)
-    assert isinstance(data, dict)
+    return session
+
+def test_authentication(authenticated_session):
+    """Session fixture returns an authentaicated session for active directory login."""
+    assert authenticated_session.headers['Authorization']
+
+def test_get_irjson(jpconfig, authenticated_session):
+    irid = jpconfig.get('pyCIPAPI', 'test_irid')
+    irversion = jpconfig.get('pyCIPAPI', 'test_irversion')
+    """Interpretation request data can be downloaded from the CIPAPI with an authenticated session"""
+    data = irs.get_interpretation_request_json(irid, irversion, reports_v6=True, session=authenticated_session)
+    assert 'interpretation_request_id' in data.keys()
