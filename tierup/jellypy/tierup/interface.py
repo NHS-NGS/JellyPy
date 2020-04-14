@@ -5,7 +5,7 @@ import logging
 import pathlib
 
 from jellypy.tierup.irtools import IRJIO
-from jellypy.tierup.main import main
+from jellypy.tierup.main
 from jellypy.tierup.logger import log_setup
 
 
@@ -45,8 +45,8 @@ def parse_config(ctx: click.Context, param, value) -> configparser.ConfigParser:
 @click.option(
     "-o", "--outdir", type=click.Path(), help="Output directory for tierup files", default=""
 )
-def cli(config, irid, irversion, irjson, outdir):
-    """Command line interface."""
+def cli(config: str, irid: int, irversion: int, irjson: str, outdir: str):
+    """Parse command line arguments and run TierUp."""
     logger.info(f'CLI args: {config[0]}, {irid}, {irversion}, {irjson}, {outdir}')
-    main(config[1], irid, irversion, irjson, outdir)
+    jellypy.tierup.main(config[1], irid, irversion, irjson, outdir)
 

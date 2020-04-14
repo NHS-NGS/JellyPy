@@ -18,20 +18,22 @@ logger = logging.getLogger(__name__)
 
 class IRJValidator:
     """Validate interpretation request json data for TierUp reanalysis.
+
+    Args:
+        None
     """
 
     def __init__(self):
         pass
 
-    def validate(self, irjson):
-        """Validate interpretation request data for TierUp reanalysis.
-        Calls boolean methods to validate the interpretation request data.
+    def validate(self, irjson: dict):
+        """Call methods to validate the interpretation request data for TierUp reanalysis.
         
         Args:
-            irjson: Interpretation request data in json format.
+            irjson: Interpretation request data in JSON format
         Raises:
-            IOError: Raised if any validation functions return False
-            KeyError: Raised if any expected keys are missing from the JSON object
+            IOError: A validation function returns False
+            KeyError: Expected keys are missing from the JSON object
         """
         try:
             is_v6 = self.is_v6(irjson)
@@ -78,7 +80,6 @@ class IRJValidator:
 
         Args:
             irjson: Interpretation request data in json format.  
-
         """
         # If a report has not been issued, the clinical_report field will be an empty list. Return True.
         if not irjson["clinical_report"]:
@@ -114,13 +115,14 @@ class IRJson:
         tiering(dict): The GeL tiering interpreted genome
         tier_counts(dict): Tier:Int mapping showing the number of variants in each tier
         panels(dict): name:jellypy.tierup.panelapp.GeLPanel objects for each panel in the interpretation request metadata
-        updated_panels(list): Any panel ids updated using the `update_panels` method.
+        updated_panels(list): A record of panel ids updated using the `update_panel` method.
     Methods:
-        update_panel: Add a new panel to the panels attribute
+        update_panel: Assign a more recent PanelApp ID to a panel in the interpretation request
     """
 
-    def __init__(self, irjson, validator=IRJValidator):
-        validator().validate(irjson)
+    def __init__(self, irjson: dict, validator=IRJValidator):
+        if validator:
+            validator().validate(irjson)
         self.json = irjson
         self.tiering = self._get_tiering()
         self.tier_counts = self._get_tiering_counts()
@@ -131,6 +133,7 @@ class IRJson:
         return f"{self.irid}"
 
     def _get_tiering(self):
+        # TODO: @next - Get the interpreted genome using the GeL endpoint and update IRJIO to write this out.
         tiering_list = list(
             filter(
                 lambda x: x["interpreted_genome_data"]["interpretationService"]
