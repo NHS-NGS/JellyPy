@@ -10,7 +10,7 @@ import zipfile
 from ftplib import FTP
 
 dirname = os.path.dirname(__file__)
-data_dir = os.path.join(dirname, "../data/")
+clinvar_dir = os.path.join(dirname, "../data/clinvar/")
 
 # compile required regex 
 clinvar_vcf_regex = re.compile("^clinvar_([0-9]+)\.vcf$")
@@ -22,7 +22,7 @@ def local_vcf():
     """
     local_vcf_ver = 0
 
-    for (dirpath, dirnames, filenames) in os.walk(data_dir):
+    for (dirpath, dirnames, filenames) in os.walk(clinvar_dir):
         for filename in filenames:
             match = clinvar_vcf_regex.match(filename)
             if match:
@@ -76,7 +76,7 @@ def get_vcf(filename):
     ftp.login()
     ftp.cwd("/pub/clinvar/vcf_GRCh38/")
 
-    file_to_download = os.path.join(data_dir, filename)
+    file_to_download = os.path.join(clinvar_dir, filename)
     
     with open(file_to_download, 'wb') as localfile:
         ftp.retrbinary('RETR ' + filename, localfile.write, 1024)
@@ -93,8 +93,8 @@ def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
         print("New ClinVar vcf available, downloading now ({})".format(ftp_vcf))
         get_vcf(ftp_vcf) # downloads latest vcf
         
-        vcf_to_unzip = os.path.join(data_dir, ftp_vcf)
-        decompressed_vcf = os.path.join(data_dir, str(ftp_vcf)[:-3]) # removes .gz extension
+        vcf_to_unzip = os.path.join(clinvar_dir, ftp_vcf)
+        decompressed_vcf = os.path.join(clinvar_dir, str(ftp_vcf)[:-3]) # removes .gz extension
 
         with gzip.open(vcf_to_unzip, 'rb') as f:
             print("Decompressing {}".format(ftp_vcf))

@@ -15,7 +15,11 @@ import pandas as pd
 import pprint
 import entrezpy.esummary.esummarizer
 
-from ncbi_credentials import ncbi_credentials
+try:
+    from ncbi_credentials import ncbi_credentials
+except ImportError:
+    print("NCBI email and api_key must be first defined in ncbi_credentials.py for querying ClinVar")
+    sys.exit(-1)
 
 # lists to temporarialy store data in
 variant_list = []
@@ -24,6 +28,7 @@ clinvar_list = []
 
 dirname = os.path.dirname(__file__)
 data_dir = os.path.join(dirname, "../data/")
+clinvar_dir = os.path.join(dirname, "../data/clinvar/")
 
 def get_json_data():
     # temporary test json until using cipapi
@@ -38,16 +43,19 @@ def vcf_to_df():
     """
     Read in clinvar vcf to df for querying
     """
-    
-    data_files = []
+    local_vcf_ver = 0
 
-    for (dirpath, dirnames, filenames) in os.walk(data_dir):
-        data_files.extend(filenames)
-
-    for file in data_files:
-        if re.match("^clinvar_[0-9]+\.vcf$", file):
-            # get just the clinvar vcf
-            vcf = os.path.join(data_dir, file)
+    for (dirpath, dirnames, filenames) in os.walk(clinvar_dir):
+        for filename in filenames:
+            if re.match("^clinvar_[0-9]+\.vcf$", filename):
+                # get just the clinvar vcf
+                vcf_ver = int(filename.split("_")[1].split(".")[0])
+                if vcf_ver > local_vcf_ver:
+                    # if multiple vcfs in data select just the latest
+                    local_vcf_ver = vcf_ver
+                    vcf = os.path.join(clinvar_dir, filename)
+                else:
+                    continue
 
     clinvar_df = pd.read_csv(vcf, header = [27], sep='\t', low_memory=False)
     
@@ -98,9 +106,10 @@ def get_clinvar_ids(clinvar_df):
 def get_clinvar_data(clinvar_list):
     """
     Take list of variants with pathogenic / likely pathogenic 
-    clinvar entries and return full clinvar information
+    clinvar entries and return full clinvar information through NCBI eutils
     Requires NCBI email and api_key adding to ncbi_credentials.py to do more than 3 requests per second
     """
+    
     e = entrezpy.esummary.esummarizer.Esummarizer("clinvar_summary",
                 ncbi_credentials["email"],
                 apikey = ncbi_credentials["api_key"],
@@ -110,11 +119,15 @@ def get_clinvar_data(clinvar_list):
                 )
     
     a = e.inquire({'db': 'clinvar', 'id': clinvar_list})
+    clinvar_summaries = a.get_result().summaries
+    
     pp = pprint.PrettyPrinter(indent=1)
-    pp.pprint(a.get_result().summaries)
+    pp.pprint(clinvar_summaries)
 
     # need to decide what needs returning from .summaries, probably clinvar_id and clinsig
-       
+    
+    return clinvar_summaries
+    
 if __name__ == "__main__":
 
     ir_json = get_json_data()

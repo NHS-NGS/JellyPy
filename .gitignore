@@ -120,3 +120,5 @@ pyCIPAPI/jellypy/pyCIPAPI/auth_credentials.py
 pyCIPAPI/jellypy/pyCIPAPI/auth_credentials.py
 annotier/bin/ncbi_credentials.py
 annotier/data/*vcf*
+annotier/data/clinvar/*
+annotier/data/hgmd/*
