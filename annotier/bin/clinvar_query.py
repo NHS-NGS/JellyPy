@@ -58,7 +58,7 @@ def vcf_to_df():
                     continue
 
     clinvar_df = pd.read_csv(vcf, header = [27], sep='\t', low_memory=False)
-    
+    print(clinvar_df)
     return clinvar_df
 
 def json_variants(ir_json):
@@ -75,32 +75,40 @@ def json_variants(ir_json):
         tier = variant["reportEvents"][0]["tier"]
 
         variant_list.append({"position": position, "chromosome": chrom, "tier": tier})
-        position_list.append(position)
+        position_list.append((chrom, position))
     
-    return variant_list
+    return variant_list, position_list
 
-def get_clinvar_ids(clinvar_df):
+def get_clinvar_ids(clinvar_df, position_list):
     """
     Function to query all variants in JSON against ClinVar df, returns ids of those pathogenic and likely pathogenic
+
+    Args:
+        clinvar_df (dataframe): dataframe built from ClinVar vcf
+        position_list (list): list of all variant GRCh38 positions and chromosome numbers from JSON
+
+    Returns:
+        clinvar_list (list): list of ClinVar IDs where position is in the input JSON
     """
-    for position in position_list:
-        # check if variant position is in clinvar df
-        if len(clinvar_df[clinvar_df['POS'].isin([position])]) != 0:
-            
-            match = clinvar_df[clinvar_df['POS'].isin([position])]
-            match_info = match.iloc[0]["INFO"] # get info field with pathogenicity
 
-            if "CLNSIG=Pathogenic" in match_info or "CLNSIG=Likely_pathogenic" in match_info:
-                # add variant if classified as pathogenic or likely pathogenic
-                clinvar_list.append(int(match.iloc[0]["ID"]))
-            
-            if "CLNSIG=Conflicting_interpretations_of_pathogenicity" in match_info:
-                clnsigconf = [i for i in match_info.split(";") if i.startswith("CLNSIGCONF")]
+    match_df = clinvar_df[clinvar_df[['#CHROM', 'POS']].apply(tuple, axis = 1).isin(position_list)]
 
-                if "pathogenic" in clnsigconf[0].casefold():
-                    # add variant if classified as pathogenic or likely pathogenic but with conflicts
-                    clinvar_list.append(int(match.iloc[0]["ID"]))
+    for row in match_df.itertuples():
+                
+        if "CLNSIG=Pathogenic" in row.INFO or "CLNSIG=Likely_pathogenic" in row.INFO:
+            # add variant ID if classified as pathogenic or likely pathogenic
+            clinvar_list.append(int(row.ID))
+        
+        if "CLNSIG=Conflicting_interpretations_of_pathogenicity" in row.INFO:
+            clnsigconf = [i for i in row.INFO.split(";") if i.startswith("CLNSIGCONF")]
+
+            if "pathogenic" in clnsigconf[0].casefold():
+                # add variant ID if classified as pathogenic or likely pathogenic but with conflicts
+                clinvar_list.append(int(row.ID))
     
+    if len(clinvar_list) == 0:
+        print("No matching variants identified in ClinVar")
+        
     return clinvar_list
 
 def get_clinvar_data(clinvar_list):
@@ -108,6 +116,12 @@ def get_clinvar_data(clinvar_list):
     Take list of variants with pathogenic / likely pathogenic 
     clinvar entries and return full clinvar information through NCBI eutils
     Requires NCBI email and api_key adding to ncbi_credentials.py to do more than 3 requests per second
+
+    Args:
+        clinvar_list (list): list of ClinVar IDs where position is in the input JSON
+    
+    Returns:
+        clinvar_summaries (dict): summary output for each clinvar variant
     """
     
     e = entrezpy.esummary.esummarizer.Esummarizer("clinvar_summary",
@@ -120,18 +134,19 @@ def get_clinvar_data(clinvar_list):
     
     a = e.inquire({'db': 'clinvar', 'id': clinvar_list})
     clinvar_summaries = a.get_result().summaries
-    
+
     pp = pprint.PrettyPrinter(indent=1)
     pp.pprint(clinvar_summaries)
 
     # need to decide what needs returning from .summaries, probably clinvar_id and clinsig
     
     return clinvar_summaries
-    
+
 if __name__ == "__main__":
 
     ir_json = get_json_data()
     clinvar_df = vcf_to_df()
     json_variants(ir_json)
-    get_clinvar_ids(clinvar_df)
-    get_clinvar_data(clinvar_list)
+    get_clinvar_ids(clinvar_df, position_list)
+    if len(clinvar_list) != 0:
+        get_clinvar_data(clinvar_list)
