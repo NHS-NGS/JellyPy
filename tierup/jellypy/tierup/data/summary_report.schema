@@ -15,6 +15,7 @@
         "pa_hgnc_id",
         "justification",
         "consequences",
-        "tu_run_time"
+        "tu_run_time",
+        "tu_version"
     ]
 }

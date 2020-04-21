@@ -3,6 +3,7 @@ import pkg_resources
 import json
 import logging
 import csv
+import jellypy.tierup
 
 from typing import Iterable
 
@@ -105,6 +106,7 @@ class PanelUpdater:
 
 class TierUpRunner:
     """Run TierUp on an interpretation request json object"""
+    __version__ = jellypy.tierup.__version__
 
     def __init__(self):
         pass
@@ -154,7 +156,6 @@ class TierUpRunner:
             "interpretation_request_id": irjo.tiering["interpreted_genome_data"][
                 "interpretationRequestId"
             ],
-            "gel_tiering_version": None,  # TODO: Extract tiering version from softwareVersions key
             "created_at": irjo.tiering["created_at"],
             "tier": event.data["tier"],
             "segregation": event.data["segregationPattern"],
@@ -162,8 +163,7 @@ class TierUpRunner:
             "group": event.data["groupOfVariants"],
             "zygosity": event.variant["variantCalls"][0][
                 "zygosity"
-            ],  # TODO: Get participant's call
-            "participant_id": 10000,  # TODO: Remove from TierUp report
+            ],
             "position": event.variant["variantCoordinates"]["position"],
             "chromosome": event.variant["variantCoordinates"]["chromosome"],
             "assembly": event.variant["variantCoordinates"]["assembly"],
@@ -180,11 +180,9 @@ class TierUpRunner:
             "tu_panel_version": panel.version,
             "tu_panel_number": panel.id,
             "tu_panel_created": panel.created,
-            "tu_hgnc_id": "No TU HGNC Search",
             "pa_hgnc_id": hgnc,
             "pa_gene": event.gene,
             "pa_confidence": confidence,
-            "tu_comment": "No comment implemented",
             "software_versions": str(
                 irjo.tiering["interpreted_genome_data"]["softwareVersions"]
             ),
@@ -196,6 +194,7 @@ class TierUpRunner:
             "tier1_count": irjo.tier_counts["TIER1"],
             "tier2_count": irjo.tier_counts["TIER2"],
             "tier3_count": irjo.tier_counts["TIER3"],
+            "tu_version": self.__version__
         }
         return record
 
