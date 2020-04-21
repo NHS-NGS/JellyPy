@@ -9,6 +9,7 @@ import jellypy.pyCIPAPI.interpretation_requests as irs
 import jellypy.tierup.panelapp as pa
 
 from collections import Counter
+from datetime import datetime
 from jellypy.pyCIPAPI.auth import AuthenticatedCIPAPISession
 from protocols.reports_6_0_1 import InterpretedGenome
 
@@ -133,7 +134,6 @@ class IRJson:
         return f"{self.irid}"
 
     def _get_tiering(self):
-        # TODO: @next - Get the interpreted genome using the GeL endpoint and update IRJIO to write this out.
         tiering_list = list(
             filter(
                 lambda x: x["interpreted_genome_data"]["interpretationService"]
@@ -141,11 +141,10 @@ class IRJson:
                 self.json["interpreted_genome"],
             )
         )
-        # TODO: Although the interpreted genome is in an array, we are yet to encounter a request with more than one
-        # run of the genomics england tiering pipeline. Regardless, this is a temporary failsafe and we would rather
-        # select the latest one.
-        assert len(tiering_list) == 1, "0 or >1 gel tiering interpretation found"
-        return tiering_list.pop()
+        latest_tiering = max(
+            tiering_list, key=lambda x: datetime.strptime(x['created_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
+        )
+        return latest_tiering
 
     def _get_panels(self):
         _panels = {}
