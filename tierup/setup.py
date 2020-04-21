@@ -5,7 +5,7 @@ README = ( pathlib.Path(__file__).parent / 'pypi_readme.md').read_text()
 
 setup(
     name='jellypy_tierup',
-    version='0.1.1',
+    version='0.2.0',
     author="NHS Bioinformatics Group",
     author_email="nana.mensah1@nhs.net",
     description='Find GeL Tier 3 variants with Green PanelApp genes',
@@ -19,7 +19,7 @@ setup(
     install_requires=[
         'click==7.0',
         'jsonschema==3.2.0',
-        'jellypy-pyCIPAPI==0.2.2'
+        'jellypy-pyCIPAPI==0.2.3'
     ],
     entry_points = {
         'console_scripts': 'tierup=jellypy.tierup.interface:cli'

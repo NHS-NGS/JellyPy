@@ -19,8 +19,8 @@ def set_irj_object(irjson, irid, irversion, config):
         logger.info(f'Downloading from CIPAPI: {irid}-{irversion}')
         sess = AuthenticatedCIPAPISession(
             auth_credentials={
-                'username': config.get('pyCIPAPI', 'username'),
-                'password': config.get('pyCIPAPI', 'password')
+                'client_id': config.get('pyCIPAPI', 'client_id'),
+                'client_secret': config.get('pyCIPAPI', 'client_secret')
             }
         )
         irjo = IRJIO.get(irid, irversion, sess)
