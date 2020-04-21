@@ -101,7 +101,7 @@ class AuthenticatedCIPAPISession(requests.Session):
             self.auth_expires = datetime.fromtimestamp(int(auth_response['expires_on']))
         except KeyError:
             self.auth_time = False
-            raise Exception('Authentication Error')
+            raise Exception(f'Authentication Error: {auth_response}')
         except:
             raise
 

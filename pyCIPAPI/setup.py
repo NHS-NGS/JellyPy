@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='jellypy_pyCIPAPI',
-    version='0.2.2',
+    version='0.2.3',
     author="NHS Bioinformatics Group",
     author_email="joowook.ahn@nhs.net",
     description='Python client library the Genomics England CIPAPI',
