@@ -74,11 +74,9 @@ class PanelApp():
                 yield panel
 
     def __iter__(self):
-        # Allows `for x in y` syntax to be used on instances.
         return self
 
     def __next__(self):
-        # Allwos `for x in y` syntax to be used on instances.
         if self.head:
             while self.counter < self.head:
                 self.counter += 1
