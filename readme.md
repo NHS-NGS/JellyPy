@@ -29,5 +29,4 @@ To develop a new function or feature, please take a look at the issues raised. I
 
 ### jellypy-tierup
 
-* 0.1.0 - Pre-release TierUp research version
 * 0.2.0 - TierUp development release with pyCIPAPI 0.2.3
