@@ -26,3 +26,8 @@ To develop a new function or feature, please take a look at the issues raised. I
 * 0.2.1 - Support legacy authentication by allowing AD to be toggled on/off in config file
 * 0.2.2 - Add sub-heading to README changelog
 * 0.2.3 - Update live 100K url. Display response on API errors. Add tests for auth api calls.
+
+### jellypy-tierup
+
+* 0.1.0 - Pre-release TierUp research version
+* 0.2.0 - TierUp development release with pyCIPAPI 0.2.3
