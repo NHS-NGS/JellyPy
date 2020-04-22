@@ -16,8 +16,8 @@ pip install jellypy-tierup
     ```
     # config.ini
     [pyCIPAPI]
-    username = your_username
-    password = your_password
+    client_id = YOUR-GEL-CLIENT-ID
+    client_secret = YOUR-GEL-CLIENT-SECRET
     ```
     
     Please note: jellypy-tierup authenticates users using their LDAP credentials and is not yet compatible with the GeL active directory authentication.
