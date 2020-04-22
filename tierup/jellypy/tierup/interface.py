@@ -1,11 +1,8 @@
 import click
 import configparser
-import json
 import logging
-import pathlib
 import jellypy.tierup.main
 
-from jellypy.tierup.irtools import IRJIO
 from jellypy.tierup.logger import log_setup
 
 
@@ -16,7 +13,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 def parse_config(ctx: click.Context, param, value) -> configparser.ConfigParser:
     """Click callback to return config filename and config as dictionary
-    
+
     Args:
         ctx: Click context
         param: Click parameter

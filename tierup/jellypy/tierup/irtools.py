@@ -29,7 +29,7 @@ class IRJValidator:
 
     def validate(self, irjson: dict):
         """Call methods to validate the interpretation request data for TierUp reanalysis.
-        
+
         Args:
             irjson: Interpretation request data in JSON format
         Raises:
@@ -59,7 +59,7 @@ class IRJValidator:
     def is_v6(irjson: dict) -> bool:
         """Returns true if the interpreted genome of an irjson is GeL v6 model.
         Even when using the report_v6 API flag, older interpretation requests won't match this schema.
-        
+
         Args:
             irjson: Interpretation request data in json format.
         """
@@ -80,7 +80,7 @@ class IRJValidator:
         """Returns True if no reports have been issued where the case has been solved.
 
         Args:
-            irjson: Interpretation request data in json format.  
+            irjson: Interpretation request data in json format.
         """
         # If a report has not been issued, the clinical_report field will be an empty list. Return True.
         if not irjson["clinical_report"]:
@@ -106,7 +106,7 @@ class IRJValidator:
 
 class IRJson:
     """Utilities for parsing IRJson data
-    
+
     Args:
         irjson: An interpretation request json object
         validator: An IRJValidator instance
@@ -210,7 +210,7 @@ class IRJIO:
     @classmethod
     def read(cls, filepath: str) -> IRJson:
         """Read an interpretation request json from a file.
-        
+
         Args:
             filepath: Path to interpretation request json file
         Returns:

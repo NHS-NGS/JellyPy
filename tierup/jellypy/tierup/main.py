@@ -1,12 +1,10 @@
-import configparser
-import json
 import logging
 import pathlib
 
 from jellypy.tierup import lib
 from jellypy.tierup import interface
 from jellypy.pyCIPAPI.auth import AuthenticatedCIPAPISession
-from jellypy.tierup.irtools import IRJIO, IRJson
+from jellypy.tierup.irtools import IRJIO
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +47,7 @@ def main(config, irid, irversion, irjson, outdir):
 
     logger.info(f'Running tierup for {irjo}')
     records = lib.TierUpRunner().run(irjo)
-    
+
 
     csv_writer = lib.TierUpCSVWriter(outfile=pathlib.Path(outdir, irjo.irid + ".tierup.csv"))
     summary_writer = lib.TierUpSummaryWriter(outfile=pathlib.Path(outdir, irjo.irid + ".tierup.summary.csv"))

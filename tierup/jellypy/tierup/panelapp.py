@@ -5,7 +5,7 @@ import requests
 class GeLPanel():
     """A GeL PanelApp Panel."""
     host = "https://panelapp.genomicsengland.co.uk/api/v1/panels"
-    
+
     def __init__(self, panel, version=None):
         self.url = f'{self.host}/{panel}'
         self.version = float(version) if version else None
@@ -15,7 +15,7 @@ class GeLPanel():
         self.name, self.id, self.hash = self._json['name'], self._json['id'], self._json['hash_id']
         self.created = self._json['version_created']
         self.version = float(self._json['version'])
-        
+
     def get_gene_map(self):
         """Returns a list mapping gene symbols to a (hgnc id, confidence level) tuple."""
         mapping = { gene['gene_data']['hgnc_symbol']: (gene['gene_data']['hgnc_id'], gene['confidence_level'])
