@@ -66,7 +66,7 @@ pip install jellypy-tierup
 |tu_panel_created|The date the panel version used in TierUp analysis was created
 |pa_hgnc_id|HGNCID from the panelapp panel
 |pa_gene|Gene symbol from the panel app panel
-|**pa_confidence**|**Current gene confidence level from the latest version of the panel app panel. 4 or 3 = Green. 2 = Amber. 1 or 0 = Red Green genes indicate TieredUp variant.**
+|**pa_confidence**|**Current gene confidence level from the latest version of the panel app panel; 4 or 3 = Green; 2 = Amber; 1 or 0 = Red; Green genes indicate TieredUp variant.**
 |software_versions|Software versions used in the GeL analysis
 |reference_db_versions|Reference database versions used int he GeL analysis
 |extra_panels|Panel ID pointers updated via TierUp check for depreciated Panels in GeL directory
