@@ -3,7 +3,6 @@ import pkg_resources
 import json
 import logging
 import csv
-import jellypy.tierup
 
 from typing import Iterable
 
@@ -106,7 +105,6 @@ class PanelUpdater:
 
 class TierUpRunner:
     """Run TierUp on an interpretation request json object"""
-    __version__ = jellypy.tierup.__version__
 
     def __init__(self):
         pass
@@ -174,7 +172,6 @@ class TierUpRunner:
             "re_panel_source": event.data["genePanel"]["source"],
             "re_panel_name": event.data["genePanel"]["panelName"],
             "re_gene": event.gene,
-            "tu_version": pkg_resources.require("jellypy-tierup")[0].version,
             "tu_panel_hash": panel.hash,
             "tu_panel_name": panel.name,
             "tu_panel_version": panel.version,
@@ -194,7 +191,7 @@ class TierUpRunner:
             "tier1_count": irjo.tier_counts["TIER1"],
             "tier2_count": irjo.tier_counts["TIER2"],
             "tier3_count": irjo.tier_counts["TIER3"],
-            "tu_version": self.__version__
+            "tu_version": pkg_resources.require("jellypy-tierup")[0].version
         }
         return record
 
