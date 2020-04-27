@@ -31,7 +31,7 @@ def main(config, irid, irversion, irjson, outdir):
 
     If `irid` and `irversion` are supplied, cased data is pulled from the CIP-API for TierUp.
     Alternatively, a local interpretation request json file can be used via the `irjson` argument.
-     
+
     Args:
         config(dict): A config parser config object parsed from a jellypy config.ini
         irid(int): Interpretation request id e.g. 1234
@@ -51,9 +51,9 @@ def main(config, irid, irversion, irjson, outdir):
     logger.info(f'Running tierup for {irjo}')
     records = lib.TierUpRunner().run(irjo)
 
-    logger.info(f'Writing results to: {csv_writer.outfile}, {summary_writer.outfile}')
     csv_writer = lib.TierUpCSVWriter(outfile=pathlib.Path(outdir, irjo.irid + ".tierup.csv"))
     summary_writer = lib.TierUpSummaryWriter(outfile=pathlib.Path(outdir, irjo.irid + ".tierup.summary.csv"))
+    logger.info(f'Writing results to: {csv_writer.outfile}, {summary_writer.outfile}')
 
     for record in records: # Records is a generator of tierup results exhausted in one loop.
         csv_writer.write(record)
