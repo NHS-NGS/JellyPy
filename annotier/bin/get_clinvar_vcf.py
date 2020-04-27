@@ -113,7 +113,6 @@ def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
         print("Latest ClinVar vcf already downloaded")
  
 if __name__ == "__main__":
-
     local_vcf_ver = local_vcf()
     ftp_vcf, ftp_vcf_ver = get_ftp_files()
     check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver)

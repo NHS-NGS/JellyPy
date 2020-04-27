@@ -58,7 +58,7 @@ def vcf_to_df():
                     continue
 
     clinvar_df = pd.read_csv(vcf, header = [27], sep='\t', low_memory=False)
-    print(clinvar_df)
+
     return clinvar_df
 
 def json_variants(ir_json):
@@ -108,7 +108,7 @@ def get_clinvar_ids(clinvar_df, position_list):
     
     if len(clinvar_list) == 0:
         print("No matching variants identified in ClinVar")
-        
+
     return clinvar_list
 
 def get_clinvar_data(clinvar_list):
