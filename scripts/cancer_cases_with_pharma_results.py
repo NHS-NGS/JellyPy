@@ -3,7 +3,7 @@ from time import strptime
 from datetime import date, timedelta
 import os
 import pandas as pd
-from pyCIPAPI.interpretation_requests import access_date_summary_content, get_interpreted_genome_for_case, \
+from jellypy.pyCIPAPI.interpretation_requests import access_date_summary_content, get_interpreted_genome_for_case, \
     get_interpretation_request_list
 
 
