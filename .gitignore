@@ -1,6 +1,6 @@
 # JellyPy
 **/.auth_credentials.py
-config.ini
+*config.ini
 
 # JellyPy dev
 .pytest_cache/

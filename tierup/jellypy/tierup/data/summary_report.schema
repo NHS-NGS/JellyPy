@@ -1,0 +1,21 @@
+{
+    "$schema": "link_to_schema",
+    "$id": "link_to_schema",
+    "type": "object",
+    "title": "TierUp report schema",
+    "properties": {},
+    "required": [
+        "interpretation_request_id",
+        "pa_gene", "tu_panel_name",
+        "tu_panel_version",
+        "chromosome",
+        "position",
+        "reference",
+        "alternate",
+        "pa_hgnc_id",
+        "justification",
+        "consequences",
+        "tu_run_time",
+        "tu_version"
+    ]
+}

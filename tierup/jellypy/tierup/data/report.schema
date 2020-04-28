@@ -1,0 +1,17 @@
+{
+    "$schema": "link_to_schema",
+    "$id": "link_to_schema",
+    "type": "object",
+    "title": "TierUp report schema",
+    "properties": {},
+    "required": [
+        "justification", "consequences", "penetrance", "denovo_score", "score", "event_id",
+        "interpretation_request_id", "created_at", "tier", "segregation",
+        "inheritance", "group", "zygosity", "position", "chromosome", "assembly",
+        "reference", "alternate", "re_panel_id", "re_panel_version", "re_panel_source", "re_panel_name",
+        "re_gene", "tu_panel_hash", "tu_panel_name", "tu_panel_version", "tu_panel_number",
+        "tu_panel_created", "pa_hgnc_id", "pa_gene", "pa_confidence",
+        "software_versions", "reference_db_versions", "extra_panels", "tu_run_time", "tier1_count",
+        "tier2_count", "tier3_count", "tu_version"
+    ]
+}
