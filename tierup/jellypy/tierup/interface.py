@@ -45,5 +45,5 @@ def parse_config(ctx: click.Context, param, value) -> configparser.ConfigParser:
 def cli(config: str, irid: int, irversion: int, irjson: str, outdir: str):
     """Parse command line arguments and run TierUp."""
     logger.info(f'CLI args: {config[0]}, {irid}, {irversion}, {irjson}, {outdir}')
-    jellypy.tierup.main.main(config[1], irid, irversion, irjson, outdir)
+    jellypy.tierup.main.main(config[1], outdir, irid_irversion=(irid, irversion), irjson=irjson)
 
