@@ -21,27 +21,22 @@ except ImportError:
     print("NCBI email and api_key must be first defined in ncbi_credentials.py for querying ClinVar")
     sys.exit(-1)
 
-# lists to temporarialy store data in
-variant_list = []
-position_list = []
+# list to temporarialy store data in
 clinvar_list = []
 
 dirname = os.path.dirname(__file__)
 data_dir = os.path.join(dirname, "../data/")
 clinvar_dir = os.path.join(dirname, "../data/clinvar/")
 
-def get_json_data():
-    # temporary test json until using cipapi
-    sample_json = os.path.expanduser("~/annoTier_local_data/sample_ir.json")
 
-    with open(sample_json) as json_file:
-        ir_json = json.load(json_file)
-
-    return ir_json
-
-def vcf_to_df():
+def clinvar_vcf_to_df():
     """
     Read in clinvar vcf to df for querying
+
+    Args: None
+
+    Returns:
+        clinvar_df (dataframe): df of all ClinVar variants in vcf
     """
     local_vcf_ver = 0
 
@@ -61,23 +56,6 @@ def vcf_to_df():
 
     return clinvar_df
 
-def json_variants(ir_json):
-    """
-    Function to pull out variant positions from JSON
-    """
-
-    for variant in (
-        ir_json["interpretation_request_data"]
-        ["json_request"]["TieredVariants"]
-    ):
-        position = int(variant["position"])
-        chrom = variant["chromosome"]
-        tier = variant["reportEvents"][0]["tier"]
-
-        variant_list.append({"position": position, "chromosome": chrom, "tier": tier})
-        position_list.append((chrom, position))
-    
-    return variant_list, position_list
 
 def get_clinvar_ids(clinvar_df, position_list):
     """
@@ -98,6 +76,7 @@ def get_clinvar_ids(clinvar_df, position_list):
         if "CLNSIG=Pathogenic" in row.INFO or "CLNSIG=Likely_pathogenic" in row.INFO:
             # add variant ID if classified as pathogenic or likely pathogenic
             clinvar_list.append(int(row.ID))
+            # need to add to clinvar list ref and alt and pos for later
         
         if "CLNSIG=Conflicting_interpretations_of_pathogenicity" in row.INFO:
             clnsigconf = [i for i in row.INFO.split(";") if i.startswith("CLNSIGCONF")]
@@ -110,6 +89,7 @@ def get_clinvar_ids(clinvar_df, position_list):
         print("No matching variants identified in ClinVar")
 
     return clinvar_list
+
 
 def get_clinvar_data(clinvar_list):
     """
@@ -134,19 +114,54 @@ def get_clinvar_data(clinvar_list):
     
     a = e.inquire({'db': 'clinvar', 'id': clinvar_list})
     clinvar_summaries = a.get_result().summaries
-
-    pp = pprint.PrettyPrinter(indent=1)
-    pp.pprint(clinvar_summaries)
-
-    # need to decide what needs returning from .summaries, probably clinvar_id and clinsig
     
-    return clinvar_summaries
+    columns = ('clinvar_id', 'clinical_sig', 'date_last_rev', 'review_status',
+                'var_type', 'supporting_subs', 'chrom', 'pos', 'ref', 'alt')
+
+    rows_list = []
+
+    for key, value in clinvar_summaries.items():
+
+        # ref and alt not given in dict, need to pull from cdna_change field
+        ref = value["variation_set"][0]["cdna_change"]
+        ref = re.findall(r".*(.)&.*", ref)[0]
+
+        alt = value["variation_set"][0]["cdna_change"].split(";")[1]
+
+        row_dict = {}
+
+        # select out required fields from summary dict
+        row_dict.update(
+                        {
+                        "clinvar_id": key,
+                        "clinical_sig": value["clinical_significance"]["description"],
+                        "date_last_rev": value["clinical_significance"]["last_evaluated"],
+                        "review_status": value["clinical_significance"]["review_status"],
+                        "var_type": value["variation_set"][0]["variant_type"],
+                        "supporting_subs": value["supporting_submissions"],
+                        "chrom": value["chr_sort"],
+                        "start_pos": value["variation_set"][0]["variation_loc"][0]["start"],
+                        "end_pos": value["variation_set"][0]["variation_loc"][0]["stop"],
+                        "ref": ref,
+                        "alt": alt,
+                        "protein_change": value["protein_change"]
+                        }
+                    ) 
+
+        rows_list.append(row_dict)
+
+    # build df from rows of ClinVar entries
+    clinvar_summary_df = pd.DataFrame(rows_list) 
+    
+    print(clinvar_summary_df)
+
+    return clinvar_summary_df
 
 if __name__ == "__main__":
 
-    ir_json = get_json_data()
-    clinvar_df = vcf_to_df()
-    json_variants(ir_json)
-    get_clinvar_ids(clinvar_df, position_list)
+    clinvar_df = clinvar_vcf_to_df()
+
+    clinvar_list = get_clinvar_ids(clinvar_df, position_list)
+
     if len(clinvar_list) != 0:
         get_clinvar_data(clinvar_list)

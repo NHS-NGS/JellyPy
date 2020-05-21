@@ -1,6 +1,6 @@
 """
 Functions to take a json of GEL variants, query against HGMD Pro VCF 
-and return any identified variants.
+and return any identified variants in formatted dataframe.
 
 Requires downloading of HGMD pro in to data/hgmd
 """
@@ -10,7 +10,6 @@ import sys
 import re
 import os
 import pandas as pd
-from clinvar_query import get_json_data, json_variants
 
 dirname = os.path.dirname(__file__)
 hgmd_dir = os.path.join(dirname, "../data/hgmd/")
@@ -18,6 +17,11 @@ hgmd_dir = os.path.join(dirname, "../data/hgmd/")
 def hgmd_vcf_to_df():
     """
     Read in HGMD vcf to df for querying
+
+    Args: None
+
+    Returns:
+        hgmd_df (dataframe): df of all variants in HGMD Pro vcf
     """
     vcf = None
 
@@ -36,19 +40,56 @@ def hgmd_vcf_to_df():
 
     return hgmd_df
 
+
 def hgmd_variants(hgmd_df, position_list):
     """
     Query variant positions from JSON against HGMD vcf
+
+    Args:
+        hgmd_df (dataframe): df of all variants in HGMD Pro vcf
+        position_list (list): list of all  variant positions in json
+
+    Returns:
+        hgmd_df_match (dataframe): df of all HGMD variants in json
     """
 
     hgmd_match_df = hgmd_df[hgmd_df[['#CHROM', 'POS']].apply(tuple, axis = 1).isin(position_list)]
-
-    print(hgmd_match_df)
-
+    
+    # create empty columns to split required INFO fields to
+    split_info = ['CLASS','DNA','PROT','DB','PHEN','RANKSCORE']
+    hgmd_match_df = hgmd_match_df.reindex(columns=[*hgmd_match_df.columns.tolist(), *split_info], fill_value="None")
+    
     for i, row in hgmd_match_df.iterrows():
-        print(row["INFO"])
+
+        info = row["INFO"].split(";")        
+        
+        # fields in INFO aren't consistently present so
+        # check for existence then update df field if present
+        CLSS = [s for s in info if "CLASS" in s]
+        DNA = [s for s in info if "DNA" in s]
+        PROT = [s for s in info if "PROT" in s]        
+        DB = [s for s in info if "DB" in s]
+        PHEN = [s for s in info if "PHEN" in s]
+        RS = [s for s in info if "RANKSCORE" in s]
+
+        if CLSS:
+            hgmd_match_df.at[i, 'CLASS'] = CLSS[0].split("=")[1]
+        if DNA:
+            hgmd_match_df.at[i, 'DNA'] = DNA[0].split("=")[1]
+        if PROT:
+            hgmd_match_df.at[i, 'PROT'] = PROT[0].split("=")[1]
+        if DB:
+            hgmd_match_df.at[i, 'DB'] = DB[0].split("=")[1]
+        if PHEN:
+            hgmd_match_df.at[i, 'PHEN'] = PHEN[0].split("=")[1]
+        if RS:
+            hgmd_match_df.at[i, 'RANKSCORE'] = RS[0].split("=")[1]
+
+    # drop unndeed info field
+    hgmd_match_df = hgmd_match_df.drop("INFO", 1)
 
     return hgmd_match_df
+
 
 if __name__ == "__main__":
 

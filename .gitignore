@@ -122,3 +122,9 @@ annotier/bin/ncbi_credentials.py
 annotier/data/*vcf*
 annotier/data/clinvar/*
 annotier/data/hgmd/*
+annotier/data/ir_jsons/*.json
+pyCIPAPI/jellypy/pyCIPAPI/auth_credentials.py
+annotier/data/100k_reanalysis.db
+pyCIPAPI/jellypy/pyCIPAPI/auth_credentials.py
+pyCIPAPI/jellypy/pyCIPAPI/auth_credentials.py
+pyCIPAPI/jellypy/pyCIPAPI/auth_credentials.py

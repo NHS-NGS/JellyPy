@@ -1,3 +1,4 @@
-ncbi_credentials = {'email': "",
+ncbi_credentials = {
+                    'email': "",
                     'api_key': ""
                     }

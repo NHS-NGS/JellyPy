@@ -1,5 +1,15 @@
 import json
-import get_clinvar_vcf
-from clinvar_query import get_json_data, json_variants, vcf_to_df, get_clinvar_ids, get_clinvar_data
-from hgmd_query import hgmd_vcf_to_df, hgmd_variants
+import os
+import sqlite3
 
+from sample_analysis import find_json, get_json_data, run_analysis
+
+
+# main functions to run analysis for list of samples and generate report
+
+samples=["55904-1"]
+
+for i in samples:
+    ir_json = find_json(i)
+    hpo_terms, variant_list, position_list = get_json_data(ir_json)
+    run_analysis(position_list)
