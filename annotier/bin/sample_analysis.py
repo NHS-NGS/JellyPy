@@ -38,6 +38,7 @@ def get_json_data(ir_json):
 
     hpo_terms = get_hpo_terms(ir_json)
     variant_list, position_list = get_tiered_variants(ir_json)
+    print("Number of variants: {}".format(len(position_list)))
     
     return hpo_terms, variant_list, position_list
 
@@ -68,16 +69,18 @@ def run_analysis(position_list):
     # get list of ClinVar entries for tiered variants
     clinvar_list = get_clinvar_ids(clinvar_df, position_list)
 
-    # get full ClinVar entries with NCBI eutils
+    # get full ClinVar entries with NCBI eutils, return in df
     clinvar_summary_df = get_clinvar_data(clinvar_list)
 
-    sys.exit()
+    print("Number of pathogenic / likely pathogenic ClinVar entries: {}".format(len(clinvar_summary_df.index)))
 
     # read HGMD Pro vcf in
     hgmd_df = hgmd_vcf_to_df()
     
     # get HGMD entries for tiered variants
     hgmd_match_df = hgmd_variants(hgmd_df, position_list)
+
+    print("Number of HGMD entries: {}".format(len(hgmd_match_df.index)))
 
     return clinvar_summary_df, hgmd_match_df
 
