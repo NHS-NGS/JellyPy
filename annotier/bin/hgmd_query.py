@@ -11,9 +11,6 @@ import re
 import os
 import pandas as pd
 
-dirname = os.path.dirname(__file__)
-hgmd_dir = os.path.join(dirname, "../data/hgmd/")
-
 def hgmd_vcf_to_df():
     """
     Read in HGMD vcf to df for querying
@@ -23,6 +20,12 @@ def hgmd_vcf_to_df():
     Returns:
         hgmd_df (dataframe): df of all variants in HGMD Pro vcf
     """
+    
+    # dirname = os.path.dirname(__file__)
+    # hgmd_dir = os.path.join(dirname, "../data/hgmd/")
+    
+    hgmd_dir = os.path.join(os.path.dirname(__file__), "../data/hgmd/")
+
     vcf = None
 
     for (dirpath, dirnames, filenames) in os.walk(hgmd_dir):
@@ -53,11 +56,14 @@ def hgmd_variants(hgmd_df, position_list):
         hgmd_df_match (dataframe): df of all HGMD variants in json
     """
 
-    hgmd_match_df = hgmd_df[hgmd_df[['#CHROM', 'POS']].apply(tuple, axis = 1).isin(position_list)]
+    hgmd_match_df = hgmd_df[hgmd_df[['#CHROM', 'POS']].apply(tuple, axis = 1
+                    ).isin(position_list)]
     
     # create empty columns to split required INFO fields to
     split_info = ['CLASS','DNA','PROT','DB','PHEN','RANKSCORE']
-    hgmd_match_df = hgmd_match_df.reindex(columns=[*hgmd_match_df.columns.tolist(), *split_info], fill_value="None")
+    
+    hgmd_match_df = hgmd_match_df.reindex(columns=[
+            *hgmd_match_df.columns.tolist(), *split_info], fill_value="None")
     
     for i, row in hgmd_match_df.iterrows():
 

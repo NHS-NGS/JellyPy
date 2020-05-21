@@ -1,3 +1,12 @@
+"""
+Calls functions to:
+    - check if new ClinVar VCF ver. is available
+        - if so, downloads and extracts to /data/clinvar
+    - read in a sample json, extract hpo terms and tiered variants
+    - run reanalysis (currently against ClinVar and HGMD Pro)
+    - save annotation to db
+"""
+
 import json
 import sys
 import re
@@ -14,7 +23,8 @@ sample_id="55904-1"
 
 def find_json(sample_id):
     """
-    For given ir_id, check if json is available locally, if not get from cipAPI
+    For given ir_id, check if json is available locally, if not get 
+    from cipAPI
     """
 
     try:
@@ -32,8 +42,8 @@ def find_json(sample_id):
 
 def get_json_data(ir_json):
     """
-    Call functions from gel_requests to get HPO terms and tiered variants
-    for analysis
+    Call functions from gel_requests to get HPO terms and tiered 
+    variants for analysis
     """
 
     hpo_terms = get_hpo_terms(ir_json)
@@ -59,8 +69,11 @@ def run_analysis(position_list):
         clinvar_list (list): list of all ClinVar ent
         hgmd_df (dataframe): df of all HGMD variants from VCF
 
-        clinvar_summary_df (dataframe): df of ClinVar entries for tiered variants
-        hgmd_match_df (dataframe): df of HGMD entries for tiered variants
+        clinvar_summary_df (dataframe): df of ClinVar entries for 
+                                        tiered variants
+
+        hgmd_match_df (dataframe): df of HGMD entries for 
+                                   tiered variants
     """
 
     # read ClinVar vcf in
@@ -72,7 +85,8 @@ def run_analysis(position_list):
     # get full ClinVar entries with NCBI eutils, return in df
     clinvar_summary_df = get_clinvar_data(clinvar_list)
 
-    print("Number of pathogenic / likely pathogenic ClinVar entries: {}".format(len(clinvar_summary_df.index)))
+    print("Number of pathogenic/likely pathogenic ClinVar entries: {}".format(
+        len(clinvar_summary_df.index)))
 
     # read HGMD Pro vcf in
     hgmd_df = hgmd_vcf_to_df()

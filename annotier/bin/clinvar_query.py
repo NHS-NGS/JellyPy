@@ -2,9 +2,9 @@
 Functions to take a json of GEL variants, query against ClinVar VCF 
 if present, and then return full ClinVar entry for those that are.
 
-To do more than 3 requests per second to ClinVar this requires an NCBI account,
-and the email and api key passing to entrezpy. These are stored in ncbi_credentials.py
-in /bin.
+To do more than 3 requests per second to ClinVar this requires an NCBI 
+account, and the email and api key passing to entrezpy. 
+These are stored in ncbi_credentials.py in /bin.
 """
 
 import json
@@ -18,16 +18,16 @@ import entrezpy.esummary.esummarizer
 try:
     from ncbi_credentials import ncbi_credentials
 except ImportError:
-    print("NCBI email and api_key must be first defined in ncbi_credentials.py for querying ClinVar")
+    print("NCBI email and api_key must be defined in ncbi_credentials.py for "
+        "querying ClinVar")
     sys.exit(-1)
 
 # list to temporarialy store data in
 clinvar_list = []
 
-dirname = os.path.dirname(__file__)
-data_dir = os.path.join(dirname, "../data/")
-clinvar_dir = os.path.join(dirname, "../data/clinvar/")
-
+#dirname = os.path.dirname(__file__)
+data_dir = os.path.join(os.path.dirname(__file__), "../data/")
+clinvar_dir = os.path.join(os.path.dirname(__file__), "../data/clinvar/")
 
 def clinvar_vcf_to_df():
     """
@@ -59,30 +59,36 @@ def clinvar_vcf_to_df():
 
 def get_clinvar_ids(clinvar_df, position_list):
     """
-    Function to query all variants in JSON against ClinVar df, returns ids of those pathogenic and likely pathogenic
+    Function to query all variants in JSON against ClinVar df, returns 
+    ids of those pathogenic and likely pathogenic
 
     Args:
         clinvar_df (dataframe): dataframe built from ClinVar vcf
-        position_list (list): list of all variant GRCh38 positions and chromosome numbers from JSON
+        position_list (list): list of all variant GRCh38 positions and 
+                              chromosome numbers from JSON
 
     Returns:
-        clinvar_list (list): list of ClinVar IDs where position is in the input JSON
+        clinvar_list (list): list of ClinVar IDs where position is in the 
+                             input JSON
     """
 
-    match_df = clinvar_df[clinvar_df[['#CHROM', 'POS']].apply(tuple, axis = 1).isin(position_list)]
+    match_df = clinvar_df[clinvar_df[['#CHROM', 'POS']].apply(tuple, axis = 1
+                ).isin(position_list)]
 
     for row in match_df.itertuples():
                 
-        if "CLNSIG=Pathogenic" in row.INFO or "CLNSIG=Likely_pathogenic" in row.INFO:
+        if "CLNSIG=Pathogenic" in row.INFO or \
+            "CLNSIG=Likely_pathogenic" in row.INFO:
             # add variant ID if classified as pathogenic or likely pathogenic
             clinvar_list.append(int(row.ID))
-            # need to add to clinvar list ref and alt and pos for later
         
         if "CLNSIG=Conflicting_interpretations_of_pathogenicity" in row.INFO:
-            clnsigconf = [i for i in row.INFO.split(";") if i.startswith("CLNSIGCONF")]
+            clnsigconf = [i for i in row.INFO.split(";") if \
+                            i.startswith("CLNSIGCONF")]
+            # add variant ID if classified as pathogenic or likely 
+            # pathogenic but with conflicts
 
             if "pathogenic" in clnsigconf[0].casefold():
-                # add variant ID if classified as pathogenic or likely pathogenic but with conflicts
                 clinvar_list.append(int(row.ID))
     
     if len(clinvar_list) == 0:
@@ -94,14 +100,18 @@ def get_clinvar_ids(clinvar_df, position_list):
 def get_clinvar_data(clinvar_list):
     """
     Take list of variants with pathogenic / likely pathogenic 
-    clinvar entries and return full clinvar information through NCBI eutils
-    Requires NCBI email and api_key adding to ncbi_credentials.py to do more than 3 requests per second
+    clinvar entries and return full clinvar information through 
+    NCBI eutils
+    Requires NCBI email and api_key adding to ncbi_credentials.py to do 
+    more than 3 requests per second
 
     Args:
-        clinvar_list (list): list of ClinVar IDs where position is in the input JSON
+        clinvar_list (list): list of ClinVar IDs where position is 
+                             in the input JSON
     
     Returns:
-        clinvar_summaries (dict): summary output for each clinvar variant
+        clinvar_summaries (dict): summary output for each 
+                                  clinvar variant
     """
     
     e = entrezpy.esummary.esummarizer.Esummarizer("clinvar_summary",
@@ -134,16 +144,32 @@ def get_clinvar_data(clinvar_list):
         row_dict.update(
                         {
                         "clinvar_id": key,
-                        "clinical_sig": value["clinical_significance"]["description"],
-                        "date_last_rev": value["clinical_significance"]["last_evaluated"],
-                        "review_status": value["clinical_significance"]["review_status"],
+
+                        "clinical_sig": value["clinical_significance"]
+                                             ["description"],
+
+                        "date_last_rev": value["clinical_significance"]
+                                              ["last_evaluated"],
+
+                        "review_status": value["clinical_significance"]
+                                              ["review_status"],
+
                         "var_type": value["variation_set"][0]["variant_type"],
+
                         "supporting_subs": value["supporting_submissions"],
+
+                        "start_pos": value["variation_set"][0]["variation_loc"]
+                                          [0]["start"],
+
+                        "end_pos": value["variation_set"][0]["variation_loc"]
+                                        [0]["stop"],
+
                         "chrom": value["chr_sort"],
-                        "start_pos": value["variation_set"][0]["variation_loc"][0]["start"],
-                        "end_pos": value["variation_set"][0]["variation_loc"][0]["stop"],
+
                         "ref": ref,
+
                         "alt": alt,
+
                         "protein_change": value["protein_change"]
                         }
                     ) 
@@ -153,9 +179,8 @@ def get_clinvar_data(clinvar_list):
     # build df from rows of ClinVar entries
     clinvar_summary_df = pd.DataFrame(rows_list) 
     
-    print(clinvar_summary_df)
-
     return clinvar_summary_df
+
 
 if __name__ == "__main__":
 

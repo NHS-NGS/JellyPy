@@ -1,5 +1,6 @@
 """
-Functions for handling interpretation requestions to variants data in JSON format.
+Functions for handling interpretation requestions to variants data in 
+JSON format.
 Requiures JSONs to be in v6 schema format.
 """
 
@@ -25,7 +26,8 @@ def get_json(sample_id):
         ir_json (dict): input json file
     """
 
-    json_file = os.path.expanduser("../data/ir_jsons/{}.json").format(sample_id)
+    json_file = os.path.join(os.path.dirname(__file__), 
+                "../data/ir_jsons/{}.json").format(sample_id)
 
     with open(json_file) as file:
         ir_json = json.load(file)
@@ -35,7 +37,8 @@ def get_json(sample_id):
 
 def get_hpo_terms(ir_json):
     """
-    Get hpo terms from ir json, should only be called on initial analysis of a sample
+    Get hpo terms from ir json. 
+    Should only be called on initial analysis of a sample.
 
     Args:
         ir_json (dict): input json file
