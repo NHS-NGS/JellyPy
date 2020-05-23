@@ -21,9 +21,6 @@ def hgmd_vcf_to_df():
         hgmd_df (dataframe): df of all variants in HGMD Pro vcf
     """
     
-    # dirname = os.path.dirname(__file__)
-    # hgmd_dir = os.path.join(dirname, "../data/hgmd/")
-    
     hgmd_dir = os.path.join(os.path.dirname(__file__), "../data/hgmd/")
 
     vcf = None
@@ -38,6 +35,8 @@ def hgmd_vcf_to_df():
     if not vcf:
         print("HGMD hg38 vcf not found, please ensure it is in data/hgmd")
         sys.exit(-1)
+
+    print("Reading HGMD Pro VCF")
 
     hgmd_df = pd.read_csv(vcf, header = [19], sep='\t', low_memory=False)
 
@@ -61,7 +60,7 @@ def hgmd_variants(hgmd_df, position_list):
     
     # create empty columns to split required INFO fields to
     split_info = ['CLASS','DNA','PROT','DB','PHEN','RANKSCORE']
-    
+
     hgmd_match_df = hgmd_match_df.reindex(columns=[
             *hgmd_match_df.columns.tolist(), *split_info], fill_value="None")
     

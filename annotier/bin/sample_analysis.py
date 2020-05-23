@@ -19,7 +19,7 @@ from get_json_variants import get_hpo_terms, get_json, get_tiered_variants
 from clinvar_query import clinvar_vcf_to_df, get_clinvar_ids, get_clinvar_data
 from hgmd_query import hgmd_vcf_to_df, hgmd_variants
 
-sample_id="55904-1"
+sample_id="26181-1"
 
 def find_json(sample_id):
     """
@@ -75,7 +75,9 @@ def run_analysis(position_list):
         hgmd_match_df (dataframe): df of HGMD entries for 
                                    tiered variants
     """
-
+    clinvar_summary_df = None
+    hgmd_match_df = None
+    
     # read ClinVar vcf in
     clinvar_df = clinvar_vcf_to_df()
 
@@ -95,6 +97,9 @@ def run_analysis(position_list):
     hgmd_match_df = hgmd_variants(hgmd_df, position_list)
 
     print("Number of HGMD entries: {}".format(len(hgmd_match_df.index)))
+
+    print(clinvar_summary_df)
+    print(hgmd_match_df)
 
     return clinvar_summary_df, hgmd_match_df
 

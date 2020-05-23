@@ -25,7 +25,6 @@ except ImportError:
 # list to temporarialy store data in
 clinvar_list = []
 
-#dirname = os.path.dirname(__file__)
 data_dir = os.path.join(os.path.dirname(__file__), "../data/")
 clinvar_dir = os.path.join(os.path.dirname(__file__), "../data/clinvar/")
 
@@ -51,6 +50,8 @@ def clinvar_vcf_to_df():
                     vcf = os.path.join(clinvar_dir, filename)
                 else:
                     continue
+
+    print("Reading HGMD Pro VCF")
 
     clinvar_df = pd.read_csv(vcf, header = [27], sep='\t', low_memory=False)
 
@@ -140,7 +141,7 @@ def get_clinvar_data(clinvar_list):
 
         row_dict = {}
 
-        # select out required fields from summary dict
+        # select out required fields from returned eutils summary dict
         row_dict.update(
                         {
                         "clinvar_id": key,
