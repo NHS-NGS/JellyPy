@@ -27,16 +27,18 @@ class ReportEvent:
         self.data = event
         self.variant = variant
         self.gene = self._get_gene()
+        self.ensembl = self._get_gene(ensembl_id=True)
         self.panelname = self.data["genePanel"]["panelName"]
 
-    def _get_gene(self):
+    def _get_gene(self, ensembl_id=False):
         """Returns the gene symbol from a GeL report event"""
+        identifier = "ensemblId" if ensembl_id else "geneSymbol"
         all_genes = [
-            entity["geneSymbol"]
+            entity[identifier]
             for entity in self.data["genomicEntities"]
             if entity["type"] == "gene"
         ]
-        # Add sanity check
+        # Add check. Report events cannot have more than one gene.
         assert len(all_genes) == 1, "More than one report event entity of type gene"
         return all_genes.pop()
 
@@ -115,7 +117,7 @@ class TierUpRunner:
         tier_three_events = self.generate_events(irjo)
         for event in tier_three_events:
             panel = irjo.panels[event.panelname]
-            hgnc, conf = self.query_panel_app(event.gene, panel)
+            hgnc, symbol, conf, ensembl, moi = panel.query(event.ensembl)
             record = self.tierup_record(event, hgnc, conf, panel, irjo)
             yield record
 
@@ -125,18 +127,6 @@ class TierUpRunner:
             for event in variant["reportEvents"]:
                 if event["tier"] == "TIER3":
                     yield ReportEvent(event, variant)
-
-    def query_panel_app(self, gene: str, panel: GeLPanel):
-        """Get the HGNCID and confidence level for panels in Panel App"""
-        try:
-            all_genes = panel.get_gene_map()
-            hgnc, confidence = all_genes[gene]
-            return hgnc, confidence
-        except KeyError:
-            # The gene does not map to a panelapp_symbol because either:
-            # - gene symbol has changed over time
-            # - the gene has been dropped from the panel
-            return None, None
 
     def tierup_record(self, event, hgnc, confidence, panel, irjo):
         """Return TierUp dict result for a Tier 3 variant"""

@@ -16,12 +16,34 @@ class GeLPanel():
         self.created = self._json['version_created']
         self.version = float(self._json['version'])
 
-    def get_gene_map(self):
-        """Returns a list mapping gene symbols to a (hgnc id, confidence level) tuple."""
-        mapping = { gene['gene_data']['hgnc_symbol']: (gene['gene_data']['hgnc_id'], gene['confidence_level'])
-            for gene in self._json['genes']
-        }
-        return mapping
+    def query(self, ensembl_id):
+        """Query panel for gene data.
+        Args:
+            ensembl_id (str): An ensembl gene identifier
+        Returns:
+            query_result (tuple): A tuple containing the hgnc id, hgnc symbol, panelapp confidence
+                level and ensembl gene id. These values are pulled from the panel entry matching the
+                input ensembl gene id. E.g. ('HGNC:175', 'ACVRL1', '3', 'ENSG00000139567')
+        """
+        for panel_gene in self._json['genes']:
+            # Find ensembl ids for genes in this panel e.g. p_ensembl_ids = ['ENSG00000139567', 
+            #   'ENSG00000139567']. An ensembl id is present for each reference genome.
+            p_ensembl_ids = [
+                ensembl_version['ensembl_id'] 
+                for reference, ensembl_dict in panel_gene['gene_data']['ensembl_genes'].items()
+                for ensembl_version in ensembl_dict.values() 
+            ]
+            if ensembl_id in p_ensembl_ids:
+                hgnc_id = panel_gene['gene_data']['hgnc_id']
+                hgnc_symbol = panel_gene['gene_data']['hgnc_symbol']
+                confidence_level = panel_gene['confidence_level']
+                p_ensembl_id = ensembl_id
+                mode_of_inheritance = panel_gene['mode_of_inheritance']
+                return hgnc_id, hgnc_symbol, confidence_level, p_ensembl_id, mode_of_inheritance
+        # Iterated over all genes and could not find ensemblID. This indicates that the gene is
+        #   not present in the panel. Return None.
+        else:
+            return (None,None,None,None,None)
 
     def _get_panel_json(self):
         """Returns json response object for API request."""
