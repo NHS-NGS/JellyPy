@@ -113,6 +113,7 @@ class IRJson:
     Attributes:
         json(dict): Interpretation request json data passed to class constructor
         irid(str): A string linking the interpretation request id and version e.g. 1243-1
+        proband_id(str): A string returning the ID of the proband
         tiering(dict): The GeL tiering interpreted genome
         tier_counts(dict): Tier:Int mapping showing the number of variants in each tier
         panels(dict): name:jellypy.tierup.panelapp.GeLPanel objects for each panel in the interpretation request metadata
@@ -182,6 +183,11 @@ class IRJson:
         irid_digits = re.search("\d+-\d+", irid_full).group(0)
         return irid_digits
 
+    @property
+    def proband_id(self):
+        participants = self.json['interpretation_request_data']['json_request']['pedigree']['members']
+        proband = next( patient for patient in participants if patient['isProband'] == True )
+        return proband['participantId']
 
 class IRJIO:
     """Utilities for reading, writing and downloading interpretation request json data."""

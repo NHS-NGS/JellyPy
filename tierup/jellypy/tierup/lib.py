@@ -16,6 +16,7 @@ class ReportEvent:
     Args:
         event: A report event from the irjson tiering section
         variant: The variant under which the report event is nested in the irjson
+        proband_calls: variantCalls data for the proband
     Attributes:
         data: Report event passed to class constructor
         variant: Variant passed to class constructor
@@ -23,9 +24,10 @@ class ReportEvent:
         panelname: The panel name relevant to the report event variant
     """
 
-    def __init__(self, event, variant):
+    def __init__(self, event, variant, proband_call ):
         self.data = event
         self.variant = variant
+        self.zygosity = proband_call['zygosity']
         self.gene = self._get_gene()
         self.ensembl = self._get_gene(ensembl_id=True)
         self.panelname = self.data["genePanel"]["panelName"]
@@ -41,6 +43,20 @@ class ReportEvent:
         # Add check. Report events cannot have more than one gene.
         assert len(all_genes) == 1, "More than one report event entity of type gene"
         return all_genes.pop()
+
+
+class TieredVariant:
+    """A variant tiered by the GeL pipeline."""
+    def __init__(self, data, participant_id):
+        self.variant = data
+        self.calls = self._set_participant_calls()
+    
+    def present_in_proband(self, proband_id):
+        participants_with_variant = [ vcall['participantId'] for vcall in self.variant['variantCalls'] ]
+        if proband_id in participants_with_variant:
+            return True
+        else:
+            return False
 
 
 class PanelUpdater:
@@ -122,11 +138,20 @@ class TierUpRunner:
             yield record
 
     def generate_events(self, irjo):
-        """Return report event objects for all Tier 3 variants"""
+        """Return report event objects for all Tier 3 variants found in the proband"""
+        # Gather all report events and the variant objects they are nested in in a tuple.
         for variant in irjo.tiering["interpreted_genome_data"]["variants"]:
             for event in variant["reportEvents"]:
-                if event["tier"] == "TIER3":
-                    yield ReportEvent(event, variant)
+                # Search for any proband variant calls. These are labelled by paricipant ID within the
+                #    variant dictionary 
+                proband_call_list = [
+                    vcall for vcall in variant['variantCalls']
+                    if vcall and vcall['participantId'] == irjo.proband_id
+                ]
+                # If there is tier 3 report event and a variant call in the proband, return a ReportEvent
+                if event["tier"] == "TIER3" and proband_call_list:
+                    proband_call = proband_call_list.pop()
+                    yield ReportEvent(event, variant, proband_call)
 
     def tierup_record(self, event, hgnc, confidence, panel, irjo):
         """Return TierUp dict result for a Tier 3 variant"""
@@ -147,9 +172,7 @@ class TierUpRunner:
             "segregation": event.data["segregationPattern"],
             "inheritance": event.data["modeOfInheritance"],
             "group": event.data["groupOfVariants"],
-            "zygosity": event.variant["variantCalls"][0][
-                "zygosity"
-            ],
+            "zygosity": event.zygosity,
             "position": event.variant["variantCoordinates"]["position"],
             "chromosome": event.variant["variantCoordinates"]["chromosome"],
             "assembly": event.variant["variantCoordinates"]["assembly"],
