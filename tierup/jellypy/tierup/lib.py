@@ -44,21 +44,6 @@ class ReportEvent:
         assert len(all_genes) == 1, "More than one report event entity of type gene"
         return all_genes.pop()
 
-
-class TieredVariant:
-    """A variant tiered by the GeL pipeline."""
-    def __init__(self, data, participant_id):
-        self.variant = data
-        self.calls = self._set_participant_calls()
-    
-    def present_in_proband(self, proband_id):
-        participants_with_variant = [ vcall['participantId'] for vcall in self.variant['variantCalls'] ]
-        if proband_id in participants_with_variant:
-            return True
-        else:
-            return False
-
-
 class PanelUpdater:
     """Update panel IDs in IRJson object panels.
 
