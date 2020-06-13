@@ -1,0 +1,45 @@
+{
+    "test_data": [1,2,3],
+    "test_gel_panel": [
+            {
+                "panel_id": 123,
+                "queries": {
+                "ENSG00000139567": [
+                    "HGNC:175", "ACVRL1", "3", "ENSG00000139567",
+                    "MONOALLELIC, autosomal or pseudoautosomal, NOT imprinted"
+                ],
+                "NOT_AN_ENSEMBL_ID": [
+                    null, null, null, null, null
+                ],
+                "" : [
+                    null, null, null, null, null
+                ]
+            }
+        }
+    ],
+    "test_mode_of_inheritance": [
+        ["biallelic", "BOTH monoallelic and biallelic, autosomal or pseudoautosomal", true],
+        ["biallelic", "BIALLELIC, autosomal or pseudoautosomal", true],
+        ["mitochondrial", "MITOCHONDRIAL", true],
+        ["DENOVO",  "MONOALLELIC, autosomal or pseudoautosomal, imprinted status unknown", true],
+        ["monoallelic_maternally_imprinted", "MONOALLELIC, autosomal or pseudoautosomal, maternally imprinted [paternal allele expressed]", true],
+        ["xlinked_biallelic", "X-LINKED: hemizygous mutation in males, monoallelic mutations in females may cause disease [may be less severe, later onset than males]", false],
+        ["xlinked_biallelic", "X linked: hemizygous mutation in males, monoallelic mutations in females may cause disease [may be less severe, later onset than males]", false],
+        ["monoallelic", "MONOALLELIC, autosomal or pseudoautosomal", true],
+        ["monoallelic", "Other - please specify in evaluation comments", true],
+        ["monoallelic", "Unknown", true],
+        ["xlinked_biallelic", "X-LINKED: hemizygous mutation in males, biallelic mutations in females", true],
+        ["xlinked_monoallelic", "X-LINKED: hemizygous mutation in males, biallelic mutations in females", true],
+        ["xlinked_monoallelic", "X linked: hemizygous mutation in males, monoallelic mutations in females may cause disease [may be less severe, later onset than males]", true],
+        ["monoallelic_not_imprinted", "MONOALLELIC, autosomal or pseudoautosomal, NOT imprinted", true],
+        ["monoallelic_not_imprinted", "MONOALLELIC, autosomal or pseudoautosomal, imprinted status unknown", true],
+        ["DOMINANT", "", true],
+        [null, "", true],
+        [null, null, true],
+        ["mitochondrial", "BIALLELIC, autosomal or pseudoautosomal", false],
+        ["DENOVO",  "BIALLELIC, autosomal or pseudoautosomal", false],
+        ["biallelic", "MITOCHONDRIAL", false],
+        ["monoallelic_maternally_imprinted", "BIALLELIC, autosomal or pseudoautosomal", false],
+        ["monoallelic", "BIALLELIC, autosomal or pseudoautosomal", false]
+    ]
+}
