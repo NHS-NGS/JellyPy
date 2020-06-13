@@ -3,6 +3,7 @@ import pkg_resources
 import json
 import logging
 import csv
+import re
 
 from jellypy.tierup.irtools import IRJson
 from jellypy.tierup.panelapp import PanelApp, GeLPanel
@@ -103,12 +104,44 @@ class PanelUpdater:
         ir_panels = set(irjo.panels.keys())
         return event_panels - ir_panels
 
+class TieringLite():
+    """Determine tier of variant by implementing GeL rules"""
+    
+    tiering_pa_moi_regex = {
+        "biallelic": [r'^biallelic', r'.*monoallelic_and_biallelic', r'^unknown', r'^other'],
+        "xlinked_biallelic": [r'x.linked.*biallelic', r'^unknown', r'^other'],
+        "denovo": [r'monoallelic',r'x.linked', r'.*mitochondrial',r'^unknown', r'^other'],
+        "xlinked_monoallelic": [r'x.linked.*', r'^unknown', r'^other'],
+        "monoallelic": [r'monoallelic', r'x.linked', r'mitochondrial',r'^unknown', r'^other'],
+        "monoallelic_not_imprinted": [r'monoallelic', r'x.linked', r'mitochondrial',r'^unknown', r'^other'],
+        "monoallelic_paternally_imprinted": [r'monoallelic.*paternally', r'^unknown', r'^other'],
+        "monoallelic_maternally_imprinted": [r'monoallelic.*maternally', r'^unknown', r'^other'],
+        "mitochondrial": [r'mitochondrial', r'^unknown', r'^other']
+    }
+
+    def __init__(self):
+        pass
+
+    def moi_match(self, tiering_moi, pa_moi):
+        #NOTE; Should work on principle: If we have a record for it, check it. Otherwise let it through.
+        if tiering_moi is None or pa_moi is None or tiering_moi.lower() not in self.tiering_pa_moi_regex.keys():
+            return True
+
+        pa_clean = pa_moi.lower().strip().replace(',','').replace(' ','_')
+        ti_clean = tiering_moi.lower()
+
+        try:
+            return any([ re.search(pa_moi_regex, pa_clean) for pa_moi_regex in self.tiering_pa_moi_regex.get(ti_clean, ['.*']) ])
+        except KeyError:
+            # We don't have this tiering mode of inheritance?
+            return False
+
 
 class TierUpRunner:
     """Run TierUp on an interpretation request json object"""
 
-    def __init__(self):
-        pass
+    def __init__(self, tiering_lite=TieringLite):
+        self.tl = TieringLite()
 
     def run(self, irjo):
         """Run TierUp.
@@ -118,9 +151,10 @@ class TierUpRunner:
         tier_three_events = self.generate_events(irjo)
         for event in tier_three_events:
             panel = irjo.panels[event.panelname]
-            hgnc, symbol, conf, ensembl, moi = panel.query(event.ensembl)
-            record = self.tierup_record(event, hgnc, conf, panel, irjo)
-            yield record
+            hgnc, symbol, conf, ensembl, pa_moi = panel.query(event.ensembl)
+            if self.tl.moi_match(event.data['modeOfInheritance'], pa_moi): # Change to new annotation if this works
+                record = self.tierup_record(event, hgnc, conf, panel, irjo)
+                yield record
 
     def generate_events(self, irjo):
         """Return report event objects for all Tier 3 variants found in the proband"""
