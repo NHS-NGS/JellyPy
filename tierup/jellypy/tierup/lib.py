@@ -105,9 +105,9 @@ class PanelUpdater:
         return event_panels - ir_panels
 
 class TieringLite():
-    """Determine tier of variant by implementing GeL rules"""
+    """Determine tier of a report event"""
     
-    tiering_pa_moi_regex = {
+    MOI_REGEX = {
         "biallelic": [r'^biallelic', r'.*monoallelic_and_biallelic', r'^unknown', r'^other'],
         "xlinked_biallelic": [r'x.linked.*biallelic', r'^unknown', r'^other'],
         "denovo": [r'monoallelic',r'x.linked', r'.*mitochondrial',r'^unknown', r'^other'],
@@ -119,23 +119,63 @@ class TieringLite():
         "mitochondrial": [r'mitochondrial', r'^unknown', r'^other']
     }
 
+    HIGH_IMPACT_TERMS = {
+        "SO:0001893": 'transcript_ablation',
+        "SO:0001574": 'splice_acceptor_variant',
+        "SO:0001575": 'splice_donor_variant',
+        "SO:0001587": 'stop_gained',
+        "SO:0001589": 'frameshift_variant',
+        "SO:0001578": 'stop_lost',
+        "SO:0001582": 'initiator_codon_variant'
+    }
+
     def __init__(self):
         pass
 
-    def moi_match(self, tiering_moi, pa_moi):
+    def _moi_match(self, tiering_moi, pa_moi):
         #NOTE; Should work on principle: If we have a record for it, check it. Otherwise let it through.
-        if tiering_moi is None or pa_moi is None or tiering_moi.lower() not in self.tiering_pa_moi_regex.keys():
+        if tiering_moi is None or pa_moi is None or tiering_moi.lower() not in self.MOI_REGEX.keys():
             return True
 
         pa_clean = pa_moi.lower().strip().replace(',','').replace(' ','_')
         ti_clean = tiering_moi.lower()
 
-        try:
-            return any([ re.search(pa_moi_regex, pa_clean) for pa_moi_regex in self.tiering_pa_moi_regex.get(ti_clean, ['.*']) ])
-        except KeyError:
-            # We don't have this tiering mode of inheritance?
+        return any([ re.search(pa_moi_regex, pa_clean) for pa_moi_regex in self.MOI_REGEX.get(ti_clean, ['.*']) ])
+
+    def _is_high_impact(self, segregation, consequences):
+        if 'denovo' in segregation.lower() or any(
+            [ term in self.HIGH_IMPACT_TERMS.keys() for term in consequences ]
+        ):
+            return True
+        else:
             return False
 
+    def retier(self, event: ReportEvent, panel: GeLPanel):
+        hgnc, symbol, conf, ensembl, pa_moi = panel.query(event.ensembl)
+    #     # If pa confidence is blank; tier_3_not_in_panel
+        if conf is None:
+            return 'tier_3_not_in_panel' 
+    #     # If pa confidence is less than three; tier_3_red_or_amber
+        elif conf not in ['3', '4']:
+            return 'tier_3_red_or_amber'
+    #     # If pa confidence is 3 or 4 AND
+    #         # If mode of inheritance violates; tier_3_green_moi_mismatch
+        elif not self._moi_match(event.data['modeOfInheritance'], pa_moi):
+            return 'tier_3_green_moi_mismatch'
+    #   # If not high impact and moi; tier_2
+        elif not self._is_high_impact(
+            event.data["segregationPattern"],
+            [ cons['id'] for cons in event.data["variantConsequences"] ]
+        ):
+            return 'tier_2'
+        elif conf in ['3','4'] and self._moi_match(event.data['modeOfInheritance'], pa_moi
+            ) and self._is_high_impact(
+            event.data["segregationPattern"],
+            [ cons['id'] for cons in event.data["variantConsequences"] ]
+        ):
+            return 'tier_1'
+        else:
+            return 'error_unable_to_tier'
 
 class TierUpRunner:
     """Run TierUp on an interpretation request json object"""
@@ -152,9 +192,9 @@ class TierUpRunner:
         for event in tier_three_events:
             panel = irjo.panels[event.panelname]
             hgnc, symbol, conf, ensembl, pa_moi = panel.query(event.ensembl)
-            if self.tl.moi_match(event.data['modeOfInheritance'], pa_moi): # Change to new annotation if this works
-                record = self.tierup_record(event, hgnc, conf, panel, irjo)
-                yield record
+           # if self.tl.moi_match(event.data['modeOfInheritance'], pa_moi): # Change to new annotation if this works
+            record = self.tierup_record(event, hgnc, conf, panel, irjo)
+            yield record
 
     def generate_events(self, irjo):
         """Return report event objects for all Tier 3 variants found in the proband"""
