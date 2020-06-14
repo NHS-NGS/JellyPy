@@ -152,30 +152,34 @@ class TieringLite():
 
     def retier(self, event: ReportEvent, panel: GeLPanel):
         hgnc, symbol, conf, ensembl, pa_moi = panel.query(event.ensembl)
+        tiering_result = ""
     #     # If pa confidence is blank; tier_3_not_in_panel
         if conf is None:
-            return 'tier_3_not_in_panel' 
+            tiering_result = 'tier_3_not_in_panel' 
     #     # If pa confidence is less than three; tier_3_red_or_amber
         elif conf not in ['3', '4']:
-            return 'tier_3_red_or_amber'
+            tiering_result = 'tier_3_red_or_amber'
     #     # If pa confidence is 3 or 4 AND
     #         # If mode of inheritance violates; tier_3_green_moi_mismatch
         elif not self._moi_match(event.data['modeOfInheritance'], pa_moi):
-            return 'tier_3_green_moi_mismatch'
+            tiering_result = 'tier_3_green_moi_mismatch'
     #   # If not high impact and moi; tier_2
         elif not self._is_high_impact(
             event.data["segregationPattern"],
             [ cons['id'] for cons in event.data["variantConsequences"] ]
         ):
-            return 'tier_2'
+            tiering_result = 'tier_2'
         elif conf in ['3','4'] and self._moi_match(event.data['modeOfInheritance'], pa_moi
             ) and self._is_high_impact(
             event.data["segregationPattern"],
             [ cons['id'] for cons in event.data["variantConsequences"] ]
         ):
-            return 'tier_1'
+            tiering_result = 'tier_1'
         else:
-            return 'error_unable_to_tier'
+            tiering_result = 'error_unable_to_tier'
+        
+        return tiering_result, hgnc, symbol, conf, ensembl, pa_moi
+         
 
 class TierUpRunner:
     """Run TierUp on an interpretation request json object"""
@@ -191,13 +195,12 @@ class TierUpRunner:
         tier_three_events = self.generate_events(irjo)
         for event in tier_three_events:
             panel = irjo.panels[event.panelname]
-            hgnc, symbol, conf, ensembl, pa_moi = panel.query(event.ensembl)
-           # if self.tl.moi_match(event.data['modeOfInheritance'], pa_moi): # Change to new annotation if this works
+            retier, hgnc, symbol, conf, ensembl, pa_moi = self.tl.retier(event, panel)
             record = self.tierup_record(event, hgnc, conf, panel, irjo)
             yield record
 
     def generate_events(self, irjo):
-        """Return report event objects for all Tier 3 variants found in the proband"""
+        """Return report event objects for all variants found in the proband"""
         # Gather all report events and the variant objects they are nested in in a tuple.
         for variant in irjo.tiering["interpreted_genome_data"]["variants"]:
             for event in variant["reportEvents"]:
@@ -208,7 +211,7 @@ class TierUpRunner:
                     if vcall and vcall['participantId'] == irjo.proband_id
                 ]
                 # If there is tier 3 report event and a variant call in the proband, return a ReportEvent
-                if event["tier"] == "TIER3" and proband_call_list:
+                if proband_call_list:
                     proband_call = proband_call_list.pop()
                     yield ReportEvent(event, variant, proband_call)
 

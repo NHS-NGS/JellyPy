@@ -41,4 +41,4 @@ def test_tiering_lite(tdata):
     for td in tdata["test_tiering_lite"]:
         event = ReportEvent(td['report_event'], td['variant'], td['proband_call'])
         panel = GeLPanel(td['panel_id'])
-        assert tl.retier(event, panel) == td['result']
+        assert tl.retier(event, panel)[0] == td['result']
