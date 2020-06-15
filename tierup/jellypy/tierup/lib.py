@@ -160,7 +160,7 @@ class TieringLite():
         elif conf not in ['3', '4']:
             tiering_result = 'tier_3_red_or_amber'
     #     # If pa confidence is 3 or 4 AND
-    #         # If mode of inheritance violates; tier_3_green_moi_mismatch
+    #         # If mode of inheritance violated; tier_3_green_moi_mismatch
         elif not self._moi_match(event.data['modeOfInheritance'], pa_moi):
             tiering_result = 'tier_3_green_moi_mismatch'
     #   # If not high impact and moi; tier_2
@@ -176,7 +176,7 @@ class TieringLite():
         ):
             tiering_result = 'tier_1'
         else:
-            tiering_result = 'error_unable_to_tier'
+            tiering_result = 'unable_to_tier'
         
         return tiering_result, hgnc, symbol, conf, ensembl, pa_moi
          
@@ -195,8 +195,8 @@ class TierUpRunner:
         tier_three_events = self.generate_events(irjo)
         for event in tier_three_events:
             panel = irjo.panels[event.panelname]
-            retier, hgnc, symbol, conf, ensembl, pa_moi = self.tl.retier(event, panel)
-            record = self.tierup_record(event, hgnc, conf, panel, irjo)
+            tier, hgnc, symbol, conf, ensembl_id, pa_moi = self.tl.retier(event, panel)
+            record = self.tierup_record(event, hgnc, conf, panel, ensembl_id, pa_moi, tier, irjo)
             yield record
 
     def generate_events(self, irjo):
@@ -215,61 +215,61 @@ class TierUpRunner:
                     proband_call = proband_call_list.pop()
                     yield ReportEvent(event, variant, proband_call)
 
-    def tierup_record(self, event, hgnc, confidence, panel, irjo):
+    def tierup_record(self, event, hgnc, confidence, panel, ensembl_id, pa_moi, tier, irjo):
         """Return TierUp dict result for a Tier 3 variant"""
         record = {
-            "justification": event.data["eventJustification"],
-            "consequences": str(
-                [cons["name"] for cons in event.data["variantConsequences"]]
-            ),
-            "penetrance": event.data["penetrance"],
-            "denovo_score": event.data["deNovoQualityScore"],
-            "score": event.data["score"],
-            "event_id": event.data["reportEventId"],
-            "interpretation_request_id": irjo.tiering["interpreted_genome_data"][
+            # Note: '#' prepended to header line
+            "#interpretation_request_id": irjo.tiering["interpreted_genome_data"][
                 "interpretationRequestId"
             ],
-            "created_at": irjo.tiering["created_at"],
-            "tier": event.data["tier"],
-            "segregation": event.data["segregationPattern"],
-            "inheritance": event.data["modeOfInheritance"],
-            "group": event.data["groupOfVariants"],
-            "zygosity": event.zygosity,
-            "position": event.variant["variantCoordinates"]["position"],
-            "chromosome": event.variant["variantCoordinates"]["chromosome"],
+            "tier_tierup": tier,
+            "tier_gel": event.data["tier"],
             "assembly": event.variant["variantCoordinates"]["assembly"],
+            "chromosome": event.variant["variantCoordinates"]["chromosome"],
+            "position": event.variant["variantCoordinates"]["position"],
             "reference": event.variant["variantCoordinates"]["reference"],
             "alternate": event.variant["variantCoordinates"]["alternate"],
-            "re_panel_id": event.data["genePanel"]["panelIdentifier"],
-            "re_panel_version": event.data["genePanel"]["panelVersion"],
-            "re_panel_source": event.data["genePanel"]["source"],
-            "re_panel_name": event.data["genePanel"]["panelName"],
-            "re_gene": event.gene,
+            "consequences": ",".join(
+                [ 
+                    ":".join(vc.values()) for vc in event.data["variantConsequences"]
+                ]
+            ),
+            "zygosity": event.zygosity,
+            "segregation": event.data["segregationPattern"],
+            "penetrance": event.data["penetrance"],
+            "tiering_moi": event.data["modeOfInheritance"],
             "tu_panel_hash": panel.hash,
             "tu_panel_name": panel.name,
             "tu_panel_version": panel.version,
             "tu_panel_number": panel.id,
             "tu_panel_created": panel.created,
+            "tu_run_time": datetime.datetime.now().strftime("%c"),
+            "pa_ensembl": ensembl_id,  
             "pa_hgnc_id": hgnc,
             "pa_gene": event.gene,
+            "pa_moi": pa_moi,
             "pa_confidence": confidence,
+            "extra_panels": irjo.updated_panels,      
+            "re_id": event.data["reportEventId"],
+            "re_panel_id": event.data["genePanel"]["panelIdentifier"],
+            "re_panel_version": event.data["genePanel"]["panelVersion"],
+            "re_panel_source": event.data["genePanel"]["source"],
+            "re_panel_name": event.data["genePanel"]["panelName"],
+            "re_gene": event.gene,
+            "justification": event.data["eventJustification"],
+            "created_at": irjo.tiering["created_at"],            
             "software_versions": str(
                 irjo.tiering["interpreted_genome_data"]["softwareVersions"]
             ),
             "reference_db_versions": str(
                 irjo.tiering["interpreted_genome_data"]["referenceDatabasesVersions"]
-            ),
-            "extra_panels": irjo.updated_panels,
-            "tu_run_time": datetime.datetime.now().strftime("%c"),
-            "tier1_count": irjo.tier_counts["TIER1"],
-            "tier2_count": irjo.tier_counts["TIER2"],
-            "tier3_count": irjo.tier_counts["TIER3"],
-            "tu_version": pkg_resources.require("jellypy-tierup")[0].version
+            ),            
+            "tu_version": pkg_resources.require("jellypy-tierup")[0].version,
         }
         return record
 
 
-class TierUpWriter:
+class TierUpCSVWriter():
     """Write TierUp results as CSV file.
 
     Args:
@@ -277,43 +277,20 @@ class TierUpWriter:
         schema(str): A json.schema file with output file headers expected in data
         writer(csv.DictWriter): An object for writing dictionaires as csv data
     """
+    schema = pkg_resources.resource_string("jellypy.tierup", "data/report.schema")
 
-    def __init__(self, outfile, schema, writer=csv.DictWriter):
+    def __init__(self, outfile, writer=csv.DictWriter):
         self.outfile = outfile
         self.outstream = open(outfile, "w")
-        self.header = json.loads(schema)["required"]
+        self.header = json.loads(self.schema)["required"]
         self.writer = writer(self.outstream, fieldnames=self.header, delimiter="\t")
+        self.writer.writeheader()
 
-    def write(self, data):
+    def write(self, data: list):
         """Write data to csv output file"""
-        self.writer.writerow(data)
+        for record in data:
+            self.writer.writerow(record)
 
     def close_file(self):
         """Close csv output file"""
         self.outstream.close()
-
-
-class TierUpCSVWriter(TierUpWriter):
-    """TierUp report csv writer.  Writes all Tier3 variants analysed"""
-
-    schema = pkg_resources.resource_string("jellypy.tierup", "data/report.schema")
-
-    def __init__(self, *args, **kwargs):
-        super(TierUpCSVWriter, self).__init__(*args, schema=self.schema, **kwargs)
-        self.writer.writeheader()
-
-
-class TierUpSummaryWriter(TierUpWriter):
-    """TierUp summary report writer. Writes only Tier3 variants that have increased Tier"""
-
-    schema = pkg_resources.resource_string(
-        "jellypy.tierup", "data/summary_report.schema"
-    )
-
-    def __init__(self, *args, **kwargs):
-        super(TierUpSummaryWriter, self).__init__(*args, schema=self.schema, **kwargs)
-
-    def write(self, data):
-        if data["pa_confidence"] and data["pa_confidence"] in ["3", "4"]:
-            filtered = {k: v for k, v in data.items() if k in self.header}
-            self.writer.writerow(filtered)
