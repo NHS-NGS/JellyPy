@@ -105,17 +105,17 @@ class IRJValidator:
 
 
 class IRJson:
-    """Utilities for parsing IRJson data
+    """Parses interpretation request json data for TierUp
 
     Args:
         irjson: An interpretation request json object
-        validator: An IRJValidator instance
+        validator: An IRJValidator instance. No validation is performed if this is None.
     Attributes:
-        json(dict): Interpretation request json data passed to class constructor
-        irid(str): A string linking the interpretation request id and version e.g. 1243-1
-        proband_id(str): A string returning the ID of the proband
-        tiering(dict): The GeL tiering interpreted genome
-        tier_counts(dict): Tier:Int mapping showing the number of variants in each tier
+        json(dict): Interpretation request json data passed as the `irjson` argument
+        irid(str): The interpretation request id and version e.g. 1243-1
+        proband_id(str): The proband GeL ID
+        tiering(dict): The GeL interpreted genome with tiering pipeline data
+        tier_counts(dict[Tier,Int]): Map tiers to the number of variants in each tier
         panels(dict): name:jellypy.tierup.panelapp.GeLPanel objects for each panel in the interpretation request metadata
         updated_panels(list): A record of panel ids updated using the `update_panel` method.
     Methods:
