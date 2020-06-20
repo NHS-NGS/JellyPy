@@ -115,8 +115,9 @@ class IRJson:
         irid(str): The interpretation request id and version e.g. 1243-1
         proband_id(str): The proband GeL ID
         tiering(dict): The GeL interpreted genome with tiering pipeline data
-        panels(dict): name:jellypy.tierup.panelapp.GeLPanel objects for each panel in the interpretation request metadata
-        updated_panels(list): A record of panel ids updated using the `update_panel` method.
+        panels(dict): name:jellypy.tierup.panelapp.GeLPanel objects for each panel in the
+            interpretation request metadata
+        updated_panels(list): A list of panel ids added to self.panels using `self.update_panel()`.
     Methods:
         update_panel: Assign a more recent PanelApp ID to a panel in the interpretation request
     """
@@ -133,6 +134,7 @@ class IRJson:
         return f"{self.irid}"
 
     def _get_tiering(self):
+        """Return the latest GeL tiering interpreted genome from the interpretation request json."""
         tiering_list = list(
             filter(
                 lambda x: x["interpreted_genome_data"]["interpretationService"]
@@ -146,6 +148,8 @@ class IRJson:
         return latest_tiering
 
     def _get_panels(self):
+        """Get GeL panel data from PanelApp. Returns a dictionary mapping panel names to GeLPanel
+        objects from jellypy.tierup.panelapp."""
         _panels = {}
         data = self.json["interpretation_request_data"]["json_request"]["pedigree"][
             "analysisPanels"
@@ -159,7 +163,7 @@ class IRJson:
         return _panels
 
     def update_panel(self, panel_name, panel_id):
-        """Add or update a panel name using an ID from the PanelApp API"""
+        """Add or update a panel name in self.panels using a GeL panel app ID."""
         new_panel = pa.GeLPanel(panel_id)
         self.panels[panel_name] = new_panel
         self.updated_panels.append(f"{panel_name}, {panel_id}")
