@@ -17,12 +17,14 @@ class ReportEvent:
     Args:
         event: A report event from the irjson tiering section
         variant: The variant under which the report event is nested in the irjson
-        proband_calls: variantCalls data for the proband
+        proband_call: The variants call for the proband, including zygosity. This data is found under
+            the 'variantCalls' key in the interpretation request.
     Attributes:
         data: Report event passed to class constructor
         variant: Variant passed to class constructor
-        gene: The gene symbol for the tiered report event variant
-        panelname: The panel name relevant to the report event variant
+        zygostiy: Zygosity of the variant in the proband e.g. heterozygous
+        gene: The gene symbol for the report event variant
+        panelname: The panel under which the variant was tiered in this report event
     """
 
     def __init__(self, event, variant, proband_call ):
@@ -105,8 +107,18 @@ class PanelUpdater:
         return event_panels - ir_panels
 
 class TieringLite():
-    """Determine tier of a report event"""
+    """Determine the tier of a report event.
     
+    Args:
+        None
+    Attributes:
+        None
+    Methods:
+        retier: Implement tiering rules for a given report event variant and panel.
+    """
+    
+    # Regular expressions for comparing mode of inheritance (moi) from the tiering and panelapp.
+    #   Keys reperesent tiering moi and regular expression lists represent panelapp mois.
     MOI_REGEX = {
         "biallelic": [r'^biallelic', r'.*monoallelic_and_biallelic', r'^unknown', r'^other'],
         "xlinked_biallelic": [r'x.linked.*biallelic', r'^unknown', r'^other'],
@@ -119,6 +131,8 @@ class TieringLite():
         "mitochondrial": [r'mitochondrial', r'^unknown', r'^other']
     }
 
+    # Define high-impact sequence ontology terms that determine whether variants are high impact.
+    #  Keys are sequence ontology IDs while values are tiering output names
     HIGH_IMPACT_TERMS = {
         "SO:0001893": 'transcript_ablation',
         "SO:0001574": 'splice_acceptor_variant',
@@ -133,16 +147,34 @@ class TieringLite():
         pass
 
     def _moi_match(self, tiering_moi, pa_moi):
-        #NOTE; Should work on principle: If we have a record for it, check it. Otherwise let it through.
-        if tiering_moi is None or pa_moi is None or tiering_moi.lower() not in self.MOI_REGEX.keys():
+        """Match a variant's mode of inheritance (tiering_moi) with a gene's mode of inheritance from
+        panelapp (pa_moi).
+        """
+        # If any information on the mode of inheritance is missing, return True.
+        # Missing information is defined as empty function inputs, or no regular expression for the
+        #  variant's mode of inheritance.
+        if (
+            tiering_moi is None
+            or pa_moi is None
+            or tiering_moi.lower() not in self.MOI_REGEX.keys()
+        ):
             return True
 
+        # Clean tiering pipeline and panelapp data
         pa_clean = pa_moi.lower().strip().replace(',','').replace(' ','_')
         ti_clean = tiering_moi.lower()
 
-        return any([ re.search(pa_moi_regex, pa_clean) for pa_moi_regex in self.MOI_REGEX.get(ti_clean, ['.*']) ])
+        # Get regular expresssions for the variant's mode of inheritance in panelapp
+        regexes = self.MOI_REGEX.get(ti_clean)
+        # Return True if the variant's mode of inheritance matches the gene's in panelapp
+        any_regex_match = any([ re.search(regex, pa_clean) for regex in regexes ])
 
-    def _is_high_impact(self, segregation, consequences):
+        return any_regex_match
+
+    def _is_high_impact(self, segregation: str, consequences: list):
+        """Return True if a variant's segregation data or transcript consequences indicate that it is
+        a high impact variant.
+        """
         if 'denovo' in segregation.lower() or any(
             [ term in self.HIGH_IMPACT_TERMS.keys() for term in consequences ]
         ):
@@ -151,74 +183,105 @@ class TieringLite():
             return False
 
     def retier(self, event: ReportEvent, panel: GeLPanel):
-        hgnc, symbol, conf, ensembl, pa_moi = panel.query(event.ensembl)
-        tiering_result = ""
-    #     # If pa confidence is blank; tier_3_not_in_panel
-        if conf is None:
-            tiering_result = 'tier_3_not_in_panel' 
-    #     # If pa confidence is less than three; tier_3_red_or_amber
-        elif conf not in ['3', '4']:
+        """Run tiering rules for a report event against a panel app panel.
+        Args:
+            event(ReportEvent): A GeL tiering pipeline variant report event
+            panel(GeLPanel): Object representing a panelapp panel
+        Returns:
+            retier_result(tuple): Results for the TierUp report. E.g.
+                (
+                    "tier_1", # A new tiering value assigned by retier() logic
+                    "HGNC:175", # HGNC identifier for the gene carrying the variant
+                    "ACVRL1", # HGNC symbol for the gene carrying the variant
+                    "3", # PanelApp confidence level for the gene carrying the variant
+                    "ENSG00000139567", # The Ensembl ID for the gene carrying the variant
+                    "MONOALLELIC, autosomal or pseudoautosomal, NOT imprinted"
+                        # ^PanelApp mode of inheritance for disease-causing variants in this gene
+                )
+        """
+        # Query the current version of the panel in panel app. Returns details of the gene.
+        hgnc, symbol, gene_confidence, ensembl, pa_moi = panel.query(event.ensembl)
+        # If the gene is not in this panel: tier_3_not_in_panel
+        if gene_confidence is None:
+            tiering_result = 'tier_3_not_in_panel'
+        # If the gene confidence level is not green (3,4): tier_3_red_or_amber
+        elif gene_confidence not in ['3', '4']:
             tiering_result = 'tier_3_red_or_amber'
-    #     # If pa confidence is 3 or 4 AND
-    #         # If mode of inheritance violated; tier_3_green_moi_mismatch
+        # If variant's mode of inheritance does not match the gene's in panel app: tier_3_green_moi_mismatch
         elif not self._moi_match(event.data['modeOfInheritance'], pa_moi):
             tiering_result = 'tier_3_green_moi_mismatch'
-    #   # If not high impact and moi; tier_2
+        # If the variant and gene mode of inheritance match, but the variant consequence is not high
+        #   impact: tier_2
         elif not self._is_high_impact(
             event.data["segregationPattern"],
             [ cons['id'] for cons in event.data["variantConsequences"] ]
         ):
             tiering_result = 'tier_2'
-        elif conf in ['3','4'] and self._moi_match(event.data['modeOfInheritance'], pa_moi
-            ) and self._is_high_impact(
-            event.data["segregationPattern"],
-            [ cons['id'] for cons in event.data["variantConsequences"] ]
-        ):
-            tiering_result = 'tier_1'
+        # If all the above is false, the variant is Tier 1. The variant is in a green gene in panel
+        #  app, matches the disease mode of inheritance and has a high impact consequence 
         else:
-            tiering_result = 'unable_to_tier'
+            tiering_result = 'tier_1'
         
-        return tiering_result, hgnc, symbol, conf, ensembl, pa_moi
+        return tiering_result, hgnc, symbol, gene_confidence, ensembl, pa_moi
          
 
 class TierUpRunner:
-    """Run TierUp on an interpretation request json object"""
+    """Run TierUp on an interpretation request json object.
+    Args:
+        TL(TieringLite): An object with a `retier` method for applying tiering rules to report events. 
+    """
 
-    def __init__(self, tiering_lite=TieringLite):
-        self.tl = TieringLite()
+    def __init__(self, TL=TieringLite):
+        self.tiering_lite = TL()
 
-    def run(self, irjo):
+    def run(self, irjo:IRJson):
         """Run TierUp.
         Args:
             irjo: Interpretation request json object
         """
-        tier_three_events = self.generate_events(irjo)
-        for event in tier_three_events:
-            panel = irjo.panels[event.panelname]
-            tier, hgnc, symbol, conf, ensembl_id, pa_moi = self.tl.retier(event, panel)
-            record = self.tierup_record(event, hgnc, conf, panel, ensembl_id, pa_moi, tier, irjo)
+        proband_report_events = self._get_proband_report_events(irjo)
+        for event in proband_report_events:
+            # Try to get a jellypy.tierup.panelapp.GeLPanel object for the variants panel. These are
+            # stored under the irjo.panels dictionary.
+            try:
+                panel = irjo.panels[event.panelname]
+            except KeyError:
+                # If there is no matching panel, log warning and move onto the next report event.
+                logger.warning(
+                    f'A report event panel could not be found in the irjson object:'
+                    f' event panel is {event.panelname}, loaded irjson panels are {irjo.panels.keys()}'
+                )
+                continue
+            
+            # Retier the variant against the latest version of the panel. Returns:
+            #  (new_tier, hgnc, symbol, gene_confidence, ensembl_id, panelapp_mode_of_inheritance)
+            retier_result = self.tiering_lite.retier(event, panel)
+
+            # Return a tierup output record
+            record = self.tierup_record(event, panel, irjo, retier_result)
             yield record
 
-    def generate_events(self, irjo):
-        """Return report event objects for all variants found in the proband"""
+    def _get_proband_report_events(self, irjo):
+        """Return report events for any variants in the proband."""
         # Gather all report events and the variant objects they are nested in in a tuple.
         for variant in irjo.tiering["interpreted_genome_data"]["variants"]:
             for event in variant["reportEvents"]:
-                # Search for any proband variant calls. These are labelled by paricipant ID within the
-                #    variant dictionary 
+                # Search for any proband variant calls in the variant report events.
                 proband_call_list = [
                     vcall for vcall in variant['variantCalls']
                     if vcall and vcall['participantId'] == irjo.proband_id
                 ]
-                # If there is tier 3 report event and a variant call in the proband, return a ReportEvent
+                # If this event's variant is in the proband, return a ReportEvent object
                 if proband_call_list:
                     proband_call = proband_call_list.pop()
                     yield ReportEvent(event, variant, proband_call)
 
-    def tierup_record(self, event, hgnc, confidence, panel, ensembl_id, pa_moi, tier, irjo):
+    def tierup_record(self, event, panel, irjo, retier_result):
         """Return TierUp dict result for a Tier 3 variant"""
+        tier, hgnc, hgnc_symbol, pa_gene_confidence, ensembl_id, pa_moi = retier_result
         record = {
-            # Note: '#' prepended to header line
+            # Note: Keys in the record form the header line of the tierup output. We prepend '#'to
+            # the first entry so that it can easily be filtered away.
             "#interpretation_request_id": irjo.tiering["interpreted_genome_data"][
                 "interpretationRequestId"
             ],
@@ -246,9 +309,9 @@ class TierUpRunner:
             "tu_run_time": datetime.datetime.now().strftime("%c"),
             "pa_ensembl": ensembl_id,  
             "pa_hgnc_id": hgnc,
-            "pa_gene": event.gene,
+            "pa_gene": hgnc_symbol,
             "pa_moi": pa_moi,
-            "pa_confidence": confidence,
+            "pa_confidence": pa_gene_confidence,
             "extra_panels": irjo.updated_panels,      
             "re_id": event.data["reportEventId"],
             "re_panel_id": event.data["genePanel"]["panelIdentifier"],
