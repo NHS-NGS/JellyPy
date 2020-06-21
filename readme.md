@@ -2,14 +2,14 @@
 
 ![jellypy_logo](assets/jellypy_logo_v2.png)
 
-## Python packages for juggling GeL data
+## Python packages for working with GeL data
 
-Find documentation at https://acgs.gitbook.io/jellypy
+JellyPy documentation is available at https://acgs.gitbook.io/jellypy
 
-Batteries included:
+Packages:
 
 * `jellypy-pyCIPAPI` : Client library for the Clinical Interpretation Portal
-* `jellypy-tierup` : Find Tier 3 variants to PanelApp Green genes
+* `jellypy-tierup` : Reanalyse Tier 3 variants 
 
 ## Contributing
 
@@ -30,3 +30,4 @@ To develop a new function or feature, please take a look at the issues raised. I
 ### jellypy-tierup
 
 * 0.2.0 - TierUp development release with pyCIPAPI 0.2.3
+* 0.3.0 - Use ensembl identifiers to query panel app. Implement mode of inheritance check.
