@@ -171,7 +171,7 @@ class IRJson:
     @property
     def irid(self):
         irid_full = self.tiering["interpreted_genome_data"]["interpretationRequestId"]
-        irid_digits = re.search("\d+-\d+", irid_full).group(0)
+        irid_digits = re.search(r'\d+-\d+', irid_full).group(0)
         return irid_digits
 
     @property
