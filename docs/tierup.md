@@ -2,11 +2,11 @@
 
 `tierup` reanalyse Tier 3 variants in undiagnosed GeL rare disease cases.
 
-`tierup` answers two questions of tiered variants, derived from the GeL tiering rules:
+`tierup` answers the following questions derived from the GeL tiering rules:
 - Is the variant in a green gene in a panel app panel assigned to the case?
-- Does the variant's mode of inheritance match the gene's in the panel app panel?
+- Does the variant mode of inheritance match the gene's in the panel app panel?
 
-Tier 3 variants may meet these criteria as Panel App is updated over time. These variants could be upgraded if tiering was performed again and would therefore be considered candidate diagnostic variants. `tierup` highlights these candidate variants.
+Tier 3 variants may meet these criteria after a Panel App panel is updated. These variants are highlighted by `tierup` as they may be diagnostic.
 
 ## Installation
 
