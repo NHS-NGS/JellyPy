@@ -59,7 +59,8 @@ def hgmd_variants(hgmd_df, position_list):
                     ).isin(position_list)]
     
     # create empty columns to split required INFO fields to
-    split_info = ['CLASS','DNA','PROT','DB','PHEN','RANKSCORE']
+    split_info = ['CLASS','DNA','PROT','DB','PHEN','RANKSCORE']ls
+    
 
     hgmd_match_df = hgmd_match_df.reindex(columns=[
             *hgmd_match_df.columns.tolist(), *split_info], fill_value="None")

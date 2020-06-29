@@ -19,7 +19,7 @@ from get_json_variants import get_hpo_terms, get_json, get_tiered_variants
 from clinvar_query import clinvar_vcf_to_df, get_clinvar_ids, get_clinvar_data
 from hgmd_query import hgmd_vcf_to_df, hgmd_variants
 
-sample_id="26181-1"
+sample_id = "55904-1"
 
 def find_json(sample_id):
     """
@@ -42,7 +42,7 @@ def find_json(sample_id):
 
 def get_json_data(ir_json):
     """
-    Call functions from gel_requests to get HPO terms and tiered 
+    Call functions from get_json_variants to get HPO terms and tiered 
     variants for analysis
     """
 
@@ -77,18 +77,19 @@ def run_analysis(position_list):
     """
     clinvar_summary_df = None
     hgmd_match_df = None
-    
+
     # read ClinVar vcf in
-    clinvar_df = clinvar_vcf_to_df()
+    clinvar_df, local_clinvar_ver = clinvar_vcf_to_df()
 
     # get list of ClinVar entries for tiered variants
-    clinvar_list = get_clinvar_ids(clinvar_df, position_list)
-
+    clinvar_id_list = get_clinvar_ids(clinvar_df, position_list)
+    
+    if len(clinvar_id_list) != 0:
     # get full ClinVar entries with NCBI eutils, return in df
-    clinvar_summary_df = get_clinvar_data(clinvar_list)
+        clinvar_summary_df = get_clinvar_data(clinvar_id_list)
 
-    print("Number of pathogenic/likely pathogenic ClinVar entries: {}".format(
-        len(clinvar_summary_df.index)))
+        print("Number of pathogenic/likely pathogenic ClinVar entries: {}".\
+                format(len(clinvar_summary_df.index)))
 
     # read HGMD Pro vcf in
     hgmd_df = hgmd_vcf_to_df()
@@ -97,14 +98,16 @@ def run_analysis(position_list):
     hgmd_match_df = hgmd_variants(hgmd_df, position_list)
 
     print("Number of HGMD entries: {}".format(len(hgmd_match_df.index)))
-
     print(clinvar_summary_df)
+    print(hgmd_match_df)
+
+    print(clinvar_df)
     print(hgmd_match_df)
 
     return clinvar_summary_df, hgmd_match_df
 
 
-def update_db():
+def update_db(sample_id, hpo_terms, variant_list, clinvar_df, hgmd_match_df):
     """
     Update reanalysis database with outputs of analyses
     """

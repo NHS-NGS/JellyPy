@@ -22,9 +22,6 @@ except ImportError:
         "querying ClinVar")
     sys.exit(-1)
 
-# list to temporarialy store data in
-clinvar_list = []
-
 data_dir = os.path.join(os.path.dirname(__file__), "../data/")
 clinvar_dir = os.path.join(os.path.dirname(__file__), "../data/clinvar/")
 
@@ -36,26 +33,25 @@ def clinvar_vcf_to_df():
 
     Returns:
         clinvar_df (dataframe): df of all ClinVar variants in vcf
+        local_clinvar_ver (str): latest version of ClinVar vcf downloaded
     """
-    local_vcf_ver = 0
+    local_clinvar_ver = 0
 
     for (dirpath, dirnames, filenames) in os.walk(clinvar_dir):
         for filename in filenames:
             if re.match("^clinvar_[0-9]+\.vcf$", filename):
                 # get just the clinvar vcf
                 vcf_ver = int(filename.split("_")[1].split(".")[0])
-                if vcf_ver > local_vcf_ver:
+                if vcf_ver > local_clinvar_ver:
                     # if multiple vcfs in data select just the latest
-                    local_vcf_ver = vcf_ver
+                    local_clinvar_ver = vcf_ver
                     vcf = os.path.join(clinvar_dir, filename)
                 else:
                     continue
 
-    print("Reading HGMD Pro VCF")
-
     clinvar_df = pd.read_csv(vcf, header = [27], sep='\t', low_memory=False)
 
-    return clinvar_df
+    return clinvar_df, local_clinvar_ver
 
 
 def get_clinvar_ids(clinvar_df, position_list):
@@ -72,16 +68,26 @@ def get_clinvar_ids(clinvar_df, position_list):
         clinvar_list (list): list of ClinVar IDs where position is in the 
                              input JSON
     """
-
+    
+    # list to pass clinvar ids with ref and alt as these are not
+    # returned in esummary from clinvar
+    clinvar_id_list = []
+    
     match_df = clinvar_df[clinvar_df[['#CHROM', 'POS']].apply(tuple, axis = 1
                 ).isin(position_list)]
+
+    print(match_df)
 
     for row in match_df.itertuples():
                 
         if "CLNSIG=Pathogenic" in row.INFO or \
             "CLNSIG=Likely_pathogenic" in row.INFO:
             # add variant ID if classified as pathogenic or likely pathogenic
-            clinvar_list.append(int(row.ID))
+            clinvar_id_list.append({
+                                    "clinvar_id": row.ID,
+                                    "ref": row.REF,
+                                    "alt": row.ALT
+                                    })
         
         if "CLNSIG=Conflicting_interpretations_of_pathogenicity" in row.INFO:
             clnsigconf = [i for i in row.INFO.split(";") if \
@@ -90,15 +96,19 @@ def get_clinvar_ids(clinvar_df, position_list):
             # pathogenic but with conflicts
 
             if "pathogenic" in clnsigconf[0].casefold():
-                clinvar_list.append(int(row.ID))
+                clinvar_id_list.append({
+                                    "clinvar_id": row.ID,
+                                    "ref": row.REF,
+                                    "alt": row.ALT
+                                    })
     
-    if len(clinvar_list) == 0:
+    if len(clinvar_id_list) == 0:
         print("No matching variants identified in ClinVar")
+    
+    return clinvar_id_list
 
-    return clinvar_list
 
-
-def get_clinvar_data(clinvar_list):
+def get_clinvar_data(clinvar_id_list):
     """
     Take list of variants with pathogenic / likely pathogenic 
     clinvar entries and return full clinvar information through 
@@ -107,7 +117,7 @@ def get_clinvar_data(clinvar_list):
     more than 3 requests per second
 
     Args:
-        clinvar_list (list): list of ClinVar IDs where position is 
+        clinvar_id_list (list): list of ClinVar IDs where position is 
                              in the input JSON
     
     Returns:
@@ -122,23 +132,30 @@ def get_clinvar_data(clinvar_list):
                 threads = 4,
                 qid = None
                 )
-    
-    a = e.inquire({'db': 'clinvar', 'id': clinvar_list})
+
+    # get clinvar ids from list to search with
+    clinvar_ids = [d['clinvar_id'] for d in clinvar_id_list]
+
+    a = e.inquire({'db': 'clinvar', 'id': clinvar_ids})
     clinvar_summaries = a.get_result().summaries
-    
-    columns = ('clinvar_id', 'clinical_sig', 'date_last_rev', 'review_status',
-                'var_type', 'supporting_subs', 'chrom', 'pos', 'ref', 'alt')
 
     rows_list = []
 
     for key, value in clinvar_summaries.items():
 
-        # ref and alt not given in dict, need to pull from cdna_change field
-        ref = value["variation_set"][0]["cdna_change"]
-        ref = re.findall(r".*(.)&.*", ref)[0]
-
-        alt = value["variation_set"][0]["cdna_change"].split(";")[1]
-
+        # ref and alt not returned in summary, so get from previously
+        # generated clinvar_ids_list
+        id_match = next((
+            item for item in clinvar_id_list if item["clinvar_id"] == key
+            ), None)
+        
+        if id_match is not None:
+            # check in case ref and alt were missing
+            ref = id_match["ref"]
+            alt = id_match["alt"]
+        else:
+            ref, alt = None, None
+        
         row_dict = {}
 
         # select out required fields from returned eutils summary dict
@@ -178,7 +195,9 @@ def get_clinvar_data(clinvar_list):
         rows_list.append(row_dict)
 
     # build df from rows of ClinVar entries
-    clinvar_summary_df = pd.DataFrame(rows_list) 
+    clinvar_summary_df = pd.DataFrame(rows_list)
+
+    print(clinvar_summary_df)
     
     return clinvar_summary_df
 
@@ -187,7 +206,7 @@ if __name__ == "__main__":
 
     clinvar_df = clinvar_vcf_to_df()
 
-    clinvar_list = get_clinvar_ids(clinvar_df, position_list)
+    clinvar_id_list = get_clinvar_ids(clinvar_df, position_list)
 
-    if len(clinvar_list) != 0:
-        get_clinvar_data(clinvar_list)
+    if len(clinvar_id_list) != 0:
+        get_clinvar_data(clinvar_id_list)

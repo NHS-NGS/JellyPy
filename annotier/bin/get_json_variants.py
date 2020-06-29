@@ -10,8 +10,9 @@ import pprint
 import re
 import sys
 
+from pandas.io.json import json_normalize
 # need to do json schema validation 
-from protocols.reports_6_0_1 import InterpretedGenome
+#from protocols.reports_6_0_1 import InterpretedGenome
 
 sample_id="44543-1"
 
@@ -32,7 +33,7 @@ def get_json(sample_id):
     with open(json_file) as file:
         ir_json = json.load(file)
 
-    print(InterpretedGenome.validate(ir_json["interpreted_genome"][0]["interpreted_genome_data"]))
+    #print(InterpretedGenome.validate(ir_json["interpreted_genome"][0]["interpreted_genome_data"]))
 
     return ir_json
 
@@ -125,9 +126,8 @@ def get_tiered_variants(ir_json):
                     position_list.append((chrom, position))
     
     print("Number of variants in JSON: {}".format(len(variant_list)))
-    print("length of position list {}".format(len(position_list)))
-    print("length of variant list {}".format(len(variant_list)))
-
+    print(variant_list)
+    sys.exit()
     return variant_list, position_list
 
 
