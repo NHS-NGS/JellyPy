@@ -31,3 +31,4 @@ To develop a new function or feature, please take a look at the issues raised. I
 
 * 0.2.0 - TierUp development release with pyCIPAPI 0.2.3
 * 0.3.0 - Use ensembl identifiers to query panel app. Implement mode of inheritance check.
+* 0.3.1 - Add version string to cli arguments. Fix GeLPanel.query docstring.

@@ -5,7 +5,7 @@ README = ( pathlib.Path(__file__).parent / 'pypi_readme.md').read_text()
 
 setup(
     name='jellypy_tierup',
-    version='0.3.0',
+    version='0.3.1',
     author="NHS Bioinformatics Group",
     author_email="nana.mensah1@nhs.net",
     description='Reanalyse Tier 3 variants',
