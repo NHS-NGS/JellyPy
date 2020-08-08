@@ -221,9 +221,9 @@ class TieringLite():
         #  app, matches the disease mode of inheritance and has a high impact consequence 
         else:
             tiering_result = 'tier_1'
-        
+
         return tiering_result, hgnc, symbol, gene_confidence, ensembl, pa_moi
-         
+
 
 class TierUpRunner:
     """Run TierUp on an interpretation request json object.
@@ -312,7 +312,7 @@ class TierUpRunner:
             "pa_gene": hgnc_symbol,
             "pa_moi": pa_moi,
             "pa_confidence": pa_gene_confidence,
-            "extra_panels": irjo.updated_panels,      
+            "extra_panels": irjo.updated_panels,
             "re_id": event.data["reportEventId"],
             "re_panel_id": event.data["genePanel"]["panelIdentifier"],
             "re_panel_version": event.data["genePanel"]["panelVersion"],

@@ -1,12 +1,12 @@
 # tierup
 
-`tierup` reanalyse Tier 3 variants in undiagnosed GeL rare disease cases.
+`tierup` reanalyses Tier 3 variants in undiagnosed GeL rare disease cases.
 
 `tierup` answers the following questions derived from the GeL tiering rules:
 - Is the variant in a green gene in a panel app panel assigned to the case?
 - Does the variant mode of inheritance match the gene's in the panel app panel?
 
-Tier 3 variants may meet these criteria after a Panel App panel is updated. These variants are highlighted by `tierup` as they may be diagnostic.
+Tier 3 variants that meet these criteria are labelled 'tier_1' or 'tier_2' in the tier_tierup field of the `tierup` output CSV.
 
 ## Installation
 
@@ -86,7 +86,7 @@ pip install jellypy-tierup
 * Access to case data from GeL is only possible on the [HSCN](https://digital.nhs.uk/services/health-and-social-care-network)
 * Interpretation request data must comply with the GeL v6 interpretation request model
 * `tierup` does not analyse CNVs
-* `tierup` does not assess variant penetrance information
+* `tierup` does not account for information on variant penetrance
 
 ## Support
 
