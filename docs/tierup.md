@@ -6,7 +6,7 @@
 - Is the variant in a green gene in a panel app panel assigned to the case?
 - Does the variant mode of inheritance match the gene's in the panel app panel?
 
-Tier 3 variants that meet these criteria are labelled 'tie\_1' or 'tier\_2' in the tier\_tierup field of the `tierup` output CSV.
+Tier 3 variants that meet these criteria are labelled 'tier\_1' or 'tier\_2' in the tier\_tierup field of the `tierup` output CSV.
 
 ## Installation
 
