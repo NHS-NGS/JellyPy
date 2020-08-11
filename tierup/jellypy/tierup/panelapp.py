@@ -16,12 +16,44 @@ class GeLPanel():
         self.created = self._json['version_created']
         self.version = float(self._json['version'])
 
-    def get_gene_map(self):
-        """Returns a list mapping gene symbols to a (hgnc id, confidence level) tuple."""
-        mapping = { gene['gene_data']['hgnc_symbol']: (gene['gene_data']['hgnc_id'], gene['confidence_level'])
-            for gene in self._json['genes']
-        }
-        return mapping
+    def query(self, ensembl_id):
+        """Query the panel app panel for gene data.
+
+        Args:
+            ensembl_id (str): An ensembl gene identifier. E.g. "ENSG00000196411"
+        Returns:
+            query_result (tuple): Returns metadata for the first gene matching the input ensembl ID.
+            query_result lists the hgnc id, hgnc symbol, panelapp confidence level and ensembl id:
+                (
+                    'HGNC:3395',
+                    'EPHB4',
+                    '3',
+                    'ENSG00000196411',
+                    'MONOALLELIC, autosomal or pseudoautosomal, imprinted status unknown'
+                )
+                If a matching gene is not found, query_result is (None, None, None, None, None).
+        """
+        # Iterate over genes in this panel
+        for panel_gene in self._json['genes']:
+            # Get ensembl ids for the current gene. An ensembl id is present for each reference
+            #   genome. For example, p_ensembl_ids = ['ENSG00000139567',  'ENSG00000139567'].
+            p_ensembl_ids = [
+                ensembl_version['ensembl_id'] 
+                for reference, ensembl_dict in panel_gene['gene_data']['ensembl_genes'].items()
+                for ensembl_version in ensembl_dict.values() 
+            ]
+            # If the gene's ensembl id matches the function input, return gene metadata and exit.
+            if ensembl_id in p_ensembl_ids:
+                hgnc_id = panel_gene['gene_data']['hgnc_id']
+                hgnc_symbol = panel_gene['gene_data']['hgnc_symbol']
+                confidence_level = panel_gene['confidence_level']
+                p_ensembl_id = ensembl_id
+                mode_of_inheritance = panel_gene['mode_of_inheritance']
+                return (hgnc_id, hgnc_symbol, confidence_level, p_ensembl_id, mode_of_inheritance)
+        # Here, we have iterated over all genes and could not find ensemblID, hence the gene is not
+        #   not present in the panel. Return a tuple containing None.
+        else:
+            return (None,None,None,None,None)
 
     def _get_panel_json(self):
         """Returns json response object for API request."""

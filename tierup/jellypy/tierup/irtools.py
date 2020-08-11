@@ -105,18 +105,19 @@ class IRJValidator:
 
 
 class IRJson:
-    """Utilities for parsing IRJson data
+    """Parses interpretation request json data for TierUp
 
     Args:
         irjson: An interpretation request json object
-        validator: An IRJValidator instance
+        validator: An IRJValidator instance. No validation is performed if this is None.
     Attributes:
-        json(dict): Interpretation request json data passed to class constructor
-        irid(str): A string linking the interpretation request id and version e.g. 1243-1
-        tiering(dict): The GeL tiering interpreted genome
-        tier_counts(dict): Tier:Int mapping showing the number of variants in each tier
-        panels(dict): name:jellypy.tierup.panelapp.GeLPanel objects for each panel in the interpretation request metadata
-        updated_panels(list): A record of panel ids updated using the `update_panel` method.
+        json(dict): Interpretation request json data passed as the `irjson` argument
+        irid(str): The interpretation request id and version e.g. 1243-1
+        proband_id(str): The proband GeL ID
+        tiering(dict): The GeL interpreted genome with tiering pipeline data
+        panels(dict): name:jellypy.tierup.panelapp.GeLPanel objects for each panel in the
+            interpretation request metadata
+        updated_panels(list): A list of panel ids added to self.panels using `self.update_panel()`.
     Methods:
         update_panel: Assign a more recent PanelApp ID to a panel in the interpretation request
     """
@@ -126,7 +127,6 @@ class IRJson:
             validator().validate(irjson)
         self.json = irjson
         self.tiering = self._get_tiering()
-        self.tier_counts = self._get_tiering_counts()
         self.panels = self._get_panels()
         self.updated_panels = []
 
@@ -134,6 +134,7 @@ class IRJson:
         return f"{self.irid}"
 
     def _get_tiering(self):
+        """Return the latest GeL tiering interpreted genome from the interpretation request json."""
         tiering_list = list(
             filter(
                 lambda x: x["interpreted_genome_data"]["interpretationService"]
@@ -147,6 +148,8 @@ class IRJson:
         return latest_tiering
 
     def _get_panels(self):
+        """Get GeL panel data from PanelApp. Returns a dictionary mapping panel names to GeLPanel
+        objects from jellypy.tierup.panelapp."""
         _panels = {}
         data = self.json["interpretation_request_data"]["json_request"]["pedigree"][
             "analysisPanels"
@@ -159,19 +162,8 @@ class IRJson:
                 logger.warning(f"Warning. No PanelApp API reponse for {item}")
         return _panels
 
-    def _get_tiering_counts(self):
-        """Count variants in each tiering band for a gel tiering interpreted genome"""
-        tier_counts = dict.fromkeys(["TIER1", "TIER2", "TIER3"], 0)
-        tiers = [
-            event["tier"]
-            for data in self.tiering["interpreted_genome_data"]["variants"]
-            for event in data["reportEvents"]
-        ]
-        tier_counts.update(Counter(tiers))
-        return tier_counts
-
     def update_panel(self, panel_name, panel_id):
-        """Add or update a panel name using an ID from the PanelApp API"""
+        """Add or update a panel name in self.panels using a GeL panel app ID."""
         new_panel = pa.GeLPanel(panel_id)
         self.panels[panel_name] = new_panel
         self.updated_panels.append(f"{panel_name}, {panel_id}")
@@ -179,9 +171,14 @@ class IRJson:
     @property
     def irid(self):
         irid_full = self.tiering["interpreted_genome_data"]["interpretationRequestId"]
-        irid_digits = re.search("\d+-\d+", irid_full).group(0)
+        irid_digits = re.search(r'\d+-\d+', irid_full).group(0)
         return irid_digits
 
+    @property
+    def proband_id(self):
+        participants = self.json['interpretation_request_data']['json_request']['pedigree']['members']
+        proband = next( patient for patient in participants if patient['isProband'] == True )
+        return proband['participantId']
 
 class IRJIO:
     """Utilities for reading, writing and downloading interpretation request json data."""

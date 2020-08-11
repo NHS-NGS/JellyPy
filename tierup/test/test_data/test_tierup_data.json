@@ -1,0 +1,1439 @@
+{
+    "test_data": [1,2,3],
+    "test_gel_panel": [
+            {
+                "panel_id": 123,
+                "queries": {
+                "ENSG00000139567": [
+                    "HGNC:175", "ACVRL1", "3", "ENSG00000139567",
+                    "MONOALLELIC, autosomal or pseudoautosomal, NOT imprinted"
+                ],
+                "NOT_AN_ENSEMBL_ID": [
+                    null, null, null, null, null
+                ],
+                "" : [
+                    null, null, null, null, null
+                ]
+            }
+        }
+    ],
+    "test_mode_of_inheritance": [
+        ["biallelic", "BOTH monoallelic and biallelic, autosomal or pseudoautosomal", true],
+        ["biallelic", "BIALLELIC, autosomal or pseudoautosomal", true],
+        ["mitochondrial", "MITOCHONDRIAL", true],
+        ["DENOVO",  "MONOALLELIC, autosomal or pseudoautosomal, imprinted status unknown", true],
+        ["monoallelic_maternally_imprinted", "MONOALLELIC, autosomal or pseudoautosomal, maternally imprinted [paternal allele expressed]", true],
+        ["xlinked_biallelic", "X-LINKED: hemizygous mutation in males, monoallelic mutations in females may cause disease [may be less severe, later onset than males]", false],
+        ["xlinked_biallelic", "X linked: hemizygous mutation in males, monoallelic mutations in females may cause disease [may be less severe, later onset than males]", false],
+        ["monoallelic", "MONOALLELIC, autosomal or pseudoautosomal", true],
+        ["monoallelic", "Other - please specify in evaluation comments", true],
+        ["monoallelic", "Unknown", true],
+        ["xlinked_biallelic", "X-LINKED: hemizygous mutation in males, biallelic mutations in females", true],
+        ["xlinked_monoallelic", "X-LINKED: hemizygous mutation in males, biallelic mutations in females", true],
+        ["xlinked_monoallelic", "X linked: hemizygous mutation in males, monoallelic mutations in females may cause disease [may be less severe, later onset than males]", true],
+        ["monoallelic_not_imprinted", "MONOALLELIC, autosomal or pseudoautosomal, NOT imprinted", true],
+        ["monoallelic_not_imprinted", "MONOALLELIC, autosomal or pseudoautosomal, imprinted status unknown", true],
+        ["DOMINANT", "", true],
+        [null, "", true],
+        [null, null, true],
+        ["mitochondrial", "BIALLELIC, autosomal or pseudoautosomal", false],
+        ["DENOVO",  "BIALLELIC, autosomal or pseudoautosomal", false],
+        ["biallelic", "MITOCHONDRIAL", false],
+        ["monoallelic_maternally_imprinted", "BIALLELIC, autosomal or pseudoautosomal", false],
+        ["monoallelic", "BIALLELIC, autosomal or pseudoautosomal", false]
+    ],
+    "test_high_impact": [
+        ["InheritedAutosomalDominant",["SO:0001893"],true],
+        ["SimpleRecessive",["SO:0001821"],false],
+        ["CompoundHeterozygous",["SO:0001893"],true],
+        ["CompoundHeterozygous",["SO:0001821","SO:0009999"],false],
+        ["deNovo",["SO:0001893"],true]
+    ],
+    "test_tiering_lite": [
+        {
+            "result": "tier_3_not_in_panel",
+            "report_event": {
+                "domain": null,
+                "vendorSpecificScores": null,
+                "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                "variantConsequences": [
+                    {
+                        "id": "SO:0001587",
+                        "name": "stop_gained"
+                    }
+                ],
+                "genomicEntities": [
+                    {
+                        "otherIds": [
+                            {
+                                "source": "HGNC",
+                                "identifier": "FOXO6"
+                            }
+                        ],
+                        "type": "gene",
+                        "ensemblId": "ENSG00000204060",
+                        "geneSymbol": "FOXO6"
+                    }
+                ],
+                "phenotypes": {
+                    "nonStandardPhenotype": [
+                        "ABCDEFGH"
+                    ],
+                    "standardPhenotypes": null
+                },
+                "penetrance": "incomplete",
+                "deNovoQualityScore": null,
+                "roleInCancer": null,
+                "variantClassification": {
+                    "clinicalSignificance": null,
+                    "traitAssociation": null,
+                    "functionalEffect": null,
+                    "drugResponseClassification": null,
+                    "tumorigenesisClassification": null
+                },
+                "score": 0,
+                "reportEventId": "RE999",
+                "actions": null,
+                "genePanel": {
+                    "panelIdentifier": null,
+                    "source": "panelapp",
+                    "panelVersion": "1.9",
+                    "panelName": "Multiple bowel polyps"
+                },
+                "fullyExplainsPhenotype": null,
+                "tier": "TIER3",
+                "guidelineBasedVariantClassification": null,
+                "modeOfInheritance": "biallelic",
+                "groupOfVariants": 999,
+                "segregationPattern": "CompoundHeterozygous",
+                "algorithmBasedVariantClassifications": null
+            },
+            "variant": {
+                "reportEvents": [
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "biallelic",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "CompoundHeterozygous",
+                        "algorithmBasedVariantClassifications": null
+                    },
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the InheritedAutosomalDominant segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "monoallelic_not_imprinted",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "InheritedAutosomalDominant",
+                        "algorithmBasedVariantClassifications": null
+                    }
+                ],
+                "variantCalls": [
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    }
+                ],
+                "variantCoordinates": {
+                    "position": 99999999,
+                    "alternate": "G",
+                    "assembly": "GRCh37",
+                    "chromosome": "1",
+                    "reference": "C"
+                },
+                "variantAttributes": {
+                    "additionalTextualVariantAnnotations": {
+                        "clinvar_geneNames": "",
+                        "clinvar_traits": "",
+                        "ConsequenceType": "stop_gained",
+                        "clinvar_clinicalSignificances": "",
+                        "clinvar_reviewStatus": "",
+                        "clinvar_accessions": ""
+                    },
+                    "additionalNumericVariantAnnotations": {
+                        "GEL.Platypus.RD.1777_AN": 9999,
+                        "GEL.Platypus.RD.1777_N_HOM": 0,
+                        "GEL.Platypus.RD.1777_AF": 0.999,
+                        "GEL.Platypus.RD.1777_N_HET": 1000,
+                        "GEL.Platypus.RD.1777_AC": 1000
+                    },
+                    "genomicChanges": null,
+                    "alleleOrigins": [
+                        "germline_variant"
+                    ],
+                    "ihp": null,
+                    "variantIdentifiers": {
+                        "cosmicIds": null,
+                        "clinVarIds": null,
+                        "otherIds": null,
+                        "dbSnpId": "."
+                    },
+                    "recurrentlyReported": null,
+                    "comments": [],
+                    "cdnaChanges": null,
+                    "references": null,
+                    "alleleFrequencies": null,
+                    "others": null,
+                    "fdp50": null,
+                    "proteinChanges": null
+                }
+            },
+            "proband_call": {
+                "zygosity": "heterozygous",
+                "participantId": "99999999",
+                "alleleOrigins": [
+                    "germline_variant"
+                ],
+                "sampleId": "SAMPLE_ID",
+                "depthReference": null,
+                "depthAlternate": null,
+                "numberOfCopies": null,
+                "phaseGenotype": null,
+                "supportingReadTypes": null,
+                "sampleVariantAlleleFrequency": null
+            },
+            "panel_id": 254
+        },
+        {
+            "result": "tier_3_red_or_amber",
+            "report_event": {
+                "domain": null,
+                "vendorSpecificScores": null,
+                "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                "variantConsequences": [
+                    {
+                        "id": "SO:0001587",
+                        "name": "stop_gained"
+                    }
+                ],
+                "genomicEntities": [
+                    {
+                        "otherIds": [
+                            {
+                                "source": "HGNC",
+                                "identifier": "ABCDEFG"
+                            }
+                        ],
+                        "type": "gene",
+                        "ensemblId": "ENSG00000120693",
+                        "geneSymbol": "ABCDEFG"
+                    }
+                ],
+                "phenotypes": {
+                    "nonStandardPhenotype": [
+                        "ABCDEFGH"
+                    ],
+                    "standardPhenotypes": null
+                },
+                "penetrance": "incomplete",
+                "deNovoQualityScore": null,
+                "roleInCancer": null,
+                "variantClassification": {
+                    "clinicalSignificance": null,
+                    "traitAssociation": null,
+                    "functionalEffect": null,
+                    "drugResponseClassification": null,
+                    "tumorigenesisClassification": null
+                },
+                "score": 0,
+                "reportEventId": "RE999",
+                "actions": null,
+                "genePanel": {
+                    "panelIdentifier": null,
+                    "source": "panelapp",
+                    "panelVersion": "1.9",
+                    "panelName": "Multiple bowel polyps"
+                },
+                "fullyExplainsPhenotype": null,
+                "tier": "TIER3",
+                "guidelineBasedVariantClassification": null,
+                "modeOfInheritance": "biallelic",
+                "groupOfVariants": 999,
+                "segregationPattern": "CompoundHeterozygous",
+                "algorithmBasedVariantClassifications": null
+            },
+            "variant": {
+                "reportEvents": [
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "biallelic",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "CompoundHeterozygous",
+                        "algorithmBasedVariantClassifications": null
+                    },
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the InheritedAutosomalDominant segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "monoallelic_not_imprinted",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "InheritedAutosomalDominant",
+                        "algorithmBasedVariantClassifications": null
+                    }
+                ],
+                "variantCalls": [
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    }
+                ],
+                "variantCoordinates": {
+                    "position": 99999999,
+                    "alternate": "G",
+                    "assembly": "GRCh37",
+                    "chromosome": "1",
+                    "reference": "C"
+                },
+                "variantAttributes": {
+                    "additionalTextualVariantAnnotations": {
+                        "clinvar_geneNames": "",
+                        "clinvar_traits": "",
+                        "ConsequenceType": "stop_gained",
+                        "clinvar_clinicalSignificances": "",
+                        "clinvar_reviewStatus": "",
+                        "clinvar_accessions": ""
+                    },
+                    "additionalNumericVariantAnnotations": {
+                        "GEL.Platypus.RD.1777_AN": 9999,
+                        "GEL.Platypus.RD.1777_N_HOM": 0,
+                        "GEL.Platypus.RD.1777_AF": 0.999,
+                        "GEL.Platypus.RD.1777_N_HET": 1000,
+                        "GEL.Platypus.RD.1777_AC": 1000
+                    },
+                    "genomicChanges": null,
+                    "alleleOrigins": [
+                        "germline_variant"
+                    ],
+                    "ihp": null,
+                    "variantIdentifiers": {
+                        "cosmicIds": null,
+                        "clinVarIds": null,
+                        "otherIds": null,
+                        "dbSnpId": "."
+                    },
+                    "recurrentlyReported": null,
+                    "comments": [],
+                    "cdnaChanges": null,
+                    "references": null,
+                    "alleleFrequencies": null,
+                    "others": null,
+                    "fdp50": null,
+                    "proteinChanges": null
+                }
+            },
+            "proband_call": {
+                "zygosity": "heterozygous",
+                "participantId": "99999999",
+                "alleleOrigins": [
+                    "germline_variant"
+                ],
+                "sampleId": "SAMPLE_ID",
+                "depthReference": null,
+                "depthAlternate": null,
+                "numberOfCopies": null,
+                "phaseGenotype": null,
+                "supportingReadTypes": null,
+                "sampleVariantAlleleFrequency": null
+            },
+            "panel_id": 254
+        },
+        {
+            "result": "tier_3_green_moi_mismatch",
+            "report_event": {
+                "domain": null,
+                "vendorSpecificScores": null,
+                "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                "variantConsequences": [
+                    {
+                        "id": "SO:0001587",
+                        "name": "stop_gained"
+                    }
+                ],
+                "genomicEntities": [
+                    {
+                        "otherIds": [
+                            {
+                                "source": "HGNC",
+                                "identifier": "ABCDEFG"
+                            }
+                        ],
+                        "type": "gene",
+                        "ensemblId": "ENSG00000134982",
+                        "geneSymbol": "ABCDEFG"
+                    }
+                ],
+                "phenotypes": {
+                    "nonStandardPhenotype": [
+                        "ABCDEFGH"
+                    ],
+                    "standardPhenotypes": null
+                },
+                "penetrance": "incomplete",
+                "deNovoQualityScore": null,
+                "roleInCancer": null,
+                "variantClassification": {
+                    "clinicalSignificance": null,
+                    "traitAssociation": null,
+                    "functionalEffect": null,
+                    "drugResponseClassification": null,
+                    "tumorigenesisClassification": null
+                },
+                "score": 0,
+                "reportEventId": "RE999",
+                "actions": null,
+                "genePanel": {
+                    "panelIdentifier": null,
+                    "source": "panelapp",
+                    "panelVersion": "1.9",
+                    "panelName": "Multiple bowel polyps"
+                },
+                "fullyExplainsPhenotype": null,
+                "tier": "TIER3",
+                "guidelineBasedVariantClassification": null,
+                "modeOfInheritance": "biallelic",
+                "groupOfVariants": 999,
+                "segregationPattern": "CompoundHeterozygous",
+                "algorithmBasedVariantClassifications": null
+            },
+            "variant": {
+                "reportEvents": [
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "biallelic",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "CompoundHeterozygous",
+                        "algorithmBasedVariantClassifications": null
+                    },
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the InheritedAutosomalDominant segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "monoallelic_not_imprinted",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "InheritedAutosomalDominant",
+                        "algorithmBasedVariantClassifications": null
+                    }
+                ],
+                "variantCalls": [
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    }
+                ],
+                "variantCoordinates": {
+                    "position": 99999999,
+                    "alternate": "G",
+                    "assembly": "GRCh37",
+                    "chromosome": "1",
+                    "reference": "C"
+                },
+                "variantAttributes": {
+                    "additionalTextualVariantAnnotations": {
+                        "clinvar_geneNames": "",
+                        "clinvar_traits": "",
+                        "ConsequenceType": "stop_gained",
+                        "clinvar_clinicalSignificances": "",
+                        "clinvar_reviewStatus": "",
+                        "clinvar_accessions": ""
+                    },
+                    "additionalNumericVariantAnnotations": {
+                        "GEL.Platypus.RD.1777_AN": 9999,
+                        "GEL.Platypus.RD.1777_N_HOM": 0,
+                        "GEL.Platypus.RD.1777_AF": 0.999,
+                        "GEL.Platypus.RD.1777_N_HET": 1000,
+                        "GEL.Platypus.RD.1777_AC": 1000
+                    },
+                    "genomicChanges": null,
+                    "alleleOrigins": [
+                        "germline_variant"
+                    ],
+                    "ihp": null,
+                    "variantIdentifiers": {
+                        "cosmicIds": null,
+                        "clinVarIds": null,
+                        "otherIds": null,
+                        "dbSnpId": "."
+                    },
+                    "recurrentlyReported": null,
+                    "comments": [],
+                    "cdnaChanges": null,
+                    "references": null,
+                    "alleleFrequencies": null,
+                    "others": null,
+                    "fdp50": null,
+                    "proteinChanges": null
+                }
+            },
+            "proband_call": {
+                "zygosity": "heterozygous",
+                "participantId": "99999999",
+                "alleleOrigins": [
+                    "germline_variant"
+                ],
+                "sampleId": "SAMPLE_ID",
+                "depthReference": null,
+                "depthAlternate": null,
+                "numberOfCopies": null,
+                "phaseGenotype": null,
+                "supportingReadTypes": null,
+                "sampleVariantAlleleFrequency": null
+            },
+            "panel_id": 254
+        },
+        {
+            "result": "tier_2",
+            "report_event": {
+                "domain": null,
+                "vendorSpecificScores": null,
+                "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                "variantConsequences": [
+                    {
+                        "id": "SO:0009999",
+                        "name": "FALSE"
+                    }
+                ],
+                "genomicEntities": [
+                    {
+                        "otherIds": [
+                            {
+                                "source": "HGNC",
+                                "identifier": "ABCDEFG"
+                            }
+                        ],
+                        "type": "gene",
+                        "ensemblId": "ENSG00000134982",
+                        "geneSymbol": "ABCDEFG"
+                    }
+                ],
+                "phenotypes": {
+                    "nonStandardPhenotype": [
+                        "ABCDEFGH"
+                    ],
+                    "standardPhenotypes": null
+                },
+                "penetrance": "incomplete",
+                "deNovoQualityScore": null,
+                "roleInCancer": null,
+                "variantClassification": {
+                    "clinicalSignificance": null,
+                    "traitAssociation": null,
+                    "functionalEffect": null,
+                    "drugResponseClassification": null,
+                    "tumorigenesisClassification": null
+                },
+                "score": 0,
+                "reportEventId": "RE999",
+                "actions": null,
+                "genePanel": {
+                    "panelIdentifier": null,
+                    "source": "panelapp",
+                    "panelVersion": "1.9",
+                    "panelName": "Multiple bowel polyps"
+                },
+                "fullyExplainsPhenotype": null,
+                "tier": "TIER3",
+                "guidelineBasedVariantClassification": null,
+                "modeOfInheritance": "monoallelic_not_imprinted",
+                "groupOfVariants": 999,
+                "segregationPattern": "CompoundHeterozygous",
+                "algorithmBasedVariantClassifications": null
+            },
+            "variant": {
+                "reportEvents": [
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "biallelic",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "CompoundHeterozygous",
+                        "algorithmBasedVariantClassifications": null
+                    },
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the InheritedAutosomalDominant segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "monoallelic_not_imprinted",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "InheritedAutosomalDominant",
+                        "algorithmBasedVariantClassifications": null
+                    }
+                ],
+                "variantCalls": [
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    }
+                ],
+                "variantCoordinates": {
+                    "position": 99999999,
+                    "alternate": "G",
+                    "assembly": "GRCh37",
+                    "chromosome": "1",
+                    "reference": "C"
+                },
+                "variantAttributes": {
+                    "additionalTextualVariantAnnotations": {
+                        "clinvar_geneNames": "",
+                        "clinvar_traits": "",
+                        "ConsequenceType": "stop_gained",
+                        "clinvar_clinicalSignificances": "",
+                        "clinvar_reviewStatus": "",
+                        "clinvar_accessions": ""
+                    },
+                    "additionalNumericVariantAnnotations": {
+                        "GEL.Platypus.RD.1777_AN": 9999,
+                        "GEL.Platypus.RD.1777_N_HOM": 0,
+                        "GEL.Platypus.RD.1777_AF": 0.999,
+                        "GEL.Platypus.RD.1777_N_HET": 1000,
+                        "GEL.Platypus.RD.1777_AC": 1000
+                    },
+                    "genomicChanges": null,
+                    "alleleOrigins": [
+                        "germline_variant"
+                    ],
+                    "ihp": null,
+                    "variantIdentifiers": {
+                        "cosmicIds": null,
+                        "clinVarIds": null,
+                        "otherIds": null,
+                        "dbSnpId": "."
+                    },
+                    "recurrentlyReported": null,
+                    "comments": [],
+                    "cdnaChanges": null,
+                    "references": null,
+                    "alleleFrequencies": null,
+                    "others": null,
+                    "fdp50": null,
+                    "proteinChanges": null
+                }
+            },
+            "proband_call": {
+                "zygosity": "heterozygous",
+                "participantId": "99999999",
+                "alleleOrigins": [
+                    "germline_variant"
+                ],
+                "sampleId": "SAMPLE_ID",
+                "depthReference": null,
+                "depthAlternate": null,
+                "numberOfCopies": null,
+                "phaseGenotype": null,
+                "supportingReadTypes": null,
+                "sampleVariantAlleleFrequency": null
+            },
+            "panel_id": 254
+        },
+        {
+            "result": "tier_1",
+            "report_event": {
+                "domain": null,
+                "vendorSpecificScores": null,
+                "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                "variantConsequences": [
+                    {
+                        "id": "SO:0001587",
+                        "name": "FALSE"
+                    }
+                ],
+                "genomicEntities": [
+                    {
+                        "otherIds": [
+                            {
+                                "source": "HGNC",
+                                "identifier": "ABCDEFG"
+                            }
+                        ],
+                        "type": "gene",
+                        "ensemblId": "ENSG00000134982",
+                        "geneSymbol": "ABCDEFG"
+                    }
+                ],
+                "phenotypes": {
+                    "nonStandardPhenotype": [
+                        "ABCDEFGH"
+                    ],
+                    "standardPhenotypes": null
+                },
+                "penetrance": "incomplete",
+                "deNovoQualityScore": null,
+                "roleInCancer": null,
+                "variantClassification": {
+                    "clinicalSignificance": null,
+                    "traitAssociation": null,
+                    "functionalEffect": null,
+                    "drugResponseClassification": null,
+                    "tumorigenesisClassification": null
+                },
+                "score": 0,
+                "reportEventId": "RE999",
+                "actions": null,
+                "genePanel": {
+                    "panelIdentifier": null,
+                    "source": "panelapp",
+                    "panelVersion": "1.9",
+                    "panelName": "Multiple bowel polyps"
+                },
+                "fullyExplainsPhenotype": null,
+                "tier": "TIER3",
+                "guidelineBasedVariantClassification": null,
+                "modeOfInheritance": "monoallelic_not_imprinted",
+                "groupOfVariants": 999,
+                "segregationPattern": "CompoundHeterozygous",
+                "algorithmBasedVariantClassifications": null
+            },
+            "variant": {
+                "reportEvents": [
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the CompoundHeterozygous segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "biallelic",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "CompoundHeterozygous",
+                        "algorithmBasedVariantClassifications": null
+                    },
+                    {
+                        "domain": null,
+                        "vendorSpecificScores": null,
+                        "eventJustification": "Classified as: Tier3, passed the InheritedAutosomalDominant segregation filter",
+                        "variantConsequences": [
+                            {
+                                "id": "SO:0001587",
+                                "name": "stop_gained"
+                            }
+                        ],
+                        "genomicEntities": [
+                            {
+                                "otherIds": [
+                                    {
+                                        "source": "HGNC",
+                                        "identifier": "FOXO6"
+                                    }
+                                ],
+                                "type": "gene",
+                                "ensemblId": "ENSG00000204060",
+                                "geneSymbol": "FOXO6"
+                            }
+                        ],
+                        "phenotypes": {
+                            "nonStandardPhenotype": [
+                                "ABCDEFG"
+                            ],
+                            "standardPhenotypes": null
+                        },
+                        "penetrance": "incomplete",
+                        "deNovoQualityScore": null,
+                        "roleInCancer": null,
+                        "variantClassification": {
+                            "clinicalSignificance": null,
+                            "traitAssociation": null,
+                            "functionalEffect": null,
+                            "drugResponseClassification": null,
+                            "tumorigenesisClassification": null
+                        },
+                        "score": 0,
+                        "reportEventId": "RE999",
+                        "actions": null,
+                        "genePanel": {
+                            "panelIdentifier": null,
+                            "source": "panelapp",
+                            "panelVersion": "1.9",
+                            "panelName": "Multiple bowel polyps"
+                        },
+                        "fullyExplainsPhenotype": null,
+                        "tier": "TIER3",
+                        "guidelineBasedVariantClassification": null,
+                        "modeOfInheritance": "monoallelic_not_imprinted",
+                        "groupOfVariants": 999,
+                        "segregationPattern": "InheritedAutosomalDominant",
+                        "algorithmBasedVariantClassifications": null
+                    }
+                ],
+                "variantCalls": [
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    },
+                    {
+                        "zygosity": "heterozygous",
+                        "participantId": "99999999",
+                        "alleleOrigins": [
+                            "germline_variant"
+                        ],
+                        "sampleId": "SAMPLE_ID",
+                        "depthReference": null,
+                        "depthAlternate": null,
+                        "numberOfCopies": null,
+                        "phaseGenotype": null,
+                        "supportingReadTypes": null,
+                        "sampleVariantAlleleFrequency": null
+                    }
+                ],
+                "variantCoordinates": {
+                    "position": 99999999,
+                    "alternate": "G",
+                    "assembly": "GRCh37",
+                    "chromosome": "1",
+                    "reference": "C"
+                },
+                "variantAttributes": {
+                    "additionalTextualVariantAnnotations": {
+                        "clinvar_geneNames": "",
+                        "clinvar_traits": "",
+                        "ConsequenceType": "stop_gained",
+                        "clinvar_clinicalSignificances": "",
+                        "clinvar_reviewStatus": "",
+                        "clinvar_accessions": ""
+                    },
+                    "additionalNumericVariantAnnotations": {
+                        "GEL.Platypus.RD.1777_AN": 9999,
+                        "GEL.Platypus.RD.1777_N_HOM": 0,
+                        "GEL.Platypus.RD.1777_AF": 0.999,
+                        "GEL.Platypus.RD.1777_N_HET": 1000,
+                        "GEL.Platypus.RD.1777_AC": 1000
+                    },
+                    "genomicChanges": null,
+                    "alleleOrigins": [
+                        "germline_variant"
+                    ],
+                    "ihp": null,
+                    "variantIdentifiers": {
+                        "cosmicIds": null,
+                        "clinVarIds": null,
+                        "otherIds": null,
+                        "dbSnpId": "."
+                    },
+                    "recurrentlyReported": null,
+                    "comments": [],
+                    "cdnaChanges": null,
+                    "references": null,
+                    "alleleFrequencies": null,
+                    "others": null,
+                    "fdp50": null,
+                    "proteinChanges": null
+                }
+            },
+            "proband_call": {
+                "zygosity": "heterozygous",
+                "participantId": "99999999",
+                "alleleOrigins": [
+                    "germline_variant"
+                ],
+                "sampleId": "SAMPLE_ID",
+                "depthReference": null,
+                "depthAlternate": null,
+                "numberOfCopies": null,
+                "phaseGenotype": null,
+                "supportingReadTypes": null,
+                "sampleVariantAlleleFrequency": null
+            },
+            "panel_id": 254
+        }
+    ]
+}

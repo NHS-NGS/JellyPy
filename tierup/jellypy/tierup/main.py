@@ -52,15 +52,9 @@ def main(config, outdir, irid_irversion=None, irjson=None):
     records = lib.TierUpRunner().run(irjo)
 
     csv_writer = lib.TierUpCSVWriter(outfile=pathlib.Path(outdir, irjo.irid + ".tierup.csv"))
-    summary_writer = lib.TierUpSummaryWriter(outfile=pathlib.Path(outdir, irjo.irid + ".tierup.summary.csv"))
-    logger.info(f'Writing results to: {csv_writer.outfile}, {summary_writer.outfile}')
-
-    for record in records: # Records is a generator of tierup results exhausted in one loop.
-        csv_writer.write(record)
-        summary_writer.write(record)
-
+    logger.info(f'Writing results to: {csv_writer.outfile}')
+    csv_writer.write(records) # Records is a generator of tierup results, exhausted in one loop.
     csv_writer.close_file()
-    summary_writer.close_file()
 
     logger.info('END')
 

@@ -1,6 +1,12 @@
 # tierup
 
-`tierup` finds Tier 3 variants in GeL cases with PanelApp Green genes.
+`tierup` reanalyses Tier 3 variants in undiagnosed GeL rare disease cases.
+
+`tierup` answers the following questions derived from the GeL tiering rules:
+- Is the variant in a green gene in a panel app panel assigned to the case?
+- Does the variant mode of inheritance match the gene's in the panel app panel?
+
+Tier 3 variants that meet these criteria are labelled 'tier\_1' or 'tier\_2' in the tier\_tierup field of the `tierup` output CSV.
 
 ## Installation
 
@@ -19,68 +25,68 @@ pip install jellypy-tierup
     client_id = YOUR-GEL-CLIENT-ID
     client_secret = YOUR-GEL-CLIENT-SECRET
     ```
-    
-    Please note: jellypy-tierup authenticates users using their LDAP credentials and is not yet compatible with the GeL active directory authentication.
 
-1. Run tierup
+2. Run tierup
     For example, interpretation request 1234 version 2 could be analysed with:
     ```bash
     tierup --irid 1234 --irversion 1 --config config.ini
     ```
+    If the intepretation request data is available locally in json format, then you can pass the file directly:
+    ```bash
+    tierup -j interpretation_request.json --config config.ini
+    ```
 
-1. View results
-    * \*.tierup.summary.csv - A list of any tierup (PanelApp Green) variants found. This is file is *blank* if no variants are found.
-    * \*.tierup.csv - Complete data from all Tier 3 variants anlaysed
+3. View results
+    * \*.tierup.csv - The `tier_tierup` column in the results file contains the new variant tier determined by tierup. Each row is a report event for a variant in the proband. Note: The same variant may have multiple report events depending on the number of assigned gene panels, mode of inheritance and penetrance models analysed.
 
-## TierUp output fields (\*.tierup.csv) 
+## TierUp output fields (\*.tierup.csv)
 
 | Field | Description
 |-------|------------
-|justification| GeL eventJustification field which describes why the variant was tiered 
-|consequences| String representation of the GeL variantConsequences field which contains sequence ontology terms
-|penetrance|Penetrace used for scoring the variant
-|denovo_score|GeL likelihood of being a de novo variant
-|score|GeL likelihood of explaining phenotype 
-|event_id|Unique identifier for the report event
-|interpretation_request_id|Case interpretation request ID
-|created_at|Creation date for the GeL interpreted genome was created
-|tier|Variant initial tiering value. All expected Tier3
-|segregation|Pattern calculated using genotypes from family members
-|inheritance|Mode of inehritance
-|group|GeL unique number to group variants together
-|zygosity|Zygosity in the proband
-|position|Genomic coordinate
-|chromosome|Chromosome number
+|interpretation_request_id| Identifier for GeL case
+|tier_tierup| Tiering result from tierup: tier_3_not_in_panel, tier_3_red_or_amber, tier_3_green_moi_mismatch, tier_2, tier_1
+|tier_gel| Initial GeL tier. Previously *tier* field in tierup 0.2.0
 |assembly|Reference genome
+|chromosome|Chromosome number
+|position|Genomic coordinate
 |reference|Reference allele
 |alternate|Proband Alternate allele
-|re_panel_id|Report event panel id
-|re_panel_version|Report event panel version
-|re_panel_source|Report event panel source. All expected to be panelapp
-|re_panel_name|Report event panel name
-|re_gene|Report event gene symbol
+|consequences| Sequence ontology terms for the variant consequences in all relevant transcripts
+|zygosity|Zygosity in the proband
+|segregation|Pattern calculated using genotypes from family members
+|penetrance| Penetrance model used to assess the variant
+|tiering_moi| Mode of inheritance for the variant in the proband. Previously *inheritance* field in tierup 0.2.0
 |tu_panel_hash|Panel unique hash id used in TierUp analysis
 |tu_panel_name|Panel name used in TierUp analysis
 |tu_panel_version|Panel version used in TierUp analysis
 |tu_panel_number|Panel id used in TierUp analysis
 |tu_panel_created|The date the panel version used in TierUp analysis was created
-|pa_hgnc_id|HGNCID from the panelapp panel
+|tu_run_time|Time TierUp was initiated
+|pa_ensembl| Ensembl identifier for the gene in panelapp panel
+|pa_hgnc_id|HGNC ID from the panel app panel
 |pa_gene|Gene symbol from the panel app panel
-|**pa_confidence**|**Current gene confidence level from the latest version of the panel app panel; 4 or 3 = Green; 2 = Amber; 1 or 0 = Red; Green genes indicate TieredUp variant.**
+|pa_moi| Mode of inheritance for the gene in the panelapp panel version
+|pa_confidence|Current gene confidence level from the latest version of the panel app panel: 4 or 3 = Green; 2 = Amber; 1 or 0 = Red; Green genes indicate TieredUp variant.
+|extra_panels|Panel ID pointers updated via TierUp check for depreciated Panels in GeL directory
+|re_id|Unique identifier for the report event. Previously *event_id* field in tierup 0.2.0
+|re_panel_id|Report event panel id
+|re_panel_version|Report event panel version
+|re_panel_source|Report event panel source. All expected to be panelapp
+|re_panel_name|Report event panel name
+|re_gene|Report event gene symbol
+|justification| GeL eventJustification field which describes why the variant was tiered
+|created_at|Creation date for the GeL interpreted genome was created
 |software_versions|Software versions used in the GeL analysis
 |reference_db_versions|Reference database versions used int he GeL analysis
-|extra_panels|Panel ID pointers updated via TierUp check for depreciated Panels in GeL directory
-|tu_run_time|Time TierUp was initiaed
-|tier1_count|Tier 1 report events in the initial case
-|tier2_count|Tier 2 report events in the initial case
-|tier3_count|Tier 3 report events in the initial case
 |tu_version|jellypy-tierup version used to generate results
 
 ## Constraints
 
-* `tierup` is designed for undiagnosed rare disease cases. The tool therefore raises an error if users attempt to process a solved case.
+* `tierup` input is limited to undiagnosed rare disease cases. The tool therefore raises an error if users attempt to process a solved case.
 * Access to case data from GeL is only possible on the [HSCN](https://digital.nhs.uk/services/health-and-social-care-network)
-* Case data must comply with the GeL v6 interpretation request model
+* Interpretation request data must comply with the GeL v6 interpretation request model
+* `tierup` does not analyse CNVs
+* `tierup` does not account for information on variant penetrance
 
 ## Support
 

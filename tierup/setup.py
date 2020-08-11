@@ -5,10 +5,10 @@ README = ( pathlib.Path(__file__).parent / 'pypi_readme.md').read_text()
 
 setup(
     name='jellypy_tierup',
-    version='0.2.0',
+    version='0.3.1',
     author="NHS Bioinformatics Group",
     author_email="nana.mensah1@nhs.net",
-    description='Find GeL Tier 3 variants with Green PanelApp genes',
+    description='Reanalyse Tier 3 variants',
     license="MIT",
     url='https://github.com/NHS-NGS/JellyPy/tierup',
     packages=find_packages(),
