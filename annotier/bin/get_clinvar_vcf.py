@@ -13,8 +13,8 @@ dirname = os.path.dirname(__file__)
 clinvar_dir = os.path.join(dirname, "../data/clinvar/")
 
 # compile required regex 
-clinvar_vcf_regex = re.compile("^clinvar_([0-9]+)\.vcf$")
-clinvar_gz_regex = re.compile("^clinvar_[0-9]+\.vcf.gz$")
+# clinvar_vcf_regex = re.compile("^clinvar_([0-9]+)\.vcf$")
+# clinvar_gz_regex = re.compile("^clinvar_[0-9]+\.vcf.gz$")
 
 def local_vcf():
     """
@@ -25,6 +25,7 @@ def local_vcf():
     Returns:
         local_vcf_ver (int): latest version no. of local ClinVar VCF  
     """
+    clinvar_vcf_regex = re.compile("^clinvar_([0-9]+)\.vcf$")
     local_vcf_ver = 0
 
     for (dirpath, dirnames, filenames) in os.walk(clinvar_dir):
@@ -58,6 +59,7 @@ def get_ftp_files():
         ftp_vcf (string): filename of latest available VCF from FTP site
         ftp_vcf_ver (int): version no. of latest available VCF from FTP site 
     """
+    clinvar_gz_regex = re.compile("^clinvar_[0-9]+\.vcf.gz$")
 
     ftp = FTP("ftp.ncbi.nlm.nih.gov")
     ftp.login()
@@ -81,7 +83,8 @@ def get_ftp_files():
 
     return ftp_vcf, ftp_vcf_ver
 
-def get_vcf(filename):
+
+def get_vcf(ftp_vcf):
     """
     Downloads file from NCBI FTP site to /data/clinvar, called by check_current_vcf()
     
@@ -98,12 +101,13 @@ def get_vcf(filename):
     ftp.login()
     ftp.cwd("/pub/clinvar/vcf_GRCh38/")
 
-    file_to_download = os.path.join(clinvar_dir, filename)
+    file_to_download = os.path.join(clinvar_dir, ftp_vcf)
     
     with open(file_to_download, 'wb') as localfile:
-        ftp.retrbinary('RETR ' + filename, localfile.write, 1024)
+        ftp.retrbinary('RETR ' + ftp_vcf, localfile.write, 1024)
 
     ftp.quit()
+
 
 def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
     """
@@ -139,11 +143,12 @@ def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
             f.write(vcf_data)
             f.close
         
-        os. remove(vcf_to_unzip) # delete original vcf.gz
+        os.remove(vcf_to_unzip) # delete original vcf.gz
 
     else:
         print("Latest ClinVar vcf already downloaded")
  
+
 if __name__ == "__main__":
     local_vcf_ver = local_vcf()
     ftp_vcf, ftp_vcf_ver = get_ftp_files()
