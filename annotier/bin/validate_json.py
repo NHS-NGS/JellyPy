@@ -39,18 +39,12 @@ class validJSON():
             is_unsolved = self.is_unsolved(irjson)
         except KeyError:
             # An expected key is missing from the JSON.
-            raise ValueError(
-                f"Invalid interpretation request JSON: An expected key is missing. "
-                "Is this a v6 JSON?"
-            )
+            return False
 
         if is_v6 and is_sent and is_unsolved:
             pass
         else:
-            raise IOError(
-                f"Invalid interpretation request JSON: "
-                f"is_v6:{is_v6}, is_sent:{is_sent}, is_unsolved:{is_unsolved}"
-            )
+            return False
 
     def is_v6(self, irjson):
         """Returns true if the interpreted genome of an irjson is GeL v6 model.
@@ -123,9 +117,7 @@ class validJSON():
                     # only check jsons
                     with open(os.path.join(dir, file)) as f:
                         irjson = json.load(f)
-                    try:
-                        valid.validate(irjson)
-                    except (IOError, KeyError):
+                    if valid.validate(irjson) is False:
                         # issue with JSON
                         failed.append(str(file))
                         shutil.move(os.path.join(dir, file), failJSON)
