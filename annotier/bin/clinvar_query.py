@@ -35,6 +35,10 @@ def clinvar_vcf_to_df():
         clinvar_df (dataframe): df of all ClinVar variants in vcf
         local_clinvar_ver (str): latest version of ClinVar vcf downloaded
     """
+    # set paths to dirs
+    data_dir = os.path.join(os.path.dirname(__file__), "../data/")
+    clinvar_dir = os.path.join(os.path.dirname(__file__), "../data/clinvar/")
+    
     local_clinvar_ver = 0
 
     for (dirpath, dirnames, filenames) in os.walk(clinvar_dir):
@@ -48,6 +52,11 @@ def clinvar_vcf_to_df():
                     vcf = os.path.join(clinvar_dir, filename)
                 else:
                     continue
+
+    if not 'vcf' in locals():
+        # ClinVar vcf not found
+        print("ClinVar VCF not found in clinvar dir. Exiting.")
+        sys.exit(-1)
 
     clinvar_df = pd.read_csv(vcf, header = [27], sep='\t', low_memory=False)
 

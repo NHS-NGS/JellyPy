@@ -29,18 +29,19 @@ def hgmd_vcf_to_df():
         for filename in filenames:
             if re.match("^hgmd_pro_[0-9\.]+_hg38.vcf$", filename):
                 vcf = os.path.join(hgmd_dir, filename)
+                hgmd_ver = filename.strip(".vcf")
+                print("HGMD ver: ", hgmd_ver)
             else:
                 continue
 
-    if not vcf:
+    if not 'vcf' in locals():
         print("HGMD hg38 vcf not found, please ensure it is in data/hgmd")
         sys.exit(-1)
-
-    print("Reading HGMD Pro VCF")
-
+    
+    # read VCF into df
     hgmd_df = pd.read_csv(vcf, header = [19], sep='\t', low_memory=False)
 
-    return hgmd_df
+    return hgmd_df, hgmd_ver
 
 
 def hgmd_variants(hgmd_df, position_list):
@@ -58,8 +59,11 @@ def hgmd_variants(hgmd_df, position_list):
     hgmd_match_df = hgmd_df[hgmd_df[['#CHROM', 'POS']].apply(tuple, axis = 1
                     ).isin(position_list)]
     
+    hgmd_match_df = hgmd_match_df.rename(columns={'#CHROM': 'chrom',
+                                            'POS': 'pos'})
+    
     # create empty columns to split required INFO fields to
-    split_info = ['CLASS','DNA','PROT','DB','PHEN','RANKSCORE']ls
+    split_info = ['CLASS','DNA','PROT','DB','PHEN','RANKSCORE']
     
 
     hgmd_match_df = hgmd_match_df.reindex(columns=[
