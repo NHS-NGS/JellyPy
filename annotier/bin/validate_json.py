@@ -33,15 +33,17 @@ class validJSON():
             IOError: A validation function returns False
             KeyError: Expected keys are missing from the JSON object
         """
+
         try:
             is_v6 = self.is_v6(irjson)
             is_sent = self.is_sent(irjson)
             is_unsolved = self.is_unsolved(irjson)
+            is_rd = self.is_rd(irjson)
         except KeyError:
             # An expected key is missing from the JSON.
             return False
 
-        if is_v6 and is_sent and is_unsolved:
+        if is_v6 and is_sent and is_unsolved and is_rd:
             pass
         else:
             return False
@@ -88,6 +90,13 @@ class validJSON():
             return False
         else:
             return True
+    
+    def is_rd(self, irjson):
+        """Returns true if JSON is a rare disease case. Required in case
+        of mix of rare disease and cancer jsons
+        """
+        return "rare_disease" in irjson["program"]
+
 
     def main(self):
         """
