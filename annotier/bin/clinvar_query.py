@@ -1,10 +1,14 @@
 """
-Functions to take a json of GEL variants, query against ClinVar VCF 
+Functions to take a json of GEL variants, query against ClinVar VCF
 if present, and then return full ClinVar entry for those that are.
 
-To do more than 3 requests per second to ClinVar this requires an NCBI 
-account, and the email and api key passing to entrezpy. 
+To do more than 3 requests per second to ClinVar this requires an NCBI
+account, and the email and api key passing to entrezpy.
 These are stored in ncbi_credentials.py in /bin.
+
+Jethro Rainford
+jethro.rainford@addenbrookes.nhs.uk
+200303
 """
 
 import json
@@ -19,12 +23,13 @@ import entrezpy.esummary.esummarizer
 try:
     from ncbi_credentials import ncbi_credentials
 except ImportError:
-    print("NCBI email and api_key must be defined in ncbi_credentials.py for "
-        "querying ClinVar")
+    print("NCBI email and api_key must be defined in ncbi_credentials.py for\
+        querying ClinVar")
     sys.exit(-1)
 
 data_dir = os.path.join(os.path.dirname(__file__), "../data/")
 clinvar_dir = os.path.join(os.path.dirname(__file__), "../data/clinvar/")
+
 
 def clinvar_vcf_to_df():
     """
@@ -39,7 +44,7 @@ def clinvar_vcf_to_df():
     # set paths to dirs
     data_dir = os.path.join(os.path.dirname(__file__), "../data/")
     clinvar_dir = os.path.join(os.path.dirname(__file__), "../data/clinvar/")
-    
+
     local_clinvar_ver = 0
 
     for (dirpath, dirnames, filenames) in os.walk(clinvar_dir):
@@ -54,87 +59,87 @@ def clinvar_vcf_to_df():
                 else:
                     continue
 
-    if not 'vcf' in locals():
+    if 'vcf' not in locals():
         # ClinVar vcf not found
         print("ClinVar VCF not found in clinvar dir. Exiting.")
         sys.exit(-1)
 
-    clinvar_df = pd.read_csv(vcf, header = [27], sep='\t', low_memory=False)
+    clinvar_df = pd.read_csv(vcf, header=[27], sep='\t', low_memory=False)
 
     return clinvar_df, local_clinvar_ver
 
 
 def get_clinvar_ids(clinvar_df, position_list):
     """
-    Function to query all variants in JSON against ClinVar df, returns 
+    Function to query all variants in JSON against ClinVar df, returns
     ids of those pathogenic and likely pathogenic
 
     Args:
         clinvar_df (dataframe): dataframe built from ClinVar vcf
-        position_list (list): list of all variant GRCh38 positions and 
+        position_list (list): list of all variant GRCh38 positions and
                               chromosome numbers from JSON
 
     Returns:
-        clinvar_list (list): list of ClinVar IDs where position is in the 
-                             input JSON
+        clinvar_list (list): list of ClinVar IDs where position is in
+                            the input JSON
     """
-    
+
     # list to pass clinvar ids with ref and alt as these are not
     # returned in esummary from clinvar
     clinvar_id_list = []
-    
-    match_df = clinvar_df[clinvar_df[['#CHROM', 'POS']].apply(tuple, axis = 1
-                ).isin(position_list)]
 
-    print(match_df)
+    match_df = clinvar_df[
+        clinvar_df[['#CHROM', 'POS']].apply(tuple, axis=1).isin(position_list)
+    ]
 
     for row in match_df.itertuples():
-                
-        if "CLNSIG=Pathogenic" in row.INFO or \
-            "CLNSIG=Likely_pathogenic" in row.INFO:
-            # add variant ID if classified as pathogenic or likely pathogenic
+        clinsig = ["CLNSIG=Pathogenic", "CLNSIG=Likely_pathogenic"]
+        if any(x in row.INFO for x in clinsig):
+            # add variant ID if classified as pathogenic or
+            # likely pathogenic
             clinvar_id_list.append({
-                                    "clinvar_id": row.ID,
-                                    "ref": row.REF,
-                                    "alt": row.ALT
-                                    })
-        
+                "clinvar_id": row.ID,
+                "ref": row.REF,
+                "alt": row.ALT
+            })
+
         if "CLNSIG=Conflicting_interpretations_of_pathogenicity" in row.INFO:
-            clnsigconf = [i for i in row.INFO.split(";") if \
-                            i.startswith("CLNSIGCONF")]
-            # add variant ID if classified as pathogenic or likely 
+            clnsigconf = [
+                i for i in row.INFO.split(";") if i.startswith("CLNSIGCONF")
+            ]
+            # add variant ID if classified as pathogenic or likely
             # pathogenic but with conflicts
 
             if "pathogenic" in clnsigconf[0].casefold():
                 clinvar_id_list.append({
-                                    "clinvar_id": row.ID,
-                                    "ref": row.REF,
-                                    "alt": row.ALT
-                                    })
-    
+                    "clinvar_id": row.ID,
+                    "ref": row.REF,
+                    "alt": row.ALT
+                })
+
     if len(clinvar_id_list) == 0:
         print("No matching variants identified in ClinVar")
-    
+
     return clinvar_id_list
 
 
 def get_clinvar_data(clinvar_id_list):
     """
-    Take list of variants with pathogenic / likely pathogenic 
-    clinvar entries and return full clinvar information through 
+    Take list of variants with pathogenic / likely pathogenic
+    clinvar entries and return full clinvar information through
     NCBI eutils
-    Requires NCBI email and api_key adding to ncbi_credentials.py to do 
+    Requires NCBI email and api_key adding to ncbi_credentials.py to do
     more than 3 requests per second
 
     Args:
-        clinvar_id_list (list): list of ClinVar IDs where position is 
+        clinvar_id_list (list): list of ClinVar IDs where position is
                              in the input JSON
-    
+
     Returns:
-        clinvar_summaries (dict): summary output for each 
+        clinvar_summaries (dict): summary output for each
                                   clinvar variant
     """
-    
+
     e = entrezpy.esummary.esummarizer.Esummarizer(
         "clinvar_summary",
         ncbi_credentials["email"],
@@ -157,19 +162,19 @@ def get_clinvar_data(clinvar_id_list):
 
     clinvar_summaries = {}
 
-    for i in range(6):
-        # call to eutils API
-        try:
-            for ids in clinvar_ids:
+    for ids in clinvar_ids:
+        for i in range(6):
+            # call to eutils API
+            try:
                 a = e.inquire({'db': 'clinvar', 'id': ids})
                 summaries = a.get_result().summaries
                 clinvar_summaries.update(summaries)
-            break
-        except Exception as e:
-            print("Error connecting to eutils, try: {}/6").format(i)
-            print("Error: {}".format(e))
-            time.sleep(10)
-            continue
+                break
+            except BaseException as e:
+                print("Error in entrezpy, try: {}/6".format(i))
+                print("Error: {}".format(e))
+                time.sleep(5)
+                continue
 
     rows_list = []
 
@@ -177,39 +182,50 @@ def get_clinvar_data(clinvar_id_list):
 
         # ref and alt not returned in summary, so get from previously
         # generated clinvar_ids_list
-        id_match = next((
-            item for item in clinvar_id_list if item["clinvar_id"] == key
-            ), None)
-        
+        id_match = next(
+            (item for item in clinvar_id_list if item["clinvar_id"] == key),
+            None
+        )
+
         if id_match is not None:
             # check in case ref and alt were missing
             ref = id_match["ref"]
             alt = id_match["alt"]
         else:
             ref, alt = None, None
-        
+
         row_dict = {}
 
         # select out required fields from returned eutils summary dict
         row_dict.update(
             {
                 "clinvar_id": key,
+
                 "clinical_sig": value["clinical_significance"]
-                                        ["description"],
+                    ["description"],
+
                 "date_last_rev": value["clinical_significance"]
-                                        ["last_evaluated"],
+                    ["last_evaluated"],
 
                 "review_status": value["clinical_significance"]
-                                        ["review_status"],
+                    ["review_status"],
+
                 "var_type": value["variation_set"][0]["variant_type"],
+
                 "supporting_subs": value["supporting_submissions"],
+
                 "start_pos": value["variation_set"][0]["variation_loc"]
-                                    [0]["start"],
+                    [0]["start"],
+
                 "end_pos": value["variation_set"][0]["variation_loc"]
                                 [0]["stop"],
+
                 "chrom": value["chr_sort"],
+                
                 "ref": ref,
+
                 "alt": alt,
+
                 "protein_change": value["protein_change"]
             }
         )

@@ -1,6 +1,10 @@
 """
-Used to check if new monthly release of ClinVar VCF is available for download. 
-If so, it is downloaded and extracted into /data.
+Used to check if new monthly release of ClinVar VCF is available
+for download. If so, it is downloaded and extracted into /data.
+
+Jethro Rainford
+jethro.rainford@addenbrookes.nhs.uk
+200305
 """
 
 import os
@@ -12,9 +16,10 @@ from ftplib import FTP
 dirname = os.path.dirname(__file__)
 clinvar_dir = os.path.join(dirname, "../data/clinvar/")
 
-# compile required regex 
+# compile required regex
 # clinvar_vcf_regex = re.compile("^clinvar_([0-9]+)\.vcf$")
 # clinvar_gz_regex = re.compile("^clinvar_[0-9]+\.vcf.gz$")
+
 
 def local_vcf():
     """
@@ -23,7 +28,7 @@ def local_vcf():
     Args: None
 
     Returns:
-        local_vcf_ver (int): latest version no. of local ClinVar VCF  
+        local_vcf_ver (int): latest version no. of local ClinVar VCF
     """
     clinvar_vcf_regex = re.compile("^clinvar_([0-9]+)\.vcf$")
     local_vcf_ver = 0
@@ -44,7 +49,8 @@ def local_vcf():
         # no vcf downloaded
         print("No vcf found locally, latest will be downloaded")
     else:
-        print("Current version of ClinVar downloaded: {}".format(local_vcf_ver))
+        print("Current version of ClinVar downloaded: {}".format(
+            local_vcf_ver))
 
     return local_vcf_ver
 
@@ -57,7 +63,7 @@ def get_ftp_files():
 
     Returns:
         ftp_vcf (string): filename of latest available VCF from FTP site
-        ftp_vcf_ver (int): version no. of latest available VCF from FTP site 
+        ftp_vcf_ver (int): version of latest available VCF from FTP site
     """
     clinvar_gz_regex = re.compile("^clinvar_[0-9]+\.vcf.gz$")
 
@@ -78,7 +84,7 @@ def get_ftp_files():
             ftp_vcf_ver = int(ftp_vcf.split("_")[1].split(".")[0])
 
             break
-    
+
     print("Latest available ClinVar version available: {}".format(ftp_vcf_ver))
 
     return ftp_vcf, ftp_vcf_ver
@@ -86,11 +92,12 @@ def get_ftp_files():
 
 def get_vcf(ftp_vcf):
     """
-    Downloads file from NCBI FTP site to /data/clinvar, called by check_current_vcf()
-    
+    Downloads file from NCBI FTP site to /data/clinvar, called by
+    check_current_vcf()
+
     Args:
         filename (string): name of VCF to be downloaded from FTP site
-    
+
     Outputs:
         localfile (file): downloaded VCF into /data/clinvar/
 
@@ -102,7 +109,7 @@ def get_vcf(ftp_vcf):
     ftp.cwd("/pub/clinvar/vcf_GRCh38/")
 
     file_to_download = os.path.join(clinvar_dir, ftp_vcf)
-    
+
     with open(file_to_download, 'wb') as localfile:
         ftp.retrbinary('RETR ' + ftp_vcf, localfile.write, 1024)
 
@@ -111,26 +118,31 @@ def get_vcf(ftp_vcf):
 
 def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
     """
-    Check if local ClinVar vcf is latest, if not download from FTP site and decompress
+    Check if local ClinVar vcf is latest, if not download from
+    FTP site and decompress
 
     Args:
         ftp_vcf (string): filename of latest available VCF from FTP site
-        ftp_vcf_ver (int): version no. of latest available VCF from FTP site 
+        ftp_vcf_ver (int): version of latest available VCF from FTP site
         local_vcf_ver (int): version no. of latest localy available VCF
-    
-    Outputs:
-        localfile (file): downloaded VCF into /data/clinvar/ (from get_vcf())
-    
+
     Returns: None
+
+    Outputs:
+        localfile (file): downloaded VCF into /data/clinvar/
+                          (from get_vcf())
+
     """
 
     if ftp_vcf_ver > local_vcf_ver:
-        
-        print("New ClinVar vcf available, downloading now ({})".format(ftp_vcf))
-        get_vcf(ftp_vcf) # downloads latest vcf
-        
+
+        print(
+            "New ClinVar vcf available, downloading now ({})".format(ftp_vcf))
+        get_vcf(ftp_vcf)  # downloads latest vcf
+
         vcf_to_unzip = os.path.join(clinvar_dir, ftp_vcf)
-        decompressed_vcf = os.path.join(clinvar_dir, str(ftp_vcf)[:-3]) # removes .gz extension
+        # removes .gz extension
+        decompressed_vcf = os.path.join(clinvar_dir, str(ftp_vcf)[:-3])
 
         with gzip.open(vcf_to_unzip, 'rb') as f:
             print("Decompressing {}".format(ftp_vcf))
@@ -142,12 +154,12 @@ def check_current_vcf(ftp_vcf, ftp_vcf_ver, local_vcf_ver):
             # write data from decompressed vcf to new vcf
             f.write(vcf_data)
             f.close
-        
-        os.remove(vcf_to_unzip) # delete original vcf.gz
+
+        os.remove(vcf_to_unzip)  # delete original vcf.gz
 
     else:
         print("Latest ClinVar vcf already downloaded")
- 
+
 
 if __name__ == "__main__":
     local_vcf_ver = local_vcf()

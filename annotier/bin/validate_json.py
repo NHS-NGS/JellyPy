@@ -3,8 +3,8 @@ Takes directory of IR JSONs and checks if they are in v6 format, are
 unsolved (i.e. have no clinical report and/or no exit questionaire) and
 that it has been submitted to the interpretation portal.
 
-This is analogous of functions in irtools.py from tierup branch 
-(thanks Nana!)
+This is analogous of functions in irtools.py from tierup branch
+(thanks Nana!) with extra functions for sorting JSONs
 
 Jethro Rainford
 jethro.rainford@addenbrookes.nhs.uk
@@ -26,7 +26,8 @@ class validJSON():
         pass
 
     def validate(self, irjson):
-        """Call methods to validate the interpretation request data for TierUp reanalysis.
+        """Call methods to validate the interpretation request data for
+        reanalysis.
         Args:
             irjson: Interpretation request data in JSON format
         Raises:
@@ -50,48 +51,52 @@ class validJSON():
             return False
 
     def is_v6(self, irjson):
-        """Returns true if the interpreted genome of an irjson is GeL v6 model.
-        Even when using the report_v6 API flag, older interpretation 
-        requests won't match this schema.
+        """Returns true if the interpreted genome of an irjson is GeL 
+        v6 model. Even when using the report_v6 API flag, older 
+        interpretation requests won't match this schema.
         Args:
             irjson: Interpretation request data in json format.
         """
-        return InterpretedGenome.validate(irjson["interpreted_genome"][0]["interpreted_genome_data"])
+        return InterpretedGenome.validate(
+            irjson["interpreted_genome"][0]["interpreted_genome_data"]
+        )
 
     def is_sent(self, irjson):
-        """Check if the interpretation request submitted to the interpretation portal by GeL.
-        This happens once all QC checks are passed and a decision support service has processed data.
+        """Check if the interpretation request submitted to the
+        interpretation portal by GeL. This happens once all QC checks
+        are passed and a decision support service has processed data.
         Args:
             irjson: Interpretation request data in json format.
         """
         return "sent_to_gmcs" in [item["status"] for item in irjson["status"]]
 
     def is_unsolved(self, irjson):
-        """Returns True if no reports have been issued where the case has been solved.
+        """Returns True if no reports have been issued where the case
+        has been solved.
         Args:
             irjson: Interpretation request data in json format.
         """
-        # If a report has not been issued, the clinical_report field will be an empty list. Return True.
+        # If a report has not been issued, the clinical_report field
+        # will be an empty list. Return True.
         if not irjson["clinical_report"]:
             return True
 
         reports = irjson["clinical_report"]
-        reports_with_questionnaire = [
-            report for report in reports if report["exit_questionnaire"] is not None
-        ]
+        reports_with_questionnaire = [report for report in reports if report[
+            "exit_questionnaire"] is not None]
+
         reports_solved = [
             report
             for report in reports_with_questionnaire
             if report["exit_questionnaire"]["exit_questionnaire_data"][
                 "familyLevelQuestions"
-            ]["caseSolvedFamily"]
-            == "yes"
+            ]["caseSolvedFamily"] == "yes"
         ]
         if any(reports_solved):
             return False
         else:
             return True
-    
+
     def is_rd(self, irjson):
         """Returns true if JSON is a rare disease case. Required in case
         of mix of rare disease and cancer jsons
@@ -147,5 +152,4 @@ class validJSON():
 if __name__ == "__main__":
 
     valid = validJSON()
-
     valid.main()
