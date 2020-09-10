@@ -9,7 +9,6 @@ from hgmd_query import hgmd_vcf_to_df
 from get_json_variants import ReadJSON
 from sample_analysis import SampleAnalysis
 from variants_to_db import SQLQueries
-from pubmed_query import scrapePubmed
 
 try:
     from db_credentials import db_credentials
@@ -48,6 +47,7 @@ samples=[
     - run single sample analysis
 """
 
+
 def connect_db():
     """
     Establishes connection to database.
@@ -69,7 +69,7 @@ def check_json():
     Checks for JSONs present in appropriate dir
     """
     
-    json_dir = os.path.join(os.path.dirname(__file__), "../data/ir_jsons/")
+    json_dir = os.path.join(os.path.dirname(__file__), "../data/ir_jsons/passJSON/")
     json_total = 0
 
     # check if at least 1 JSON in the dir
@@ -155,20 +155,24 @@ def run_analysis(sql, analysis_id, json_dir, clinvar_df, hgmd_df, hpo_df):
     sample = SampleAnalysis()
     # read JSON, get df of variants and other required variables
 
-    # loop over data in dir, read json in, then run analysis, then save to database
+    # loop over data in dir, read json in, run analysis, then save to database
 
     for filename in os.listdir(json_dir):
         if filename.endswith(".json"):
             json_file = os.path.join(json_dir, filename)
             ir_id, hpo_terms, disorder_list, variant_list, position_list = sample.get_json_data(json_file)
 
-            clinvar_summary_df, hgmd_match_df, pubmed_df = sample.run_analysis(clinvar_df, hgmd_df, position_list, variant_list, hpo_terms, disorder_list, hpo_df)
+            clinvar_summary_df, hgmd_match_df, pubmed_df = sample.run_analysis(
+                clinvar_df, hgmd_df, position_list, variant_list, hpo_terms, 
+                disorder_list, hpo_df
+            )
             
             print("Analysis of sample ", ir_id, "finished, saving to database")
 
-            print(pubmed_df)
-
-            sample.update_db(sql, ir_id, analysis_id, hpo_terms, variant_list, clinvar_summary_df, hgmd_match_df, pubmed_df)
+            sample.update_db(
+                sql, ir_id, analysis_id, hpo_terms, variant_list,
+                clinvar_summary_df, hgmd_match_df, pubmed_df
+            )
 
             print("sample ", ir_id, "successfully saved to database")
 
@@ -180,10 +184,11 @@ if __name__ == "__main__":
 
     json_dir, json_total = check_json()
     sql = connect_db()
-    #check_clinvar_ver()
+    # check_clinvar_ver()
     clinvar_df, clinvar_ver = read_clinvar()
     hgmd_df, hgmd_ver = read_hgmd()
-    hpo_df = read_hpo()
+    # hpo_df = read_hpo()
+    hpo_df = None
     analysis_id = new_analysis(sql, clinvar_ver, hgmd_ver)
 
     # begin analysis on each sample and save to db

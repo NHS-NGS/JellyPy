@@ -169,45 +169,38 @@ def get_clinvar_data(clinvar_id_list):
 
         # select out required fields from returned eutils summary dict
         row_dict.update(
-                        {
-                        "clinvar_id": key,
+            {
+                "clinvar_id": key,
+                "clinical_sig": value["clinical_significance"]
+                                        ["description"],
+                "date_last_rev": value["clinical_significance"]
+                                        ["last_evaluated"],
 
-                        "clinical_sig": value["clinical_significance"]
-                                             ["description"],
-
-                        "date_last_rev": value["clinical_significance"]
-                                              ["last_evaluated"],
-
-                        "review_status": value["clinical_significance"]
-                                              ["review_status"],
-
-                        "var_type": value["variation_set"][0]["variant_type"],
-
-                        "supporting_subs": value["supporting_submissions"],
-
-                        "start_pos": value["variation_set"][0]["variation_loc"]
-                                          [0]["start"],
-
-                        "end_pos": value["variation_set"][0]["variation_loc"]
-                                        [0]["stop"],
-
-                        "chrom": value["chr_sort"],
-
-                        "ref": ref,
-
-                        "alt": alt,
-
-                        "protein_change": value["protein_change"]
-                        }
-                    ) 
+                "review_status": value["clinical_significance"]
+                                        ["review_status"],
+                "var_type": value["variation_set"][0]["variant_type"],
+                "supporting_subs": value["supporting_submissions"],
+                "start_pos": value["variation_set"][0]["variation_loc"]
+                                    [0]["start"],
+                "end_pos": value["variation_set"][0]["variation_loc"]
+                                [0]["stop"],
+                "chrom": value["chr_sort"],
+                "ref": ref,
+                "alt": alt,
+                "protein_change": value["protein_change"]
+            }
+        )
 
         rows_list.append(row_dict)
 
     # build df from rows of ClinVar entries
     clinvar_summary_df = pd.DataFrame(rows_list)
 
-    print(clinvar_summary_df)
-    
+    dtypes = {
+        'start_pos': int, 'end_pos': int, 'supporting_subs': str
+    }
+    clinvar_summary_df = clinvar_summary_df.astype(dtypes)
+
     return clinvar_summary_df
 
 

@@ -68,7 +68,7 @@ def hgmd_variants(hgmd_df, position_list):
 
     hgmd_match_df = hgmd_match_df.reindex(columns=[
             *hgmd_match_df.columns.tolist(), *split_info], fill_value="None")
-    
+ 
     for i, row in hgmd_match_df.iterrows():
 
         info = row["INFO"].split(";")        
@@ -91,7 +91,7 @@ def hgmd_variants(hgmd_df, position_list):
         if DB:
             hgmd_match_df.at[i, 'DB'] = DB[0].split("=")[1]
         if PHEN:
-            hgmd_match_df.at[i, 'PHEN'] = PHEN[0].split("=")[1]
+            hgmd_match_df.at[i, 'PHEN'] = PHEN[0].split("=")[1].strip('"')
         if RS:
             hgmd_match_df.at[i, 'RANKSCORE'] = RS[0].split("=")[1]
 

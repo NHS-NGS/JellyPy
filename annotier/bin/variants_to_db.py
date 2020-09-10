@@ -35,6 +35,7 @@ hgmd = {
             'db': 'a database', 'phenotype': 'disease', 'rs_id': 'rs12345'    
             }
 
+
 class SQLQueries(object):
 
     def __init__(self, db_credentials):
@@ -85,7 +86,7 @@ class SQLQueries(object):
         return analysis_id
 
 
-    def save_analysis(self, cursor, analysis_id):
+    def save_analysis(self, cursor, analysis_id, clinvar_ver, hgmd_ver):
         """
         Saves to analysis table.
         Stores analysis id, analysis date, clinvar ver. & HGMD ver.
@@ -104,14 +105,14 @@ class SQLQueries(object):
                 INSERT INTO analysis
                     (analysis_id, analysis_date, clinvar_ver, hgmd_ver)
                 VALUES
-                    (%s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s)
                 """
-        data = (analysis_id, today, local_clinvar_ver, local_hgmd_ver)
+        data = (analysis_id, today, clinvar_ver, hgmd_ver)
         
         cursor.execute(query, data)
                  
 
-    def save_sample(self, cursor):
+    def save_sample(self, cursor, ir_id):
         """
         Checks if ir ID exists in db already, if it does just update
         date last analysed, if not add as new record. Returns id of sample.
@@ -185,7 +186,7 @@ class SQLQueries(object):
     def save_variant(self, cursor, variant):
         """
         Saves variant to variant table.
-        Stores chrom, start_pos, end_pos, ref, alt, consequence
+        Stores chrom, pos, ref, alt, consequence
         and returns id of new variant row
 
         Args:
@@ -194,16 +195,14 @@ class SQLQueries(object):
         Returns:
             - variant_id (int): id of newly inserted variant
         """
-        data = (variant["chrom"], variant["start_pos"],
-                variant["end_pos"], variant["ref"],
-                variant["alt"], variant["consequence"])
+        data = (variant["chrom"], variant["pos"],
+                variant["ref"], variant["alt"], 
+                variant["consequence"])
         
         query_exist = """SELECT * FROM variant WHERE 
-                            chrom='%s' AND start_pos='%s AND
-                            end_pos='%s' AND ref='%s' AND
-                            alt='%s' AND consequence='%s'
-                        VALUES
-                            (%s, %s, %s, %s, %s, %s)                 
+                            chrom=%s AND pos=%s AND
+                            ref=%s AND alt=%s AND 
+                            consequence=%s                 
                     """
         cursor.execute(query_exist, data)
 
@@ -216,9 +215,9 @@ class SQLQueries(object):
             # variant record does not exist, insert new record
             query = """
                     INSERT INTO variant
-                        (chrom, start_pos, end_pos, ref, alt, consequence)
+                        (chrom, pos, ref, alt, consequence)
                     VALUES
-                        (%s, %s, %s, %s, %s, %s)
+                        (%s, %s, %s, %s, %s)
                     """
             cursor.execute(query, data)
 
@@ -267,19 +266,19 @@ class SQLQueries(object):
         """
         tier = variant["tier"]
         
-        cursor.execute("""SELECT 1 FROM tier WHERE 
-                            tier={}""".format(tier))
-
-        exists = cursor.fetchone()
+        query_exist = 'SELECT * FROM tier WHERE tier="{}"'.format(tier)
         
+        cursor.execute(query_exist)
+        exists = cursor.fetchone()
+
         if exists:
             # variant record exists, get variant id
             tier_id = exists[0]
         else:
             # variant record does not exist, insert new record
-            cursor.execute("""INSERT INTO tier
-                            VALUES
-                                ({})""".format(tier))
+            print('INSERT INTO tier (tier) VALUES ("{}")'.format(tier))
+            
+            cursor.execute('INSERT INTO tier (tier) VALUES ("{}")'.format(tier))
 
             # get id of inserted row to return
             tier_id = cursor.lastrowid
@@ -290,7 +289,7 @@ class SQLQueries(object):
     def save_clinvar(self, cursor, clinvar):
         """
         Saves clinvar annotation to clinvar table
-        
+
         Args:
             - clinvar (dict): dict of clinvar annotation
         Returns:
@@ -298,34 +297,32 @@ class SQLQueries(object):
         """
 
         data = (
-                'clinvar_id': clinvar["clinvar_id"], 'clin_significance': clinvar["clin_signficance"], 
-                'date_last_reviewed': clinvar["date_last_reviewed"], 'review_status': clinvar["review_status"], 
-                'var_type': clinvar["var_type"], 'supporting_submissions': clinvar["supporting_submissions"],
-                'chrom': clinvar["chrom"], 'pos': clinvar["pos"], 'ref': clinvar["ref"], 'alt': clinvar["alt"]
-                )
-        
-        query_exist = """SELECT * FROM clinvar WHERE 
-                            clinvar_id='%s' AND clin_significance='%s AND
-                            date_last_reviewed='%s' AND review_status='%s' AND
-                            var_type='%s' AND supporting_submissions='%s' AND 
-                            chrom='%s' AND pos='%s' AND ref='%s' AND alt='%s'
-                        VALUES
-                            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)                 
-                    """
-        cursor.execute(query_exist, data)
+            clinvar["clinvar_id"], clinvar["clin_signficance"],
+            clinvar["date_last_reviewed"], clinvar["review_status"],
+            clinvar["var_type"], clinvar["supporting_submissions"],
+            clinvar["chrom"], clinvar["pos"], clinvar["ref"], clinvar["alt"]
+        )
+
+        id = (data[0],)
+
+        # check if reccord already exists in table
+        query_exist = "SELECT * FROM clinvar WHERE clinvar_id=%s"
+        cursor.execute(query_exist, id)
 
         exists = cursor.fetchone()
-        
+
         if exists:
+            print("exists", exists)
             # clinvar record exists, get clinvar id
             clinvar_id = exists[0]
         else:
             # variant record does not exist, insert new record
+            print("new clinvar record")
             query = """
                     INSERT INTO clinvar
                         (clinvar_id, clin_significance,
                         date_last_reviewed, review_status,
-                        var_type=, supporting_submissions,
+                        var_type, supporting_submissions,
                         chrom, pos, ref, alt)
                     VALUES
                         (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -334,7 +331,8 @@ class SQLQueries(object):
             cursor.execute(query, data)
 
             # get id of inserted row to return
-            clinvar_id = cursor.lastrowid
+            clinvar_id = data[0]
+            print("last row id: ", clinvar_id)
 
         return clinvar_id
 
@@ -347,29 +345,26 @@ class SQLQueries(object):
             - hgmd (dict): dict of hgmd annotation
         
         Returns:
-            - hgmd_id (int): row if of hgmd annotation
+            - hgmd_id (int): row id of hgmd annotation
         """
-
         data = (
-                'clinvar_id': clinvar["clinvar_id"], 'clin_significance': clinvar["clin_signficance"], 
-                'date_last_reviewed': clinvar["date_last_reviewed"], 'review_status': clinvar["review_status"], 
-                'var_type': clinvar["var_type"], 'supporting_submissions': clinvar["supporting_submissions"],
-                'chrom': clinvar["chrom"], 'pos': clinvar["pos"], 'ref': clinvar["ref"], 'alt': clinvar["alt"]
+                hgmd["hgmd_id"], hgmd["rankscore"], 
+                hgmd["chrom"], int(hgmd["pos"]), 
+                hgmd["ref"], hgmd["alt"],
+                hgmd["dna_change"], hgmd["prot_change"], hgmd["db"], hgmd["phenotype"]
                 )
-        
-        query_exist = """SELECT * FROM hgmd WHERE 
-                            hgmd_id='%s' AND rank_score='%s AND
-                            chrom='%s' AND pos='%s' AND
-                            ref='%s' AND alt='%s' AND 
-                            dna_change='%s' AND prot_change='%s' AND db='%s' AND phenotype='%s' AND
-                            rs_id='%s'
-                        VALUES
-                            (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)                 
-                    """
-        cursor.execute(query_exist, data)
 
-        exists = cursor.fetchone()
+        # change None if string to NoneType
+        data = [None if x=='None' else x for x in data]
+        data = tuple(data)
         
+        id = (data[0],)
+
+        query_exist = "SELECT * FROM hgmd WHERE hgmd_id=%s"
+
+        cursor.execute(query_exist, id)
+        exists = cursor.fetchone()
+
         if exists:
             # hgmd record exists, get hgmd id
             hgmd_id = exists[0]
@@ -380,48 +375,129 @@ class SQLQueries(object):
                         (hgmd_id, rank_score,
                             chrom, pos,
                             ref, alt, 
-                            dna_change, prot_change, db, phenotype, 
-                            rs_id)
+                            dna_change, prot_change, db, phenotype
+                            )
                     VALUES
-                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """
 
             cursor.execute(query, data)
 
             # get id of inserted row to return
-            hgmd_id = cursor.lastrowid
-
+            hgmd_id = data[0]
+            print("HGMD ID: ", hgmd_id)
             return hgmd_id
 
 
-    def save_variant_annotation(self, cursor, tier_id, 
-                    clinvar_id, hgmd_id, analysis_variant_id):
+    def save_pubmed(self, cursor, pubmed):
+        """
+        Saves pubmed record to pubmed table, returns id to add to pubmed
+        list table
+
+        Args:
+            - pubmed (dict): dict with pubmed id and title
+        
+        Returns:
+            - pub_id (int): row id of pubmed enntry
+        """
+
+        data = (pubmed["PMID"], pubmed["title"])
+        
+        query_exist = """
+                        SELECT * FROM pubmed WHERE
+                            PMID='%s' AND title='%s'
+                        VALUES
+                            (%s, %s)
+                        """
+
+        cursor.execute(query_exist, data)
+
+        exists = cursor.fetchone()
+        
+        if exists:
+            # hgmd record exists, get hgmd id
+            pubmed_id = exists[0]
+        else:
+            # variant record does not exist, insert new record
+            query = """
+                    INSERT INTO pubmed
+                        (PMID, title)
+                    VALUES
+                        (%s, %s)
+                    """
+        
+            cursor.execute(query, data)
+
+            # get id of inserted row to return
+            pubmed_id = cursor.lastrowid
+
+            return pubmed_id
+
+
+    def save_pubmed_list(self, cursor, pubmed_list):
+        """
+        Takes list of pubmed ids added for a variant and adds each to
+        pubmed list table.
+
+        Args:
+            - pubmed_list (list): list of dicts of pubmed ids, ref, alt, and 
+                associated status
+        
+        Returns:
+            - pubmed_list_id (int): row id
+        """
+
+        # get last list ID and add 1 for current list
+        query = """
+                SELECT pubmed_list_id from pubmed_list ORDER BY 
+                pubmed_list_id DESC LIMIT 1;
+                """
+
+        pubmed_list_id = cursor.execute(query)
+        pubmed_list_id += 1
+
+        for entry in pubmed_list:
+            
+            data = (
+                pubmed_list_id, entry["pub_id"], entry["associated"], 
+                entry["ref"], entry["alt"] 
+                )
+
+            query_save = """
+                        INSERT INTO pubmed_list
+                            (%s, %s, %s, %s)
+                        VALUES
+                            (%s, %s, %s, %s)
+                        """
+            
+            cursor.execute(query_save, data)
+        
+        return pubmed_list_id
+
+
+    def save_variant_annotation(self, cursor, tier_id, clinvar_id, hgmd_id, pubmed_list_id, analysis_variant_id):
         """
         Saves variant annotation to link variant to annotation.
 
         Args:
-            - 
-        
+            -
+
         Returns:
             -
         """
 
         query = """
                 INSERT INTO variant_annotation
-                    (tier_id, clinvar_id, hgmd_id, pubmed_id,
+                    (tier_id, clinvar_id, hgmd_id, pubmed_list_id,
                     analysis_variant_id)
                 VALUES
                     (%s, %s, %s, %s, %s)
                 """
-        data = (tier_id, clinvar_id, hgmd_id, pubmed_id,
-                    analysis_variant_id)
-        
+        data = (
+            tier_id, clinvar_id, hgmd_id, pubmed_list_id, analysis_variant_id
+        )
+        print(data)
         cursor.execute(query, data)
-
-        # get id of inserted row to return
-        analysis_sample_id = cursor.lastrowid
-
-        return analysis_sample_id
 
 
 if __name__ == "__main__":
@@ -431,7 +507,6 @@ if __name__ == "__main__":
     analysis_run = sql.get_analysis_run(sql.cursor)
     sql.save_sample(sql.cursor)
     sql.save_analysis(sql.cursor, analysis_run, sample_id)
-
 
 
     #analysis_run = SQLQueries(db_credentials)
