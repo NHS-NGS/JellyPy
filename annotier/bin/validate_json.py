@@ -39,11 +39,12 @@ class validJSON():
             is_sent = self.is_sent(irjson)
             is_unsolved = self.is_unsolved(irjson)
             is_rd = self.is_rd(irjson)
+            is_38 = self.is_38(irjson)
         except KeyError:
             # An expected key is missing from the JSON.
             return False
 
-        if is_v6 and is_sent and is_unsolved and is_rd:
+        if is_v6 and is_sent and is_unsolved and is_rd and is_38:
             pass
         else:
             return False
@@ -96,6 +97,10 @@ class validJSON():
         of mix of rare disease and cancer jsons
         """
         return "rare_disease" in irjson["program"]
+
+    def is_38(self, irjson):
+        """Returns true is assembly is build38, false if 37"""
+        return "GRCh38" in irjson["assembly"]
 
 
     def main(self):
