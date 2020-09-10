@@ -147,13 +147,25 @@ def get_clinvar_data(clinvar_id_list):
     # get clinvar ids from list to search with
     clinvar_ids = [d['clinvar_id'] for d in clinvar_id_list]
 
+    if len(clinvar_ids) < 20:
+        clinvar_ids = [clinvar_ids]
+    else:
+        # split id's into smaller lists
+        clinvar_ids = [
+            clinvar_ids[i:i + 20] for i in range(0, len(clinvar_ids), 20)
+        ]
+
+    clinvar_summaries = {}
+
     for i in range(6):
         # call to eutils API
         try:
-            a = e.inquire({'db': 'clinvar', 'id': clinvar_ids})
-            clinvar_summaries = a.get_result().summaries
+            for ids in clinvar_ids:
+                a = e.inquire({'db': 'clinvar', 'id': ids})
+                summaries = a.get_result().summaries
+                clinvar_summaries.update(summaries)
             break
-        except (urllib.error.URLError, socket.gaierror) as e:
+        except Exception as e:
             print("Error connecting to eutils, try: {}/6").format(i)
             print("Error: {}".format(e))
             time.sleep(10)
