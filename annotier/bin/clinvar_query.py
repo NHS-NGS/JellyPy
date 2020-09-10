@@ -9,6 +9,7 @@ These are stored in ncbi_credentials.py in /bin.
 
 import json
 import sys
+import time
 import re
 import os
 import pandas as pd
@@ -134,19 +135,29 @@ def get_clinvar_data(clinvar_id_list):
                                   clinvar variant
     """
     
-    e = entrezpy.esummary.esummarizer.Esummarizer("clinvar_summary",
-                ncbi_credentials["email"],
-                apikey = ncbi_credentials["api_key"],
-                apikey_var=ncbi_credentials["api_key"],
-                threads = 4,
-                qid = None
-                )
+    e = entrezpy.esummary.esummarizer.Esummarizer(
+        "clinvar_summary",
+        ncbi_credentials["email"],
+        apikey=ncbi_credentials["api_key"],
+        apikey_var=ncbi_credentials["api_key"],
+        threads=4,
+        qid=None
+    )
 
     # get clinvar ids from list to search with
     clinvar_ids = [d['clinvar_id'] for d in clinvar_id_list]
 
-    a = e.inquire({'db': 'clinvar', 'id': clinvar_ids})
-    clinvar_summaries = a.get_result().summaries
+    for i in range(6):
+        # call to eutils API
+        try:
+            a = e.inquire({'db': 'clinvar', 'id': clinvar_ids})
+            clinvar_summaries = a.get_result().summaries
+            break
+        except (urllib.error.URLError, socket.gaierror) as e:
+            print("Error connecting to eutils, try: {}/6").format(i)
+            print("Error: {}".format(e))
+            time.sleep(10)
+            continue
 
     rows_list = []
 
