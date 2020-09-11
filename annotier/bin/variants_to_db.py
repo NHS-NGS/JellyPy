@@ -193,12 +193,12 @@ class SQLQueries(object):
         """
         data = (variant["chrom"], variant["pos"],
                 variant["ref"], variant["alt"],
-                variant["consequence"])
-
+                variant["consequence"], variant["gene"])
+        print(data)
         query_exist = """SELECT * FROM variant WHERE
                             chrom=%s AND pos=%s AND
                             ref=%s AND alt=%s AND
-                            consequence=%s
+                            consequence=%s AND gene=%s
                     """
         cursor.execute(query_exist, data)
 
@@ -211,9 +211,9 @@ class SQLQueries(object):
             # variant record does not exist, insert new record
             query = """
                     INSERT INTO variant
-                        (chrom, pos, ref, alt, consequence)
+                        (chrom, pos, ref, alt, consequence, gene)
                     VALUES
-                        (%s, %s, %s, %s, %s)
+                        (%s, %s, %s, %s, %s, %s)
                     """
             cursor.execute(query, data)
 

@@ -53,7 +53,7 @@ class SampleAnalysis():
         hpo_terms, disorder_list = self.json_data.get_hpo_terms(ir_json)
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)
-
+        
         print("Number of variants: {}".format(len(position_list)))
 
         return ir_id, hpo_terms, disorder_list, variant_list, position_list
@@ -331,7 +331,7 @@ class SampleAnalysis():
                 variant = {
                     "chrom": var["chromosome"], "pos": var["position"],
                     "tier": var["tier"], "ref": var["ref"], "alt": var["alt"],
-                    "consequence": var["consequence"]
+                    "consequence": var["consequence"], "gene": var["gene"]
                 }
 
                 variant_id = sql.save_variant(sql.cursor, variant)
