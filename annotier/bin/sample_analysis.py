@@ -49,6 +49,7 @@ class SampleAnalysis():
         ir_json = self.json_data.read_json(json_file)
 
         ir_id = self.json_data.get_irid(ir_json)
+        ir_panel = self.json_data.get_disease(ir_json)
         hpo_terms, disorder_list = self.json_data.get_hpo_terms(ir_json)
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)

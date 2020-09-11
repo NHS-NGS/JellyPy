@@ -56,6 +56,26 @@ class ReadJSON():
 
         return ir_id
 
+    def get_disease(self, ir_json):
+        """
+        Gets PanelApp panel(s) used for case.
+
+        Args:
+            - ir_json (dict): input json file
+
+        Returns:
+            - ir_panel (list): panel(s) used for case
+        """
+        ir_panel = []
+
+        panels = ir_json["interpretation_request_data"]["json_request"][
+            "pedigree"]["analysisPanels"]
+
+        for panel in panels:
+            if panel["specificDisease"] not in ir_panel:
+                ir_panel.append(panel["specificDisease"])
+
+        return ir_panel
 
     def get_hpo_terms(self, ir_json):
         """
