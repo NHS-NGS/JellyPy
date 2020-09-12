@@ -1,7 +1,8 @@
 """
 Takes directory of IR JSONs and checks if they are in v6 format, are
-unsolved (i.e. have no clinical report and/or no exit questionaire) and
-that it has been submitted to the interpretation portal.
+unsolved (i.e. have no clinical report and/or no exit questionaire),
+that it has been submitted to the interpretation portal, that it is a
+rare disease case and that it is mapped to GRCh38.
 
 This is analogous of functions in irtools.py from tierup branch
 (thanks Nana!) with extra functions for sorting JSONs

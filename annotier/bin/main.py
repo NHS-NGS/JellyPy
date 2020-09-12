@@ -21,6 +21,8 @@ import os
 import sys
 import mysql.connector as mysql
 
+from panelapp import queries
+
 from clinvar_query import clinvar_vcf_to_df
 from get_clinvar_vcf import local_vcf, get_ftp_files, get_vcf,\
     check_current_vcf
@@ -131,6 +133,22 @@ def read_hgmd():
     return hgmd_df, hgmd_ver
 
 
+def get_panels():
+    """
+    Use panelapp package to query PanelApp for all panels, used to
+    filter variants against those just in panel genes
+
+    Args: None
+
+    Returns:
+        - all_panels (dict): all PanelApp panels
+    """
+    print("Getting panels from PanelApp")
+    all_panels = queries.get_all_panels()
+
+    return all_panels
+
+
 def read_hpo():
     """
     Reads in HPO phenotype file to df for analysis.
@@ -168,7 +186,8 @@ def new_analysis(sql, clinvar_ver, hgmd_ver):
     return analysis_id
 
 
-def run_analysis(sql, analysis_id, json_dir, clinvar_df, hgmd_df, hpo_df):
+def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
+                 clinvar_df, hgmd_df, hpo_df):
     """
     Go through each JSON in /data/ir_json and perform analysis,
     then save to database
@@ -187,13 +206,17 @@ def run_analysis(sql, analysis_id, json_dir, clinvar_df, hgmd_df, hpo_df):
     # read JSON, get df of variants and other required variables
 
     # loop over data in dir, read json in, run analysis, then save to database
+    file_counter = 1
 
     for filename in os.listdir(json_dir):
         if filename.endswith(".json"):
+            print("Analysing sample {}/{}".format(file_counter, json_total))
             json_file = os.path.join(json_dir, filename)
 
             ir_id, hpo_terms, disorder_list,\
-                variant_list, position_list = sample.get_json_data(json_file)
+                variant_list, position_list = sample.get_json_data(
+                    json_file, all_panels
+                )
 
             clinvar_summary_df, hgmd_match_df, pubmed_df = sample.run_analysis(
                 clinvar_df, hgmd_df, position_list, variant_list, hpo_terms,
@@ -213,17 +236,19 @@ def run_analysis(sql, analysis_id, json_dir, clinvar_df, hgmd_df, hpo_df):
 if __name__ == "__main__":
 
     # do initial set up for analysis run (check database connection etc.)
-    print("Performing initial set up checks for analysis")
+    print("Performing initial set up checks for analysis\n")
 
     json_dir, json_total = check_json()
     sql = connect_db()
     # check_clinvar_ver()
     clinvar_df, clinvar_ver = read_clinvar()
     hgmd_df, hgmd_ver = read_hgmd()
+    all_panels = get_panels()
     # hpo_df = read_hpo()
     hpo_df = None
     analysis_id = new_analysis(sql, clinvar_ver, hgmd_ver)
 
     # begin analysis on each sample and save to db
     print("Starting sample analysis")
-    run_analysis(sql, analysis_id, json_dir, clinvar_df, hgmd_df, hpo_df)
+    run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
+                 clinvar_df, hgmd_df, hpo_df)

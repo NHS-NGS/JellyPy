@@ -72,8 +72,9 @@ class ReadJSON():
             "pedigree"]["analysisPanels"]
 
         for panel in panels:
-            if panel["specificDisease"] not in ir_panel:
-                ir_panel.append(panel["specificDisease"])
+            # get "panel name" => hash and "specificDisease" => panel
+            # name OR a related disorder term to search against PanelApp
+            ir_panel.append((panel["specificDisease"], panel["panelName"]))
 
         return ir_panel
 
@@ -148,6 +149,12 @@ class ReadJSON():
                         tier = variant["reportEvents"][0]["tier"]
                         gene = variant["reportEvents"][0][
                             "genomicEntities"][0]["geneSymbol"]
+                        transcript = variant["reportEvents"][0][
+                            "genomicEntities"][0]["ensemblId"]
+                        build = variant["variantCoordinates"]["assembly"]
+                        penetrance = variant["reportEvents"][0]["penetrance"]
+                        denovoQScore = variant["reportEvents"][0][
+                            "deNovoQualityScore"]
 
                         if not variant["reportEvents"][0][
                             "variantConsequences"
@@ -172,7 +179,11 @@ class ReadJSON():
                             "tier": tier,
                             "gene": gene,
                             "consequence": var_type,
-                            "c_change": c_change
+                            "c_change": c_change,
+                            "transcript": transcript,
+                            "build": build,
+                            "penetrance": penetrance,
+                            "denovoQScore": denovoQScore
                         })
 
                         # need simple position list for later analysis

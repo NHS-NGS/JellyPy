@@ -19,6 +19,8 @@ import pandas as pd
 import pprint
 import time
 
+from panelapp import api, Panelapp, queries
+
 from get_json_variants import ReadJSON
 from clinvar_query import clinvar_vcf_to_df, get_clinvar_ids, get_clinvar_data
 from hgmd_query import hgmd_vcf_to_df, hgmd_variants
@@ -31,7 +33,7 @@ class SampleAnalysis():
         self.json_data = ReadJSON()
 
 
-    def get_json_data(self, json_file):
+    def get_json_data(self, json_file, all_panels):
         """
         Call functions from get_json_variants to get HPO terms and
         tiered variants for analysis
@@ -48,13 +50,51 @@ class SampleAnalysis():
         """
         ir_json = self.json_data.read_json(json_file)
 
+        # get sample and variant data from json
         ir_id = self.json_data.get_irid(ir_json)
         ir_panel = self.json_data.get_disease(ir_json)
         hpo_terms, disorder_list = self.json_data.get_hpo_terms(ir_json)
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)
         
-        print("Number of variants: {}".format(len(position_list)))
+        panel_genes = []
+        all_panel_hashes = {}
+
+        # build dict of all PanelApp panel hashes -> panel ids
+        for id, panel in all_panels.items():
+            if panel.get_data()["hash_id"] is not None:
+                all_panel_hashes[panel.get_data()["hash_id"]] = id
+
+        for panel in ir_panel:
+            if panel[1] in all_panel_hashes:
+                # JSON panel hash in PA hash dict, get panel genes
+                panel_id = all_panel_hashes[panel[1]]
+                panel_genes.extend(all_panels[panel_id].get_genes())
+            else:
+                # JSON panel hash not in PA hash dict, check panel name
+                # against relevenat disorder list and disease groups as
+                # not "specificDisease" from JSON can be either
+                for pa_panel in all_panels.values():
+                    if panel[0] in pa_panel.get_data()["relevant_disorders"]:
+                        panel_genes.extend(pa_panel.get_genes())
+                    elif panel[0] in pa_panel.get_data()["disease_group"]:
+                        panel_genes.extend(pa_panel.get_genes())
+                    elif panel[0] in pa_panel.get_data()["disease_sub_group"]:
+                        panel_genes.extend(pa_panel.get_genes())
+                    else:
+                        continue
+
+        print("Number of variants before: {}".format(len(position_list)))
+
+        # keep variants only in panel genes
+        variant_list = [d for d in variant_list if d['gene'] not in panel_genes]
+
+        # build simple list of chrom & pos for analysis
+        position_list = []
+        for var in variant_list:
+            position_list.append((var["chromosome"], var["position"]))
+
+        print("Number of variants after: {}".format(len(position_list)))
 
         return ir_id, hpo_terms, disorder_list, variant_list, position_list
 
