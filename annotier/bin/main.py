@@ -111,7 +111,7 @@ def read_clinvar():
     """
     clinvar_df, clinvar_ver = clinvar_vcf_to_df()
 
-    print("ClinVar VCF loaded")
+    print("ClinVar VCF loaded, using version: {}".format(clinvar_ver))
 
     return clinvar_df, clinvar_ver
 
@@ -231,6 +231,7 @@ def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
             )
 
             print("sample ", ir_id, "successfully saved to database")
+            file_counter += 1
 
 
 if __name__ == "__main__":

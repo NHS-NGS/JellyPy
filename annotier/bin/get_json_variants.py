@@ -35,6 +35,7 @@ class ReadJSON():
         """
 
         with open(json_file) as file:
+            print("Reading file: ", json_file)
             ir_json = json.load(file)
 
         return ir_json

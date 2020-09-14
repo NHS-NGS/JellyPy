@@ -56,7 +56,8 @@ class SampleAnalysis():
         hpo_terms, disorder_list = self.json_data.get_hpo_terms(ir_json)
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)
-        
+
+        # get genes of panels from PanelApp used to filter variants
         panel_genes = []
         all_panel_hashes = {}
 
@@ -65,6 +66,7 @@ class SampleAnalysis():
             if panel.get_data()["hash_id"] is not None:
                 all_panel_hashes[panel.get_data()["hash_id"]] = id
 
+        # get panel genes for each panel in JSON
         for panel in ir_panel:
             if panel[1] in all_panel_hashes:
                 # JSON panel hash in PA hash dict, get panel genes
@@ -87,14 +89,14 @@ class SampleAnalysis():
         print("Number of variants before: {}".format(len(position_list)))
 
         # keep variants only in panel genes
-        variant_list = [d for d in variant_list if d['gene'] not in panel_genes]
+        variant_list = [x for x in variant_list if x['gene'] in panel_genes]
 
         # build simple list of chrom & pos for analysis
         position_list = []
         for var in variant_list:
             position_list.append((var["chromosome"], var["position"]))
 
-        print("Number of variants after: {}".format(len(position_list)))
+        print("Number of variants after: ", len(position_list))
 
         return ir_id, hpo_terms, disorder_list, variant_list, position_list
 
@@ -269,7 +271,7 @@ class SampleAnalysis():
             sql.cursor, analysis_id, sample_id)
 
         # for each variant in variant list, check if some annotation
-        # is found for positionif yes, save variant, if not then it
+        # is found for position if yes, save variant, if not then it
         # is passed
         for var in variant_list:
 
@@ -338,6 +340,7 @@ class SampleAnalysis():
                             "rankscore": row["RANKSCORE"]
                         }
                         if hgmd["ref"] == var["ref"] and hgmd["alt"] == var["alt"]:
+                            print("hgmd and variant same ref alt in sample_analysis")
                             # same ref and alt, link to variant
                             hgmd_id = sql.save_hgmd(sql.cursor, hgmd)
                         else:
