@@ -76,7 +76,7 @@ class SampleAnalysis():
             if panel[1] in all_panel_hashes:
                 # JSON panel hash in PA hash dict, get panel genes
                 panel_id = all_panel_hashes[panel[1]]
-                print("hash match")
+
                 for gene in all_panels[panel_id].get_data()["genes"]:
                     if gene["confidence_level"] == "3":
                         # check each gene in panel is green
@@ -91,7 +91,6 @@ class SampleAnalysis():
                 # JSON panel hash not in PA hash dict, check panel name
                 # against relevenat disorder list and disease groups as
                 # not "specificDisease" from JSON can be either
-                print("hash doesn't match")
                 fields = [
                     "relevant_disorders",
                     "disease_group",
@@ -164,6 +163,11 @@ class SampleAnalysis():
             - hgmd_match_df (dataframe): df of HGMD entries for
                                     tiered variants
         """
+        # if no variants found in panel regions, return none to skip
+        if len(position_list) == 0:
+            print("No variants in panel regions, skipping analysis")
+            return None, None, None
+        
         # get list of ClinVar entries for tiered variants
         clinvar_id_list = get_clinvar_ids(clinvar_df, position_list)
 
@@ -391,7 +395,6 @@ class SampleAnalysis():
                             "rankscore": row["RANKSCORE"]
                         }
                         if hgmd["ref"] == var["ref"] and hgmd["alt"] == var["alt"]:
-                            print("hgmd and variant same ref alt in sample_analysis")
                             # same ref and alt, link to variant
                             hgmd_id = sql.save_hgmd(sql.cursor, hgmd)
                         else:
