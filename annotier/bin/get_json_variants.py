@@ -40,7 +40,6 @@ class ReadJSON():
 
         return ir_json
 
-
     def get_irid(self, ir_json):
         """
         Get ir id from within JSON, required for saving to db and more
@@ -65,7 +64,7 @@ class ReadJSON():
             - ir_json (dict): input json file
 
         Returns:
-            - ir_panel (list): panel(s) used for case
+            - ir_panel (list): list of tuples of panel(s) used for case
         """
         ir_panel = []
 
@@ -75,7 +74,9 @@ class ReadJSON():
         for panel in panels:
             # get "panel name" => hash and "specificDisease" => panel
             # name OR a related disorder term to search against PanelApp
-            ir_panel.append((panel["specificDisease"], panel["panelName"]))
+            ir_panel.append((
+                panel["specificDisease"], panel["panelName"],
+                panel["panelVersion"]))
 
         return ir_panel
 
@@ -120,7 +121,6 @@ class ReadJSON():
             print("hpoTermList not found, continuing")
 
         return hpo_terms, disorder_list
-
 
     def get_tiered_variants(self, ir_json):
         """

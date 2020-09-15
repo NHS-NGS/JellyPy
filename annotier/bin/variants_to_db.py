@@ -149,6 +149,36 @@ class SQLQueries(object):
         return sample_id
 
 
+    def save_sample_panel(self, cursor, sample_id, ir_panel):
+        """
+        Saves samples original panels to sample_panel table
+
+        Args:
+            - cursor: MySQL cursor object
+            - ir_panel (list): list of tuples of panel(s) used for case
+
+        Returns: None
+        """
+        cursor.execute(
+            "SELECT * FROM sample_panel WHERE sample_id='%s'" % (sample_id)
+        )
+        panels = cursor.fetchone()
+        print(panels)
+        if panels:
+            # panels already saved
+            pass
+        else:
+            print("saving panels")
+            for panel in ir_panel:
+                # save each panel and version used, link to sample
+                cursor.execute(
+                    "INSERT INTO sample_panel (sample_id, name, version)\
+                        VALUES\
+                    ('%s', '%s', '%s')" %
+                    (sample_id, panel[0], panel[2])
+                )
+
+
     def save_analysis_sample(self, cursor, analysis_id, sample_id):
         """
         Saves to analysis_sample table.
@@ -177,6 +207,27 @@ class SQLQueries(object):
         analysis_sample_id = cursor.lastrowid
 
         return analysis_sample_id
+
+
+    def save_analysis_panel(self, cursor, analysis_sample_id, analysis_panels):
+        """
+        Saves panels and versions used for current analysis of sample
+
+        Args:
+            - cursor: MySQL cursor object
+            - analysis_sample_id (int): id of analysis of sample
+            - analysis_panels (list): list of tuples for each panel and
+                version used for reanalysis (panel_name, version)
+
+        Returns: None
+        """
+        for panel in analysis_panels:
+            cursor.execute(
+                "INSERT INTO analysis_panel (analysis_sample_id, name, version)\
+                    VALUES\
+                ('%s', '%s', '%s')" %
+                (analysis_sample_id, panel[0], panel[1])
+            )
 
 
     def save_variant(self, cursor, variant):
@@ -367,8 +418,10 @@ class SQLQueries(object):
         if exists:
             # hgmd record exists, get hgmd id
             hgmd_id = exists[0]
+            print("hgmd record exists: ", hgmd_id)
         else:
             # variant record does not exist, insert new record
+
             query = """
                     INSERT INTO hgmd (
                         hgmd_id, rank_score, chrom, pos, ref, alt, dna_change,
@@ -382,8 +435,9 @@ class SQLQueries(object):
 
             # get id of inserted row to return
             hgmd_id = data[0]
+            print("new hgmd record: ", hgmd_id)
 
-            return hgmd_id
+        return hgmd_id
 
 
     def save_pubmed(self, cursor, pubmed):

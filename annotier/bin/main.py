@@ -213,8 +213,8 @@ def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
             print("Analysing sample {}/{}".format(file_counter, json_total))
             json_file = os.path.join(json_dir, filename)
 
-            ir_id, hpo_terms, disorder_list,\
-                variant_list, position_list = sample.get_json_data(
+            ir_id, ir_panel, hpo_terms, disorder_list,\
+                variant_list, position_list, analysis_panels = sample.get_json_data(
                     json_file, all_panels
                 )
 
@@ -226,8 +226,8 @@ def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
             print("Analysis of sample ", ir_id, "finished, saving to database")
 
             sample.update_db(
-                sql, ir_id, analysis_id, hpo_terms, variant_list,
-                clinvar_summary_df, hgmd_match_df, pubmed_df
+                sql, ir_id, ir_panel, analysis_panels, analysis_id, hpo_terms,
+                variant_list, clinvar_summary_df, hgmd_match_df, pubmed_df
             )
 
             print("sample ", ir_id, "successfully saved to database")

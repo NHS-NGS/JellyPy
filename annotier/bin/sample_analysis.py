@@ -40,6 +40,7 @@ class SampleAnalysis():
 
         Args:
             - json_file (file): input IR JSON
+            - all_panels (dict): all PanelApp panels (from main.get_panels())
 
         Returns:
             - ir_id (int): ID of IR sample
@@ -47,6 +48,8 @@ class SampleAnalysis():
             - disorder_list (list): list of disorder terms from JSON
             - variant_list (list): list of dicts with variant info
             - position list (list): list of tuples with variant positons
+            - analysis_panels (list): list of tuples for each panel and
+                version used for reanalysis (panel_name, version)
         """
         ir_json = self.json_data.read_json(json_file)
 
@@ -60,7 +63,9 @@ class SampleAnalysis():
         # get genes of panels from PanelApp used to filter variants
         panel_genes = []
         all_panel_hashes = {}
+        analysis_panels = []
 
+        print("checking panelapp panels")
         # build dict of all PanelApp panel hashes -> panel ids
         for id, panel in all_panels.items():
             if panel.get_data()["hash_id"] is not None:
@@ -71,20 +76,56 @@ class SampleAnalysis():
             if panel[1] in all_panel_hashes:
                 # JSON panel hash in PA hash dict, get panel genes
                 panel_id = all_panel_hashes[panel[1]]
-                panel_genes.extend(all_panels[panel_id].get_genes())
+                print("hash match")
+                for gene in all_panels[panel_id].get_data()["genes"]:
+                    if gene["confidence_level"] == "3":
+                        # check each gene in panel is green
+                        panel_genes.append(gene["entity_name"])
+                        # panel_genes.extend(all_panels[panel_id].get_genes())
+                        # get panel name and version to record
+                        panel = all_panels[panel_id]
+                        name = panel.get_data()["name"]
+                        ver = panel.get_data()["version"]
+                analysis_panels.append((name, ver))
             else:
                 # JSON panel hash not in PA hash dict, check panel name
                 # against relevenat disorder list and disease groups as
                 # not "specificDisease" from JSON can be either
+                print("hash doesn't match")
+                fields = [
+                    "relevant_disorders",
+                    "disease_group",
+                    "disease_sub_group"
+                ]
+
                 for pa_panel in all_panels.values():
-                    if panel[0] in pa_panel.get_data()["relevant_disorders"]:
-                        panel_genes.extend(pa_panel.get_genes())
-                    elif panel[0] in pa_panel.get_data()["disease_group"]:
-                        panel_genes.extend(pa_panel.get_genes())
-                    elif panel[0] in pa_panel.get_data()["disease_sub_group"]:
-                        panel_genes.extend(pa_panel.get_genes())
-                    else:
-                        continue
+                    # check ir_panel name against each field, break if found
+                    for field in fields:
+                        if panel[0] in pa_panel.get_data()[field]:
+                            # match panel
+                            for gene in pa_panel.get_data()["genes"]:
+                                if gene["confidence_level"] == "3":
+                                    # check each gene in panel is green
+                                    panel_genes.append(gene["gene_data"]["gene_symbol"])
+                                    # panel_genes.extend(pa_panel.get_genes())
+                                # get panel name and version to record
+                                name = pa_panel.name
+                                ver = pa_panel.version
+                            if name and ver:
+                                analysis_panels.append((name, ver))
+                            break
+
+
+                    # elif panel[0] in pa_panel.get_data()["disease_group"]:
+                    #     panel_genes.extend(pa_panel.get_genes())
+                    # elif panel[0] in pa_panel.get_data()["disease_sub_group"]:
+                    #     panel_genes.extend(pa_panel.get_genes())
+                    # else:
+                    #     continue
+
+        panel_genes = list(set(panel_genes))
+        print(panel_genes)
+        print(analysis_panels)
 
         print("Number of variants before: {}".format(len(position_list)))
 
@@ -98,7 +139,8 @@ class SampleAnalysis():
 
         print("Number of variants after: ", len(position_list))
 
-        return ir_id, hpo_terms, disorder_list, variant_list, position_list
+        return ir_id, ir_panel, hpo_terms, disorder_list, variant_list,\
+            position_list, analysis_panels
 
 
     def run_analysis(self, clinvar_df, hgmd_df, position_list, variant_list,
@@ -244,8 +286,9 @@ class SampleAnalysis():
         return clinvar_summary_df, hgmd_match_df, pubmed_df
 
 
-    def update_db(self, sql, ir_id, analysis_id, hpo_terms, variant_list,
-                  clinvar_summary_df, hgmd_match_df, pubmed_df):
+    def update_db(self, sql, ir_id, ir_panel, analysis_panels, analysis_id, 
+                  hpo_terms, variant_list, clinvar_summary_df, hgmd_match_df, 
+                  pubmed_df):
         """
         Update reanalysis database with outputs of analyses.
 
@@ -266,9 +309,17 @@ class SampleAnalysis():
         # entry of sample
         sample_id = sql.save_sample(sql.cursor, ir_id)
 
+        # save sample original panels from JSON, passes if already saved
+        sql.save_sample_panel(sql.cursor, sample_id, ir_panel)
+
         # add entry to analysis_sample table, uses current analysis ID
         analysis_sample_id = sql.save_analysis_sample(
             sql.cursor, analysis_id, sample_id)
+
+        # save record of versions used for reanalysis of each panel
+        sql.save_analysis_panel(
+            sql.cursor, analysis_sample_id, analysis_panels
+        )
 
         # for each variant in variant list, check if some annotation
         # is found for position if yes, save variant, if not then it
