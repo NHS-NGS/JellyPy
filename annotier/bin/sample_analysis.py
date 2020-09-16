@@ -79,9 +79,9 @@ class SampleAnalysis():
 
         # get panel genes for each panel in JSON
         for panel in ir_panel:
-            if panel[1] in all_panel_hashes:
-                print("hash match")
-                # JSON panel hash in PA hash dict, get panel genes
+            if panel[1] in all_panel_hashes or panel[1].isdigit():
+                # JSON panel hash in PA hash dict or panel ID in hash
+                # field, get panel genes
                 panel_id = all_panel_hashes[panel[1]]
 
                 for gene in all_panels[panel_id].get_data()["genes"]:
