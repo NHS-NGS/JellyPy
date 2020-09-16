@@ -82,18 +82,23 @@ class SampleAnalysis():
             if panel[1] in all_panel_hashes or panel[1].isdigit():
                 # JSON panel hash in PA hash dict or panel ID in hash
                 # field, get panel genes
-                panel_id = all_panel_hashes[panel[1]]
+                if panel[1].isdigit():
+                    panel_id = panel[1]
+                else:
+                    panel_id = all_panel_hashes[panel[1]]
+                
+                panel = all_panels[panel_id]
+                name = panel.get_data()["name"]
+                ver = panel.get_data()["version"]
 
                 for gene in all_panels[panel_id].get_data()["genes"]:
                     if gene["confidence_level"] == "3":
                         # check each gene in panel is green
                         panel_genes.append(gene["entity_name"])
                         # panel_genes.extend(all_panels[panel_id].get_genes())
-                        # get panel name and version to record
-                        panel = all_panels[panel_id]
-                        name = panel.get_data()["name"]
-                        ver = panel.get_data()["version"]
-                analysis_panels.append((name, ver))
+                
+                if name and ver:
+                    analysis_panels.append((name, ver))
             else:
                 # JSON panel hash not in PA hash dict, check panel name
                 # against relevenat disorder list and disease groups as
