@@ -144,7 +144,19 @@ def get_panels():
         - all_panels (dict): all PanelApp panels
     """
     print("Getting panels from PanelApp")
-    all_panels = queries.get_all_panels()
+    
+    for i in range(1,5):
+        counter = 1
+        try:
+            all_panels = queries.get_all_panels()
+        except Exception as e:
+            print("Error connecting to panel app: ", e)
+            print("Attempt {}/5, retrying...".format(counter))
+            counter += 1
+    
+    if not all_panels:
+        print("Could not retrieve panels from PanelApp, exiting now.")
+        sys.exit(-1)
 
     return all_panels
 
