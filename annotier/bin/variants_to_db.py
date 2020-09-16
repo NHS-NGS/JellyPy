@@ -64,13 +64,13 @@ class SQLQueries(object):
             "SELECT analysis_id FROM analysis ORDER BY analysis_id\
                 DESC LIMIT 1"
         )
-        last_run = cursor.fetchone()[0]
+        last_run = cursor.fetchone()
 
         print("last run: ", last_run)
 
         if last_run:
             # get last run and increase by 1
-            analysis_id = int(last_run) + 1
+            analysis_id = int(last_run[0]) + 1
         else:
             # empty table, start at 1
             analysis_id = 1
@@ -106,7 +106,7 @@ class SQLQueries(object):
         cursor.execute(query, data)
 
 
-    def save_sample(self, cursor, ir_id):
+    def save_sample(self, cursor, ir_id, total_variants):
         """
         Checks if ir ID exists in db already, if it does just update
         date last analysed, if not add as new record. Returns id of sample.
@@ -136,8 +136,9 @@ class SQLQueries(object):
             # sample doesn't already exist, create new entry
             cursor.execute(
                 "INSERT INTO sample (hpoTermList, date_first_analysed,\
-                date_last_analysed, ir_id) VALUES ('%s', '%s', '%s', '%s')" %
-                ('term', today, today, ir_id)
+                date_last_analysed, ir_id, total_variants) VALUES\
+                ('%s', '%s', '%s', '%s', '%s')" %
+                ('term', today, today, ir_id, total_variants)
             )
 
             # get id of sample inserted
@@ -179,7 +180,8 @@ class SQLQueries(object):
                 )
 
 
-    def save_analysis_sample(self, cursor, analysis_id, sample_id):
+    def save_analysis_sample(self, cursor, analysis_id, sample_id,
+                             analysis_variants):
         """
         Saves to analysis_sample table.
         Stores sample_id and analysis id, creates new analysis_sample_id record
@@ -195,11 +197,11 @@ class SQLQueries(object):
         """
         query = """
                 INSERT INTO analysis_sample
-                    (sample_id, analysis_id)
+                    (sample_id, analysis_id, variants)
                 VALUES
-                    (%s, %s)
+                    (%s, %s, %s)
                 """
-        data = (sample_id, analysis_id)
+        data = (sample_id, analysis_id, analysis_variants)
 
         cursor.execute(query, data)
 

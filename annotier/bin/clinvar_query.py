@@ -163,17 +163,17 @@ def get_clinvar_data(clinvar_id_list):
     clinvar_summaries = {}
 
     for ids in clinvar_ids:
-        for i in range(6):
+        for i in range(1, 5):
             # call to eutils API
             try:
                 a = e.inquire({'db': 'clinvar', 'id': ids})
                 summaries = a.get_result().summaries
                 clinvar_summaries.update(summaries)
                 break
-            except BaseException as e:
-                print("Error in entrezpy, try: {}/6".format(i))
+            except (BaseException, ValueError) as e:
+                print("Error in entrezpy, try: {}/5".format(i))
                 print("Error: {}".format(e))
-                time.sleep(5)
+                time.sleep(2)
                 continue
 
     rows_list = []

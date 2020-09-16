@@ -59,6 +59,9 @@ class SampleAnalysis():
         hpo_terms, disorder_list = self.json_data.get_hpo_terms(ir_json)
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)
+        
+        # get total no. variants in JSON
+        total_variants = len(variant_list)
 
         # get genes of panels from PanelApp used to filter variants
         panel_genes = []
@@ -71,9 +74,13 @@ class SampleAnalysis():
             if panel.get_data()["hash_id"] is not None:
                 all_panel_hashes[panel.get_data()["hash_id"]] = id
 
+        print("ir panels")
+        print(ir_panel)
+
         # get panel genes for each panel in JSON
         for panel in ir_panel:
             if panel[1] in all_panel_hashes:
+                print("hash match")
                 # JSON panel hash in PA hash dict, get panel genes
                 panel_id = all_panel_hashes[panel[1]]
 
@@ -91,6 +98,7 @@ class SampleAnalysis():
                 # JSON panel hash not in PA hash dict, check panel name
                 # against relevenat disorder list and disease groups as
                 # not "specificDisease" from JSON can be either
+                print("no hash match")
                 fields = [
                     "relevant_disorders",
                     "disease_group",
@@ -101,6 +109,7 @@ class SampleAnalysis():
                     # check ir_panel name against each field, break if found
                     for field in fields:
                         if panel[0] in pa_panel.get_data()[field]:
+                            print(panel[0], field)
                             # match panel
                             for gene in pa_panel.get_data()["genes"]:
                                 if gene["confidence_level"] == "3":
@@ -123,7 +132,7 @@ class SampleAnalysis():
                     #     continue
 
         panel_genes = list(set(panel_genes))
-        print(panel_genes)
+        print
         print(analysis_panels)
 
         print("Number of variants before: {}".format(len(position_list)))
@@ -138,8 +147,10 @@ class SampleAnalysis():
 
         print("Number of variants after: ", len(position_list))
 
+        analysis_variants = len(variant_list)
+
         return ir_id, ir_panel, hpo_terms, disorder_list, variant_list,\
-            position_list, analysis_panels
+            position_list, analysis_panels, total_variants, analysis_variants
 
 
     def run_analysis(self, clinvar_df, hgmd_df, position_list, variant_list,
@@ -167,10 +178,11 @@ class SampleAnalysis():
         if len(position_list) == 0:
             print("No variants in panel regions, skipping analysis")
             return None, None, None
-        
+
         # get list of ClinVar entries for tiered variants
         clinvar_id_list = get_clinvar_ids(clinvar_df, position_list)
-
+        print("Clinvar ID list: ", clinvar_id_list)
+        
         if len(clinvar_id_list) != 0:
             # get full ClinVar entries with NCBI eutils, return in df
             clinvar_summary_df = get_clinvar_data(clinvar_id_list)
@@ -290,9 +302,9 @@ class SampleAnalysis():
         return clinvar_summary_df, hgmd_match_df, pubmed_df
 
 
-    def update_db(self, sql, ir_id, ir_panel, analysis_panels, analysis_id, 
-                  hpo_terms, variant_list, clinvar_summary_df, hgmd_match_df, 
-                  pubmed_df):
+    def update_db(self, sql, ir_id, ir_panel, analysis_panels, total_variants,
+                  analysis_variants, analysis_id, hpo_terms, variant_list,
+                  clinvar_summary_df, hgmd_match_df, pubmed_df):
         """
         Update reanalysis database with outputs of analyses.
 
@@ -311,14 +323,14 @@ class SampleAnalysis():
         """
         # save sample to database with ir id, if exists just get db
         # entry of sample
-        sample_id = sql.save_sample(sql.cursor, ir_id)
+        sample_id = sql.save_sample(sql.cursor, ir_id, total_variants)
 
         # save sample original panels from JSON, passes if already saved
         sql.save_sample_panel(sql.cursor, sample_id, ir_panel)
 
         # add entry to analysis_sample table, uses current analysis ID
         analysis_sample_id = sql.save_analysis_sample(
-            sql.cursor, analysis_id, sample_id)
+            sql.cursor, analysis_id, sample_id, analysis_variants)
 
         # save record of versions used for reanalysis of each panel
         sql.save_analysis_panel(

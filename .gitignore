@@ -123,7 +123,10 @@ annotier/data/*vcf*
 annotier/data/clinvar/*.vcf
 annotier/data/hgmd/*.vcf
 annotier/data/ir_jsons/*.json
+annotier/data/ir_jsons/failJSON/*.json
+annotier/data/ir_jsons/passJSON/*.json
 pyCIPAPI/jellypy/pyCIPAPI/auth_credentials.py
 pyCIPAPI/jellypy/annotier/bin/ncbi_credentials.py
 pyCIPAPI/jellypy/annotier/bin/db_credentials.py
 annotier/bin/db_credentials.py
+
