@@ -22,7 +22,6 @@ class ReadJSON():
     def __init__(self):
         pass
 
-
     def read_json(self, json_file):
         """
         Read in json file

@@ -41,7 +41,7 @@ try:
     from ncbi_credentials import ncbi_credentials
 except ImportError:
     print("NCBI email and api_key must be defined in ncbi_credentials.py for\
-        querying ClinVar")
+        querying NCBI eUtils API.")
     sys.exit(-1)
 
 
@@ -144,19 +144,7 @@ def get_panels():
         - all_panels (dict): all PanelApp panels
     """
     print("Getting panels from PanelApp")
-    
-    for i in range(1,5):
-        counter = 1
-        try:
-            all_panels = queries.get_all_panels()
-        except Exception as e:
-            print("Error connecting to panel app: ", e)
-            print("Attempt {}/5, retrying...".format(counter))
-            counter += 1
-    
-    if not all_panels:
-        print("Could not retrieve panels from PanelApp, exiting now.")
-        sys.exit(-1)
+    all_panels = queries.get_all_panels()
 
     return all_panels
 

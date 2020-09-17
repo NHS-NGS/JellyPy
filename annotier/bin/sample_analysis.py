@@ -83,7 +83,7 @@ class SampleAnalysis():
                 # JSON panel hash in PA hash dict or panel ID in hash
                 # field, get panel genes
                 if panel[1].isdigit():
-                    panel_id = panel[1]
+                    panel_id = int(panel[1])
                 else:
                     panel_id = all_panel_hashes[panel[1]]
                 
@@ -187,7 +187,7 @@ class SampleAnalysis():
         # get list of ClinVar entries for tiered variants
         clinvar_id_list = get_clinvar_ids(clinvar_df, position_list)
         print("Clinvar ID list: ", clinvar_id_list)
-        
+
         if len(clinvar_id_list) != 0:
             # get full ClinVar entries with NCBI eutils, return in df
             clinvar_summary_df = get_clinvar_data(clinvar_id_list)
@@ -205,103 +205,7 @@ class SampleAnalysis():
         columns = ["chrom", "pos", "ref", "alt", "pmid", "title", "associated"]
         pubmed_df = pd.DataFrame(columns=columns)
 
-        # get names for hpo terms from JSON, then clean
-        # hpo_names = self.pubmed.get_diseaseName(
-        #   hpo_terms, disorder_list, hpo_df
-        # )
-        # clean_names = self.pubmed.clean_hpo_names(hpo_names)
 
-        # get abstracts of papers inlcuding the variant, then scrape
-        # for related hpo termS
-        # all are saved, if includes hpo term then saved to db with
-        # associated=True
-
-        # format variant as c. notation, search for variant plus any
-        # other change at same pos
-
-        # make list of all combination of every variant c. change
-        # changes = []
-        # search_slices = []
-
-        # for variant in variant_list:
-
-        #     # no c. notation available => can't search pubmed
-        #     if not variant["c_change"]:
-        #         continue
-
-        #     if variant["c_change"] == "c.1975A>G":
-        #         continue
-
-        #     pattern = re.compile('^(c.)[0-9]*[A-Z]>[A-Z]')
-
-        #     if pattern.match(variant["c_change"]):
-        #         # pattern in format c.pos/ref/>/alt, remove alt to
-        #         # search for all 3 possible alts, with & without *
-        #         change = variant["c_change"].replace("+", "%2B")[:-1]+"+OR+"
-        #         change_wc = variant["c_change"][:-1]+"*"+"+OR+"
-
-        #         changes.append(change)
-        #         changes.append(change_wc)
-
-        #     else:
-        #         # not a SNV (i.e indel), don't check for alt changes
-        #         change = variant["c_change"].replace("+", "%2B")+"+OR+"
-
-        #         changes.append(change)
-
-        # # divide c. change list into chunks of 100 for searching
-        # for i in range(0, len(changes), 1):
-        #     chunk = changes[i:i + 1]
-        #     chunk = "".join(chunk)
-        #     search_slices.append(chunk[:-4])
-
-
-        # pmid_list = []
-
-        # # for each change at variant position, get ids of pubmed entries
-        # for chunk in search_slices:
-        #     print("CHUNK", chunk)
-        #     ids = self.pubmed.search(chunk)
-        #     print(ids)
-        #     if ids:
-        #         pmid_list.extend(ids)
-
-        # sys.exit()
-
-        # pmid_list = list(set(pmid_list))
-
-        # print("pmid list: ", pmid_list)
-        # print(len(pmid_list))
-
-        # sys.exit()
-
-        # if len(pmid_list) != 0:
-        #     # get abstracts of papers from id list
-        #     print("getting abstracts")
-        #     abs_list = self.pubmed.get_abstract(pmid_list)
-
-        #     # scrape title abstract for presence of key words,
-        #     # returned in list of ids if present
-        #     relevant_abs = self.pubmed.scrape_abstract(abs_list, clean_names)
-
-        #     # add papers to pubmed df
-        #     for paper in abs_list:
-        #         if paper["id"] in relevant_abs:
-        #             associated="True"
-        #         else:
-        #             associated="False"
-        #         # add to df
-        #         pubmed_df.append([
-        #           variant["chromosome"], variant["position"], variant["ref"],
-        #           variant["alt"], paper["id"], paper["title"], associated])
-
-        # print("NEXT VARIANT")
-
-        # with pd.option_context(
-        # 'display.max_rows', None, 'display.max_columns', None):
-        #     print(pubmed_df)
-
-        # print("pubmed df")
         pubmed_df = None
 
         return clinvar_summary_df, hgmd_match_df, pubmed_df
