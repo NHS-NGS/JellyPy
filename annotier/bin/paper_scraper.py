@@ -10,16 +10,18 @@ Jethro Rainford
 jethro.rainford@addenbrookes.nhs.uk
 200916
 """
+import ahocorasick
 import entrezpy.conduit
 import entrezpy.base.result
 import entrezpy.base.analyzer
 import json
+import os
+import pandas as pd
 import pprint
 import requests
 import sys
 import urllib
 import xml.etree.ElementTree
-
 
 try:
     from ncbi_credentials import ncbi_credentials
@@ -187,7 +189,7 @@ class PubmedAnalyzer(entrezpy.base.analyzer.EutilsAnalyzer):
 
 
 class litVar():
-
+    """Functions to query LitVar API"""
     def __init__(self):
         pass
 
@@ -245,7 +247,6 @@ class litVar():
         end_point = "entity/search/"
 
         query_url = self.build_url(end_point, query)
-        print(query_url)
         rsid_data = self.call_api(query_url)
 
         return rsid_data
@@ -267,13 +268,10 @@ class litVar():
 
         for entry in rsid_data:
             for gene in entry["data"]["genes"]:
-                print(gene)
                 print("var gene", variant["gene"])
                 if gene["name"] == variant["gene"]:
                     rsid = entry["id"].strip("#")
                     rsids += rsid
-
-        print(rsids)
 
         return rsids
 
@@ -309,6 +307,39 @@ class scrapePubmed():
     def __init__(self):
         pass
 
+    def read_hpo(self):
+        """
+        Reads in HPO phenotype file to df for analysis.
+
+        Args: None
+
+        Returns:
+            - hpo_df (df): df of all hpo terms from hpo file
+        """
+        print("Reading HPO file")
+
+        try:
+            hpo = os.path.join(
+                os.path.dirname(__file__), "../data/hpo/phenotype.hpoa"
+            )
+
+            header = [
+                "DatabaseID", "DiseaseName", "Qualifier", "HPO_ID", 
+                "Reference", "Evidence", "Onset", "Frequency",
+                "Sex", "Modifier", "Aspect", "Biocuration"
+            ]
+
+            hpo_df = pd.read_csv(
+                hpo, sep="\t", low_memory=False, comment="#", names=header
+            )
+
+        except IOError as e:
+            print("Error reading HPO phenotype file from /data/hpo/: ", e)
+            print("Exiting now.")
+            sys.exit(-1)
+
+        return hpo_df
+
 
     def get_papers(self, pmids, ncbi_credentials):
         """
@@ -320,7 +351,7 @@ class scrapePubmed():
             - ncbi_credentials (dict): account credentials for using API
 
         Returns:
-            - all_papers (dict): dict of paper titles and abstracts
+            - all_papers (list): list of dicts of paper titles and abstracts
         """
 
         c = entrezpy.conduit.Conduit(ncbi_credentials["email"])
@@ -343,13 +374,77 @@ class scrapePubmed():
             paper["abstract"] = res.pubmed_records[i].abstract
             papers.append(paper)
 
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(papers)
+        return papers
+
+
+    def hpo_to_phenotype(self, hpo_df, hpo_terms):
+        """
+        Get phenotype terms for given HPO terms.
+
+        Args:
+            - hpo_df (df): df of all hpo terms from phenotype.hpoa file
+            - hpo_terms (list): list of dicts with HPO terms from JSON
+
+        Returns:
+            - phenotypes (list): list of phenotype terms from HPO terms
+        """
+
+        terms = [x["term"] for x in hpo_terms]
+
+        phenotypes = hpo_df[hpo_df.HPO_ID.isin(terms)]["DiseaseName"].to_list()
+        phenotypes = list(set(phenotypes))
+
+        # split terms by ;, remove empty string entries
+        phenotypes = [x.split(";") for x in phenotypes if x]
+        phenotypes = [x.strip() for list in phenotypes for x in list if x]
+
+        return phenotypes
+
+
+    def scrape_paper(self, papers, phenotypes):
+        """
+        Takes returned papers from pubmed and attempts to match
+        pheontype terms against abstract to ascertain
+        relevance of paper to the variant in context of the phenotype.
+        This uses the Aho-Corasick algoritm implemented through
+        pyahocorasick.
+
+        Args:
+            - papers (dict): papers related to variant from pubmed
+            - phenotypes (list): phenotype terms of case
+
+        Returns:
+            - papers (list): list of papers from input with extra
+                "relevant" and "term" field if term identified, if not
+                returns nulll
+        """
+        A = ahocorasick.Automaton()
+
+        # build trie of phenotype terms to search with
+        for idx, key in enumerate(phenotypes):
+            A.add_word(key, (idx, key))
+
+        A.make_automaton()
+
+        counter = 0
+
+        # for each paper, check if phenotype term is present
+        for paper in papers:
+            for end_index, (insert_order, original_value) in A.iter(
+                paper["abstract"]
+            ):
+                if original_value:
+                    papers[counter]["relevant"] = True
+                    papers[counter]["term"] = original_value
+                else:
+                    papers[counter]["relevant"] = None
+                    papers[counter]["term"] = None
+            counter += 1
 
         return papers
 
 
-    def main(self, variant):
+    def main(self, variant, hpo_terms):
         """
         Calls LitVar API with variant to get RSIDs -> PMIDs, then calls
         eUtils API with PMIDs to return papers
@@ -370,9 +465,18 @@ class scrapePubmed():
         # get title and abstract from PubMed via eUtils
         papers = self.get_papers(pmids, ncbi_credentials)
 
+        # get phenotype terms for sample HPO terms
+        hpo_df = self.read_hpo()
+
+        # get relevant phenotype terms and search against papers
+        phenotypes = self.hpo_to_phenotype(hpo_df, hpo_terms)
+        self.scrape_paper(papers, phenotypes)
+
 
 if __name__ == "__main__":
 
-    scraper = scrapePubmed()
-    variant = {"gene": "MAN2B1", "change": "c.1830+1G>C"}
-    scraper.main(variant)
+    pass
+
+    # scraper = scrapePubmed()
+    # variant = {"gene": "MAN2B1", "change": "c.1830+1G>C"}
+    # scraper.main(variant, hpo_terms)
