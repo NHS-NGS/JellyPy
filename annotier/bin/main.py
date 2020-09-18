@@ -18,6 +18,7 @@ jethro.rainford@addenbrookes.nhs.uk
 
 import json
 import os
+import pandas as pd
 import sys
 import mysql.connector as mysql
 
@@ -28,6 +29,7 @@ from get_clinvar_vcf import local_vcf, get_ftp_files, get_vcf,\
     check_current_vcf
 from hgmd_query import hgmd_vcf_to_df
 from get_json_variants import ReadJSON
+from paper_scraper import scrapePubmed
 from sample_analysis import SampleAnalysis
 from variants_to_db import SQLQueries
 
@@ -146,23 +148,7 @@ def get_panels():
     print("Getting panels from PanelApp")
     all_panels = queries.get_all_panels()
 
-    return all_panels
-
-
-def read_hpo():
-    """
-    Reads in HPO phenotype file to df for analysis.
-
-    Args: None
-
-    Returns:
-        - hpo_df (df): df of all hpo terms from hpo file
-    """
-    pubmed = scrapePubmed()
-
-    hpo_df = pubmed.import_hpo()
-
-    return hpo_df
+    return all_panels  
 
 
 def new_analysis(sql, clinvar_ver, hgmd_ver):
@@ -241,7 +227,9 @@ def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
 
 if __name__ == "__main__":
 
-    # do initial set up for analysis run (check database connection etc.)
+    ###
+    # Do initial set up for analysis run (check database connection etc.)
+    ###
     print("Performing initial set up checks for analysis\n")
 
     json_dir, json_total = check_json()
@@ -249,12 +237,15 @@ if __name__ == "__main__":
     # check_clinvar_ver()
     clinvar_df, clinvar_ver = read_clinvar()
     hgmd_df, hgmd_ver = read_hgmd()
+    hpo_df = scrapePubmed().read_hpo()
     all_panels = get_panels()
     # hpo_df = read_hpo()
     hpo_df = None
     analysis_id = new_analysis(sql, clinvar_ver, hgmd_ver)
 
-    # begin analysis on each sample and save to db
+    ###
+    # Begin analysis on each sample and save to db
+    ###
     print("Starting sample analysis")
     run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
                  clinvar_df, hgmd_df, hpo_df)

@@ -24,6 +24,7 @@ from panelapp import api, Panelapp, queries
 from get_json_variants import ReadJSON
 from clinvar_query import clinvar_vcf_to_df, get_clinvar_ids, get_clinvar_data
 from hgmd_query import hgmd_vcf_to_df, hgmd_variants
+from paper_scraper import scrapePubmed
 from variants_to_db import SQLQueries
 
 
@@ -31,6 +32,7 @@ class SampleAnalysis():
 
     def __init__(self):
         self.json_data = ReadJSON()
+        self.scrape_pubmed = scrapePubmed()
 
 
     def get_json_data(self, json_file, all_panels):
@@ -59,7 +61,7 @@ class SampleAnalysis():
         hpo_terms, disorder_list = self.json_data.get_hpo_terms(ir_json)
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)
-        
+
         # get total no. variants in JSON
         total_variants = len(variant_list)
 
@@ -86,7 +88,7 @@ class SampleAnalysis():
                     panel_id = int(panel[1])
                 else:
                     panel_id = all_panel_hashes[panel[1]]
-                
+
                 panel = all_panels[panel_id]
                 name = panel.get_data()["name"]
                 ver = panel.get_data()["version"]
@@ -96,7 +98,7 @@ class SampleAnalysis():
                         # check each gene in panel is green
                         panel_genes.append(gene["entity_name"])
                         # panel_genes.extend(all_panels[panel_id].get_genes())
-                
+
                 if name and ver:
                     analysis_panels.append((name, ver))
             else:
@@ -119,7 +121,9 @@ class SampleAnalysis():
                             for gene in pa_panel.get_data()["genes"]:
                                 if gene["confidence_level"] == "3":
                                     # check each gene in panel is green
-                                    panel_genes.append(gene["gene_data"]["gene_symbol"])
+                                    panel_genes.append(
+                                        gene["gene_data"]["gene_symbol"]
+                                    )
                                     # panel_genes.extend(pa_panel.get_genes())
                                 # get panel name and version to record
                                 name = pa_panel.name
@@ -127,14 +131,6 @@ class SampleAnalysis():
                             if name and ver:
                                 analysis_panels.append((name, ver))
                             break
-
-
-                    # elif panel[0] in pa_panel.get_data()["disease_group"]:
-                    #     panel_genes.extend(pa_panel.get_genes())
-                    # elif panel[0] in pa_panel.get_data()["disease_sub_group"]:
-                    #     panel_genes.extend(pa_panel.get_genes())
-                    # else:
-                    #     continue
 
         panel_genes = list(set(panel_genes))
         print
@@ -202,11 +198,38 @@ class SampleAnalysis():
         hgmd_match_df = hgmd_variants(hgmd_df, position_list)
 
         # empty df to store pubmed records in
-        columns = ["chrom", "pos", "ref", "alt", "pmid", "title", "associated"]
+        columns = [
+            "chromosome", "pos", "ref", "alt", "pmid", "title","associated",
+            "term", "url"
+        ]
         pubmed_df = pd.DataFrame(columns=columns)
 
+        for var in variant_list:
+            if var["c_change"]:
+                # if c. notation available, search for papers
+                papers = self.scrape_pubmed.main(var, hpo_terms)
+                if papers:
+                    for paper in papers:
+                        dict = {
+                            "chromosome": var["chromosome"],
+                            "pos": var["position"],
+                            "ref": var["ref"],
+                            "alt": var["alt"],
+                            "pmid": paper["pmid"],
+                            "title": paper["title"],
+                            "associated": paper["associated"],
+                            "term": paper["term"],
+                            "url": paper["url"]
+                        }
+                        pubmed_df = pubmed_df.append(dict, ignore_index=True)
+                
+                dtypes = {
+                    'chromosome': str, 'pos': int, 'ref': str, 'alt': str,
+                    'pmid': int, 'title': str, 'associated': bool,
+                    'term': str, 'url': str
+                }
 
-        pubmed_df = None
+                pubmed_df = pubmed_df.astype(dtypes)
 
         return clinvar_summary_df, hgmd_match_df, pubmed_df
 
@@ -250,6 +273,10 @@ class SampleAnalysis():
         # is found for position if yes, save variant, if not then it
         # is passed
         for var in variant_list:
+            print("variant")
+            print(var)
+            print("pubmed dataframe")
+            print(pubmed_df)
 
             if clinvar_summary_df is not None:
                 clinvar_entries = clinvar_summary_df.loc[(
@@ -269,12 +296,19 @@ class SampleAnalysis():
             else:
                 hgmd_entries = pd.DataFrame
 
-            # pubmed_entires = pubmed_df.loc[(
-            #   pubmed_df['position'] == var["position"]
-            # ) & (
-            #   pubmed_df['chromosome'] == var["chromosome"]
-            # )]
-            pubmed_entries = pd.DataFrame
+            if pubmed_df is not None:
+                # get papers for current variant
+                pubmed_entries = pubmed_df.loc[(
+                    pubmed_df["pos"] == var["position"]
+                ) & (
+                    pubmed_df["chromosome"] == var["chromosome"]
+                ) & (
+                    pubmed_df["ref"] == var["ref"]
+                ) & (
+                    pubmed_df["alt"] == var["alt"]
+                )]
+            else:
+                pubmed_entries = pd.DataFrame
 
             if not all(x.empty for x in [
                 hgmd_entries, clinvar_entries, pubmed_entries]
@@ -325,25 +359,6 @@ class SampleAnalysis():
                 else:
                     hgmd_id = None
 
-                # save pubmed annotation
-                if not pubmed_entries.empty:
-                    pubmed_list = []
-                    for i, row in pubmed_entries.itterows():
-                        pub = {
-                            "PMID": row["pmid"], "title": row["title"]
-                        }
-
-                        pub_id = sql.save_pubmed(sql.cursor, pub)
-
-                        pubmed_list.append({
-                            "pub_id": pub_id, "ref": row["ref"],
-                            "alt": row["alt"], "associated": row["associated"]
-                        })
-                    pubmed_list_id = sql.save_pubmed_list(
-                        sql.cursor, pubmed_list)
-                else:
-                    pubmed_list_id = None
-
                 # annotation added, add variant and link to annotation
 
                 variant = {
@@ -363,11 +378,30 @@ class SampleAnalysis():
                 )
 
                 # link annotation to variant
-                sql.save_variant_annotation(
+                variant_annotation_id = sql.save_variant_annotation(
                     sql.cursor, tier_id, clinvar_id, hgmd_id,
-                    pubmed_list_id, analysis_variant_id
+                    analysis_variant_id
                 )
 
+                # save pubmed annotation, has to be last as requires
+                # annotation ID
+                if not pubmed_entries.empty:
+                    for i, row in pubmed_entries.iterrows():
+                        # save pubmed entry
+                        pub = {
+                            "pmid": row["pmid"], "title": row["title"],
+                            "url": row["url"]
+                        }
+                        pubmed_id = sql.save_pubmed(sql.cursor, pub)
+
+                        # link pubmed entry to variant annotation
+                        pub_list = {
+                            "annotation_id": variant_annotation_id,
+                            "pubmed_id": pubmed_id,
+                            "associated": row["associated"],
+                            "term": row["term"]
+                        }
+                        sql.save_pubmed_list(sql.cursor, pub_list)
             else:
                 # no annotation found, go to next variant
                 continue

@@ -455,13 +455,13 @@ class SQLQueries(object):
             - pub_id (int): row id of pubmed enntry
         """
 
-        data = (pubmed["PMID"], pubmed["title"])
+        data = (pubmed["pmid"], pubmed["title"], pubmed["url"])
 
         query_exist = """
                         SELECT * FROM pubmed WHERE
-                            PMID='%s' AND title='%s'
+                            PMID=%s AND title=%s AND url=%s
                         VALUES
-                            (%s, %s)
+                            (%s, %s, %s)
                         """
 
         cursor.execute(query_exist, data)
@@ -475,9 +475,9 @@ class SQLQueries(object):
             # variant record does not exist, insert new record
             query = """
                     INSERT INTO pubmed
-                        (PMID, title)
+                        (PMID, title, url)
                     VALUES
-                        (%s, %s)
+                        (%s, %s, %s)
                     """
 
             cursor.execute(query, data)
@@ -485,7 +485,7 @@ class SQLQueries(object):
             # get id of inserted row to return
             pubmed_id = cursor.lastrowid
 
-            return pubmed_id
+        return pubmed_id
 
 
     def save_pubmed_list(self, cursor, pubmed_list):
@@ -502,36 +502,24 @@ class SQLQueries(object):
             - pubmed_list_id (int): row id
         """
 
-        # get last list ID and add 1 for current list
-        query = """
-                SELECT pubmed_list_id from pubmed_list ORDER BY
-                pubmed_list_id DESC LIMIT 1;
-                """
+        data = (
+            pubmed_list["annotation_id"], pubmed_list["pubmed_id"],
+            pubmed_list["associated"], pubmed_list["term"]
+        )
 
-        pubmed_list_id = cursor.execute(query)
-        pubmed_list_id += 1
+        query_save = """
+                    INSERT INTO pubmed_list
+                        (annotation_id, pubmed_id, 
+                        associated, term)
+                    VALUES
+                        (%s, %s, %s, %s)
+                    """
 
-        for entry in pubmed_list:
-
-            data = (
-                pubmed_list_id, entry["pub_id"], entry["associated"],
-                entry["ref"], entry["alt"]
-            )
-
-            query_save = """
-                        INSERT INTO pubmed_list
-                            (%s, %s, %s, %s)
-                        VALUES
-                            (%s, %s, %s, %s)
-                        """
-
-            cursor.execute(query_save, data)
-
-        return pubmed_list_id
+        cursor.execute(query_save, data)
 
 
     def save_variant_annotation(self, cursor, tier_id, clinvar_id, hgmd_id,
-                                pubmed_list_id, analysis_variant_id):
+                                analysis_variant_id):
         """
         Saves variant annotation to link variant to annotation.
 
@@ -549,15 +537,20 @@ class SQLQueries(object):
         """
         query = """
                 INSERT INTO variant_annotation
-                    (tier_id, clinvar_id, hgmd_id, pubmed_list_id,
+                    (tier_id, clinvar_id, hgmd_id,
                     analysis_variant_id)
                 VALUES
-                    (%s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s)
                 """
         data = (
-            tier_id, clinvar_id, hgmd_id, pubmed_list_id, analysis_variant_id
+            tier_id, clinvar_id, hgmd_id, analysis_variant_id
         )
         cursor.execute(query, data)
+
+        # get id of inserted row to return
+        variant_annotation_id = cursor.lastrowid
+
+        return variant_annotation_id
 
 
 if __name__ == "__main__":

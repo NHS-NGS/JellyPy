@@ -231,7 +231,8 @@ class litVar():
             return data
         else:
             print("Error {} for URL: {}".format(request.status_code, url))
-            sys.exit(-1)
+            
+            return None
 
 
     def query_search(self, query):
@@ -266,9 +267,11 @@ class litVar():
         """
         rsids = ""
 
+        if not rsid_data:
+            return None
+
         for entry in rsid_data:
             for gene in entry["data"]["genes"]:
-                print("var gene", variant["gene"])
                 if gene["name"] == variant["gene"]:
                     rsid = entry["id"].strip("#")
                     rsids += rsid
@@ -341,6 +344,18 @@ class scrapePubmed():
         return hpo_df
 
 
+    def build_url(self, pmid):
+        """Builds PubMed url from given PMID
+
+        Args:
+            - pmid (int): pmid of paper
+
+        Returns:
+            - url (str): url string from pmid
+        """
+        return str("https://pubmed.ncbi.nlm.nih.gov/{}/".format(pmid))
+
+
     def get_papers(self, pmids, ncbi_credentials):
         """
         For given PMIDs, returns the title and abstract of papers from
@@ -369,9 +384,11 @@ class scrapePubmed():
 
         for i in res.pubmed_records:
             paper = {}
+            print(res.pubmed_records[i])
             paper["pmid"] = res.pubmed_records[i].pmid
             paper["title"] = res.pubmed_records[i].title
             paper["abstract"] = res.pubmed_records[i].abstract
+            paper["url"] = self.build_url(res.pubmed_records[i].pmid)
             papers.append(paper)
 
         return papers
@@ -433,12 +450,16 @@ class scrapePubmed():
             for end_index, (insert_order, original_value) in A.iter(
                 paper["abstract"]
             ):
-                if original_value:
-                    papers[counter]["relevant"] = True
-                    papers[counter]["term"] = original_value
-                else:
-                    papers[counter]["relevant"] = None
-                    papers[counter]["term"] = None
+                print("original val", original_value)
+
+                print("relevant paper found")
+                papers[counter]["associated"] = True
+                papers[counter]["term"] = original_value
+
+            if "associated" not in papers[counter]:
+                print("not relevant paper found")
+                papers[counter]["associated"] = False
+                papers[counter]["term"] = None
             counter += 1
 
         return papers
@@ -458,19 +479,25 @@ class scrapePubmed():
         litvar = litVar()
 
         # get associated PMIDs for given variant from LitVar API
-        rsid_data = litvar.query_search(variant["change"])
+        rsid_data = litvar.query_search(variant["c_change"])
         rsids = litvar.filter_rsids(rsid_data, variant)
-        pmids = litvar.get_pmids(rsids)
 
-        # get title and abstract from PubMed via eUtils
-        papers = self.get_papers(pmids, ncbi_credentials)
+        if rsids:
+            pmids = litvar.get_pmids(rsids)
 
-        # get phenotype terms for sample HPO terms
-        hpo_df = self.read_hpo()
+            # get title and abstract from PubMed via eUtils
+            papers = self.get_papers(pmids, ncbi_credentials)
 
-        # get relevant phenotype terms and search against papers
-        phenotypes = self.hpo_to_phenotype(hpo_df, hpo_terms)
-        self.scrape_paper(papers, phenotypes)
+            # get phenotype terms for sample HPO terms
+            hpo_df = self.read_hpo()
+
+            # get relevant phenotype terms and search against papers
+            phenotypes = self.hpo_to_phenotype(hpo_df, hpo_terms)
+            papers = self.scrape_paper(papers, phenotypes)
+        else:
+            papers = None
+
+        return papers
 
 
 if __name__ == "__main__":
