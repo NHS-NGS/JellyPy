@@ -13,7 +13,7 @@ requests.packages.urllib3.disable_warnings()
 
 def getB64():
 	""" base64 encodes the credentials for the API """
-	message = ":".join([config.username, config.password])
+	message = ":".join([config.client_id, config.secret])
 	b64_message = base64.b64encode(message)
 	return b64_message
 
