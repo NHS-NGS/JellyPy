@@ -55,27 +55,24 @@ class ReadJSON():
 
         return ir_id
 
-    def get_disease(self, ir_json):
+    def get_disease(self, variant_list):
         """
-        Gets PanelApp panel(s) used for case.
+        Gets PanelApp panel(s) an versions used for case from each var.
 
         Args:
-            - ir_json (dict): input json file
+            - variant_list (list): list od dicts for each variant
 
         Returns:
             - ir_panel (list): list of tuples of panel(s) used for case
         """
         ir_panel = []
 
-        panels = ir_json["interpretation_request_data"]["json_request"][
-            "pedigree"]["analysisPanels"]
+        for var in variant_list:
 
-        for panel in panels:
-            # get "panel name" => hash and "specificDisease" => panel
-            # name OR a related disorder term to search against PanelApp
-            ir_panel.append((
-                panel["specificDisease"], panel["panelName"],
-                panel["panelVersion"]))
+            panel = (var["panelName"], var["panelVersion"])
+            if panel[0] is not None and panel not in ir_panel:
+                # get unique list of panels and version
+                ir_panel.append(panel)
 
         return ir_panel
 
@@ -156,6 +153,16 @@ class ReadJSON():
                         denovoQScore = variant["reportEvents"][0][
                             "deNovoQualityScore"]
 
+                        # panel not always recorded
+                        if not variant["reportEvents"][0]["genePanel"]:
+                            panelName = None
+                            panelVersion = None
+                        else:
+                            panelName = variant["reportEvents"][0][
+                                "genePanel"]["panelName"]
+                            panelVersion = variant["reportEvents"][0][
+                                "genePanel"]["panelVersion"]
+
                         if not variant["reportEvents"][0][
                             "variantConsequences"
                         ]:
@@ -183,7 +190,9 @@ class ReadJSON():
                             "transcript": transcript,
                             "build": build,
                             "penetrance": penetrance,
-                            "denovoQScore": denovoQScore
+                            "denovoQScore": denovoQScore,
+                            "panelName": panelName,
+                            "panelVersion": panelVersion
                         })
 
                         # need simple position list for later analysis
