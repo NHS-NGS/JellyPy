@@ -57,10 +57,10 @@ class SampleAnalysis():
 
         # get sample and variant data from json
         ir_id = self.json_data.get_irid(ir_json)
-        ir_panel = self.json_data.get_disease(ir_json)
         hpo_terms, disorder_list = self.json_data.get_hpo_terms(ir_json)
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)
+        ir_panel = self.json_data.get_disease(variant_list)
 
         # get total no. variants in JSON
         total_variants = len(variant_list)
@@ -131,10 +131,6 @@ class SampleAnalysis():
                             if name and ver:
                                 analysis_panels.append((name, ver))
                             break
-
-        panel_genes = list(set(panel_genes))
-        print
-        print(analysis_panels)
 
         print("Number of variants before: {}".format(len(position_list)))
 

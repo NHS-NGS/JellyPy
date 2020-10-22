@@ -221,7 +221,7 @@ def get_clinvar_data(clinvar_id_list):
                                 [0]["stop"],
 
                 "chrom": value["chr_sort"],
-                
+
                 "ref": ref,
 
                 "alt": alt,

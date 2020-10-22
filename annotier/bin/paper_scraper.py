@@ -191,7 +191,7 @@ class PubmedAnalyzer(entrezpy.base.analyzer.EutilsAnalyzer):
 class litVar():
     """Functions to query LitVar API"""
     def __init__(self):
-        pass
+        self.session = requests.Session()
 
     def build_url(self, end_point, query):
         """
@@ -220,18 +220,22 @@ class litVar():
             - data (dict): dict in JSON format of returned data
         """
 
-        try:
-            request = requests.get(url, headers={"Accept": "application/json"})
-        except Exception as e:
-            print("Something went wrong: {}".format(e))
-            sys.exit(-1)
+        for i in range(1, 5):
+            try:
+                request = self.session.get(url, headers={
+                    "Accept": "application/json"
+                })
+                break
+            except Exception as e:
+                print("Something went wrong: {}".format(e))
+                print("Attempt {}/5, trying again".format(i))
+                continue
 
         if request.ok:
             data = json.loads(request.content.decode("utf-8"))
             return data
         else:
             print("Error {} for URL: {}".format(request.status_code, url))
-            
             return None
 
 
@@ -271,10 +275,13 @@ class litVar():
             return None
 
         for entry in rsid_data:
-            for gene in entry["data"]["genes"]:
-                if gene["name"] == variant["gene"]:
-                    rsid = entry["id"].strip("#")
-                    rsids += rsid
+            if "gene" in entry["data"]:
+                for gene in entry["data"]["genes"]:
+                    if gene["name"] == variant["gene"]:
+                        rsid = entry["id"].strip("#")
+                        rsids += rsid
+            else:
+                return None
 
         return rsids
 
@@ -447,19 +454,25 @@ class scrapePubmed():
 
         # for each paper, check if phenotype term is present
         for paper in papers:
-            for end_index, (insert_order, original_value) in A.iter(
-                paper["abstract"]
-            ):
-                print("original val", original_value)
+            if paper["abstract"]:
+                for end_index, (insert_order, original_value) in A.iter(
+                    paper["abstract"]
+                ):
+                    print("original val", original_value)
 
-                print("relevant paper found")
-                papers[counter]["associated"] = True
-                papers[counter]["term"] = original_value
+                    print("relevant paper found")
+                    papers[counter]["associated"] = True
+                    papers[counter]["term"] = original_value
 
-            if "associated" not in papers[counter]:
-                print("not relevant paper found")
+                if "associated" not in papers[counter]:
+                    print("not relevant paper found")
+                    papers[counter]["associated"] = False
+                    papers[counter]["term"] = None
+            else:
+                # no abstract present
                 papers[counter]["associated"] = False
                 papers[counter]["term"] = None
+
             counter += 1
 
         return papers

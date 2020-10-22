@@ -457,14 +457,18 @@ class SQLQueries(object):
 
         data = (pubmed["pmid"], pubmed["title"], pubmed["url"])
 
-        query_exist = """
-                        SELECT * FROM pubmed WHERE
-                            PMID=%s AND title=%s AND url=%s
-                        VALUES
-                            (%s, %s, %s)
-                        """
+        # query_exist = """SELECT * FROM pubmed WHERE PMID=%s"""
 
-        cursor.execute(query_exist, data)
+        cursor.execute("SELECT * FROM pubmed WHERE PMID='%s'" % (data[0]))
+
+        # cursor.execute("SELECT * FROM sample WHERE ir_id='%s'" % (ir_id))
+        # exists = cursor.fetchone()
+
+        # print(data)
+        # print(query_exist)
+        # print(data[0])
+
+        # cursor.execute(query_exist, data[0])
 
         exists = cursor.fetchone()
 
