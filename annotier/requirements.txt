@@ -3,3 +3,4 @@ GelReportModels==7.6.1
 mysql-connector-python==8.0.20
 pandas==1.1.0
 panelapp==0.2.0
+pyahocorasick==1.4.0
