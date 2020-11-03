@@ -201,7 +201,9 @@ class SQLQueries(object):
             "SELECT * FROM sample_panel WHERE sample_id='%s'" % (sample_id)
         )
         panels = cursor.fetchone()
+
         print(panels)
+
         if panels:
             # panels already saved
             pass
@@ -213,7 +215,7 @@ class SQLQueries(object):
                     "INSERT INTO sample_panel (sample_id, name, version)\
                         VALUES\
                     ('%s', '%s', '%s')" %
-                    (sample_id, panel[0], panel[2])
+                    (sample_id, panel[0], panel[1])
                 )
 
 
@@ -615,8 +617,74 @@ class SQLQueries(object):
         cursor.execute(query_save, data)
 
 
+    def save_af(self, cursor, af):
+        """
+        Save allele frequency to allele_freq table
+        Args:
+            - cursor: MySQL cursor object
+            - af (float): af value from gnomad
+
+        Returns:
+            - allele_freq_id (int): row id of entry
+        """
+        # check if entry with same af already present
+        cursor.execute(
+            'SELECT * FROM allele_freq WHERE gnomad_af="{}"'.format(af)
+        )
+        exists = cursor.fetchone()
+
+        if not exists:
+            cursor.execute(
+                'INSERT INTO allele_freq (gnomad_af) VALUES ("{}")'.format(af)
+            )
+
+            # get id of inserted row to return
+            allele_freq_id = cursor.lastrowid
+        else:
+            allele_freq_id = exists[0]
+
+        return allele_freq_id
+
+
+    def save_in_silico(self, cursor, in_silico):
+        """
+        Save in-silico predictions to in_silico_predictions table
+        Args:
+            - cursor: MySQL cursor object
+            - in_silico (dict): dict of in-silico predictions
+
+        Returns:
+            - in_silico_predictions_id (int): row id of entry in table
+        """
+        # check if entry with same af already present
+        cursor.execute(
+            'SELECT * FROM in_silico_predictions WHERE cadd="{}" AND\
+            splice_ai="{}" AND primate_ai="{}"'.format(
+                in_silico["cadd"], in_silico["splice_ai"],
+                in_silico["primate_ai"])
+        )
+        exists = cursor.fetchone()
+
+        if not exists:
+            cursor.execute(
+                'INSERT INTO in_silico_predictions\
+                    (cadd, splice_ai, primate_ai)\
+                VALUES ("{}", "{}", "{}")'.format(
+                    in_silico["cadd"], in_silico["splice_ai"],
+                    in_silico["primate_ai"]
+                )
+            )
+            # get id of inserted row to return
+            in_silico_predictions_id = cursor.lastrowid
+        else:
+            in_silico_predictions_id = exists[0]
+
+        return in_silico_predictions_id
+
+
     def save_variant_annotation(self, cursor, tier_id, clinvar_id, hgmd_id,
-                                analysis_variant_id):
+                                analysis_variant_id, allele_freq_id,
+                                in_silico_predictions_id):
         """
         Saves variant annotation to link variant to annotation.
 
@@ -634,13 +702,14 @@ class SQLQueries(object):
         """
         query = """
                 INSERT INTO variant_annotation
-                    (tier_id, clinvar_id, hgmd_id,
-                    analysis_variant_id)
+                    (tier_id, clinvar_id, hgmd_id, analysis_variant_id,
+                    allele_freq_id, in_silico_predictions_id)
                 VALUES
-                    (%s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s)
                 """
         data = (
-            tier_id, clinvar_id, hgmd_id, analysis_variant_id
+            tier_id, clinvar_id, hgmd_id, analysis_variant_id, allele_freq_id,
+            in_silico_predictions_id
         )
         cursor.execute(query, data)
 

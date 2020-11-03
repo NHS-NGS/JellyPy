@@ -21,6 +21,7 @@ import time
 
 from panelapp import api, Panelapp, queries
 
+from get_gnomad_freq import gnomad_query
 from get_json_variants import ReadJSON
 from clinvar_query import clinvar_vcf_to_df, get_clinvar_ids, get_clinvar_data
 from hgmd_query import hgmd_vcf_to_df, hgmd_variants
@@ -81,7 +82,6 @@ class SampleAnalysis():
             # for each panel from JSON, get green genes from entry in PA
             # and latest version used
             for pa_panel in all_panels.keys():
-                print(pa_panel)
                 if all_panels[pa_panel].get_name() == panel[0]:
                     panel_genes.extend(all_panels[pa_panel].get_genes())
                     # get latest version of panel
@@ -131,7 +131,7 @@ class SampleAnalysis():
         # if no variants found in panel regions, return none to skip
         if len(position_list) == 0:
             print("No variants in panel regions, skipping analysis")
-            return None, None, None
+            return None, None, None, None
 
         # get list of ClinVar entries for tiered variants
         clinvar_id_list = get_clinvar_ids(clinvar_df, position_list)
@@ -151,13 +151,82 @@ class SampleAnalysis():
         hgmd_match_df = hgmd_variants(hgmd_df, position_list)
 
         # empty df to store pubmed records in
-        columns = [
+        pubmed_columns = [
             "chromosome", "pos", "ref", "alt", "pmid", "title", "associated",
             "term", "url"
         ]
-        pubmed_df = pd.DataFrame(columns=columns)
+        pubmed_df = pd.DataFrame(columns=pubmed_columns)
+
+        gnomad_columns = [
+            "chromosome", "pos", "ref", "alt", "af", "cadd",
+            "splice_ai", "primate_ai"
+        ]
+
+        gnomad_dtypes = {
+            "chromosome": str, "pos": int, "ref": str, "alt": str, "af": str,
+            "cadd": str, "splice_ai": str, "primate_ai": str
+        }
+        # create empty df for adding gnomad entries to
+        gnomad_df = pd.DataFrame(columns=gnomad_columns)
+        gnomad_df = gnomad_df.astype(gnomad_dtypes)
+
+        print("Querying gnomAD & LitVar")
 
         for var in variant_list:
+            query = "{}-{}-{}-{}".format(
+                var["chromosome"], var["position"], var["ref"], var["alt"]
+            )
+            # get allele frequencies & in-silico predictions from gnomad
+            gnomad = gnomad_query(query)
+
+            if gnomad is not None:
+                af = str(gnomad["af"])
+                # check if cadd & splice_ai included in the predictions
+                keys = [x["id"] for x in gnomad["in_silico_predictors"]]
+                if "cadd" in keys:
+                    cadd = [
+                        x["value"] for x in gnomad["in_silico_predictors"]
+                        if x["id"] == "cadd"
+                    ][0]
+                else:
+                    cadd = None
+
+                if "splice_ai" in keys:
+                    splice_ai = [
+                        x["value"] for x in gnomad["in_silico_predictors"]
+                        if x["id"] == "splice_ai"
+                    ][0]
+                else:
+                    splice_ai = None
+
+                if "primate_ai" in keys:
+                    primate_ai = [
+                        x["value"] for x in gnomad["in_silico_predictors"]
+                        if x["id"] == "primate_ai"
+                    ][0]
+                else:
+                    primate_ai = None
+            else:
+                # gnomAD response returned None
+                af = None
+                cadd = None
+                splice_ai = None
+                primate_ai = None
+
+            # add to gnomad df
+            data = {
+                "chromosome": var["chromosome"],
+                "pos": var["position"],
+                "ref": var["ref"],
+                "alt": var["alt"],
+                "af": af,
+                "cadd": cadd,
+                "splice_ai": splice_ai,
+                "primate_ai": primate_ai
+            }
+
+            gnomad_df = gnomad_df.append(data, ignore_index=True)
+
             if var["c_change"]:
                 # if c. notation available, search for papers
                 papers = self.scrape_pubmed.main(var, hpo_terms)
@@ -184,12 +253,16 @@ class SampleAnalysis():
 
                 pubmed_df = pubmed_df.astype(dtypes)
 
-        return clinvar_summary_df, hgmd_match_df, pubmed_df
+        # remove any duplciate rows
+        gnomad_df = gnomad_df.drop_duplicates()
+
+        return clinvar_summary_df, hgmd_match_df, pubmed_df, gnomad_df
 
 
     def update_db(self, sql, ir_id, ir_panel, analysis_panels, total_variants,
                   analysis_variants, analysis_id, hpo_terms, variant_list,
-                  clinvar_summary_df, hgmd_match_df, pubmed_df, ir_members):
+                  clinvar_summary_df, hgmd_match_df, pubmed_df, gnomad_df,
+                  ir_members):
         """
         Update reanalysis database with outputs of analyses.
 
@@ -262,9 +335,25 @@ class SampleAnalysis():
             else:
                 pubmed_entries = pd.DataFrame
 
+            print("gnomad df: ", gnomad_df)
+
+            if not gnomad_df.empty:
+                # get gnomad results for current variant
+                gnomad_entries = gnomad_df.loc[(
+                    gnomad_df["pos"] == var["position"]
+                ) & (
+                    gnomad_df["chromosome"] == var["chromosome"]
+                ) & (
+                    gnomad_df["ref"] == var["ref"]
+                ) & (
+                    gnomad_df["alt"] == var["alt"]
+                )]
+            else:
+                gnomad_entries = pd.DataFrame
+
             if not all(x.empty for x in [
-                hgmd_entries, clinvar_entries, pubmed_entries]
-            ):
+                hgmd_entries, clinvar_entries, pubmed_entries, gnomad_entries
+            ]):
                 # some annotation found, save to tables and get id's if
                 # ref and alt same save clinvar annotation
                 if not clinvar_entries.empty:
@@ -294,7 +383,7 @@ class SampleAnalysis():
                 if not hgmd_entries.empty:
                     for i, row in hgmd_entries.iterrows():
                         hgmd = {
-                            "hgmd_id": row["ID"],"chrom": row["chrom"],
+                            "hgmd_id": row["ID"], "chrom": row["chrom"],
                             "pos": row["pos"], "ref": row["REF"],
                             "alt": row["ALT"], "dna_change": row["DNA"],
                             "prot_change": row["PROT"], "db": row["DB"],
@@ -311,8 +400,21 @@ class SampleAnalysis():
                 else:
                     hgmd_id = None
 
-                # annotation added, add variant and link to annotation
+                if not gnomad_entries.empty:
+                    entry = gnomad_entries.iloc[0]
 
+                    # save af to database
+                    allele_freq_id = sql.save_af(sql.cursor, entry["af"])
+
+                    # save in-silico predictions
+                    in_silico_predictions_id = sql.save_in_silico(
+                        sql.cursor, entry
+                    )
+                else:
+                    allele_freq_id = None
+                    in_silico_predictions_id = None
+
+                # annotation added, add variant and link to annotation
                 variant = {
                     "chrom": var["chromosome"], "pos": var["position"],
                     "tier": var["tier"], "ref": var["ref"], "alt": var["alt"],
@@ -332,7 +434,8 @@ class SampleAnalysis():
                 # link annotation to variant
                 variant_annotation_id = sql.save_variant_annotation(
                     sql.cursor, tier_id, clinvar_id, hgmd_id,
-                    analysis_variant_id
+                    analysis_variant_id, allele_freq_id,
+                    in_silico_predictions_id
                 )
 
                 # save zygosity of variant calls for var in each member

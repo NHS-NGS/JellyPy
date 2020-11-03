@@ -1,5 +1,6 @@
 """
 Functions to query gnomAD API endpoint to get allele frequencies for variants.
+Returns dict of in-silico predictions and total af.
 
 Jethro Rainford
 jethro.rainford@addenbrookes.nhs.uk
@@ -46,8 +47,17 @@ def gnomad_query(variant):
     """.format(variant)
 
     response = fetch({"query": query})
-    response = response["data"]["variant"]
-    print(response)
+    print("response: ", response)
+    if response is not None:
+        response = response["data"]["variant"]
+
+        # calculate freq. from ac / an
+        freq = response["genome"]["ac"] / response["genome"]["an"]
+        freq = f"{freq:.9f}"
+
+        # add af to response
+        del response["genome"]
+        response["af"] = freq
 
     return response
 
