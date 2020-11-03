@@ -148,7 +148,7 @@ def get_panels():
     print("Getting panels from PanelApp")
     all_panels = queries.get_all_panels()
 
-    return all_panels  
+    return all_panels
 
 
 def new_analysis(sql, clinvar_ver, hgmd_ver):
@@ -202,7 +202,7 @@ def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
             # get data from json for analysis
             ir_id, ir_panel, hpo_terms, disorder_list,\
                 variant_list, position_list, analysis_panels,\
-                    total_variants, analysis_variants = sample.get_json_data(
+                total_variants, analysis_variants, ir_members = sample.get_json_data(
                         json_file, all_panels
                     )
 
@@ -218,7 +218,7 @@ def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
             sample.update_db(
                 sql, ir_id, ir_panel, analysis_panels, total_variants,
                 analysis_variants, analysis_id, hpo_terms, variant_list,
-                clinvar_summary_df, hgmd_match_df, pubmed_df
+                clinvar_summary_df, hgmd_match_df, pubmed_df, ir_members
             )
 
             print("sample ", ir_id, "successfully saved to database")
@@ -239,7 +239,6 @@ if __name__ == "__main__":
     hgmd_df, hgmd_ver = read_hgmd()
     hpo_df = scrapePubmed().read_hpo()
     all_panels = get_panels()
-    # hpo_df = read_hpo()
     hpo_df = None
     analysis_id = new_analysis(sql, clinvar_ver, hgmd_ver)
 

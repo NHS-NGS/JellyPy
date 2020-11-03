@@ -55,9 +55,41 @@ class ReadJSON():
 
         return ir_id
 
-    def get_disease(self, variant_list):
+    def get_members(self, ir_json):
         """
-        Gets PanelApp panel(s) an versions used for case from each var.
+        Get members and associated details
+
+        Args:
+            - ir_json (dict): input json file
+
+        Returns:
+            - ir_members (list): list of dicts with each member details
+        """
+        members = ir_json["interpretation_request_data"]["json_request"][
+            "pedigree"]["members"]
+
+        ir_members = []
+
+        for member in members:
+            cur_mem = {}
+            cur_mem["fatherID"] = member["fatherId"]
+            cur_mem["motherID"] = member["motherId"]
+            cur_mem["sex"] = member["sex"]
+            cur_mem["participantID"] = member["participantId"]
+            cur_mem["affectionStatus"] = member["affectionStatus"]
+            cur_mem["yearOfBirth"] = member["additionalInformation"][
+                "yearOfBirth"]
+            cur_mem["relation_to_proband"] = member["additionalInformation"][
+                "relation_to_proband"]
+            cur_mem["isProband"] = member["isProband"]
+
+            ir_members.append(cur_mem)
+
+        return ir_members
+
+    def get_panels(self, variant_list):
+        """
+        Gets PanelApp panel(s) and versions used for case from each var.
 
         Args:
             - variant_list (list): list od dicts for each variant
@@ -68,7 +100,6 @@ class ReadJSON():
         ir_panel = []
 
         for var in variant_list:
-
             panel = (var["panelName"], var["panelVersion"])
             if panel[0] is not None and panel not in ir_panel:
                 # get unique list of panels and version
@@ -129,7 +160,6 @@ class ReadJSON():
             variant_list (list): list of tiered variants from json
             position_list (list): list of tiered varaints with only chrom & pos
         """
-
         variant_list = []
         position_list = []
 
@@ -152,6 +182,13 @@ class ReadJSON():
                         penetrance = variant["reportEvents"][0]["penetrance"]
                         denovoQScore = variant["reportEvents"][0][
                             "deNovoQualityScore"]
+                        variantCalls = variant["variantCalls"]
+
+                        for call in variantCalls:
+                            for key in list(call.keys()):
+                                # drop all but zygosity and ID for each call
+                                if key not in ["zygosity", "participantId"]:
+                                    del call[key]
 
                         # panel not always recorded
                         if not variant["reportEvents"][0]["genePanel"]:
@@ -192,7 +229,8 @@ class ReadJSON():
                             "penetrance": penetrance,
                             "denovoQScore": denovoQScore,
                             "panelName": panelName,
-                            "panelVersion": panelVersion
+                            "panelVersion": panelVersion,
+                            "variantCalls": variantCalls
                         })
 
                         # need simple position list for later analysis

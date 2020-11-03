@@ -57,10 +57,16 @@ class SampleAnalysis():
 
         # get sample and variant data from json
         ir_id = self.json_data.get_irid(ir_json)
+
         hpo_terms, disorder_list = self.json_data.get_hpo_terms(ir_json)
+
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)
-        ir_panel = self.json_data.get_disease(variant_list)
+
+        ir_panel = self.json_data.get_panels(variant_list)
+
+        # get info on each member of pedigree in JSON
+        ir_members = self.json_data.get_members(ir_json)
 
         # get total no. variants in JSON
         total_variants = len(variant_list)
@@ -75,12 +81,12 @@ class SampleAnalysis():
             # for each panel from JSON, get green genes from entry in PA
             # and latest version used
             for pa_panel in all_panels.keys():
-                if all_panels[pa_panel].get_name() == panel:
+                print(pa_panel)
+                if all_panels[pa_panel].get_name() == panel[0]:
                     panel_genes.extend(all_panels[pa_panel].get_genes())
                     # get latest version of panel
                     ver = all_panels[pa_panel].get_version()
-                    analysis_panels.append((panel, ver))
-
+                    analysis_panels.append((panel[0], ver))
 
         print("Number of variants before: {}".format(len(position_list)))
 
@@ -97,7 +103,8 @@ class SampleAnalysis():
         analysis_variants = len(variant_list)
 
         return ir_id, ir_panel, hpo_terms, disorder_list, variant_list,\
-            position_list, analysis_panels, total_variants, analysis_variants
+            position_list, analysis_panels, total_variants, analysis_variants,\
+            ir_members
 
 
     def run_analysis(self, clinvar_df, hgmd_df, position_list, variant_list,
@@ -145,7 +152,7 @@ class SampleAnalysis():
 
         # empty df to store pubmed records in
         columns = [
-            "chromosome", "pos", "ref", "alt", "pmid", "title","associated",
+            "chromosome", "pos", "ref", "alt", "pmid", "title", "associated",
             "term", "url"
         ]
         pubmed_df = pd.DataFrame(columns=columns)
@@ -168,7 +175,7 @@ class SampleAnalysis():
                             "url": paper["url"]
                         }
                         pubmed_df = pubmed_df.append(dict, ignore_index=True)
-                
+
                 dtypes = {
                     'chromosome': str, 'pos': int, 'ref': str, 'alt': str,
                     'pmid': int, 'title': str, 'associated': bool,
@@ -182,7 +189,7 @@ class SampleAnalysis():
 
     def update_db(self, sql, ir_id, ir_panel, analysis_panels, total_variants,
                   analysis_variants, analysis_id, hpo_terms, variant_list,
-                  clinvar_summary_df, hgmd_match_df, pubmed_df):
+                  clinvar_summary_df, hgmd_match_df, pubmed_df, ir_members):
         """
         Update reanalysis database with outputs of analyses.
 
@@ -203,7 +210,10 @@ class SampleAnalysis():
         # entry of sample
         sample_id = sql.save_sample(sql.cursor, ir_id, total_variants)
 
-        # save sample original panels from JSON, passes if already saved
+        # save members for sample to member table
+        sql.save_members(sql.cursor, sample_id, ir_members)
+
+        # save original sample panels from JSON, passes if already saved
         sql.save_sample_panel(sql.cursor, sample_id, ir_panel)
 
         # add entry to analysis_sample table, uses current analysis ID
@@ -219,10 +229,6 @@ class SampleAnalysis():
         # is found for position if yes, save variant, if not then it
         # is passed
         for var in variant_list:
-            print("variant")
-            print(var)
-            print("pubmed dataframe")
-            print(pubmed_df)
 
             if clinvar_summary_df is not None:
                 clinvar_entries = clinvar_summary_df.loc[(
@@ -329,6 +335,13 @@ class SampleAnalysis():
                     analysis_variant_id
                 )
 
+                # save zygosity of variant calls for var in each member
+                for call in var["variantCalls"]:
+                    zygosity_id = sql.save_zygosity(sql.cursor, call)
+                    sql.save_zygosity_list(
+                        sql.cursor, variant_annotation_id, zygosity_id
+                    )
+
                 # save pubmed annotation, has to be last as requires
                 # annotation ID
                 if not pubmed_entries.empty:
@@ -351,6 +364,7 @@ class SampleAnalysis():
             else:
                 # no annotation found, go to next variant
                 continue
+
 
 
 if __name__ == "__main__":

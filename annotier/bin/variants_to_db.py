@@ -150,6 +150,43 @@ class SQLQueries(object):
         return sample_id
 
 
+    def save_members(self, cursor, sample_id, ir_members):
+        """
+        Save each member of pedigree for a sample
+
+        Args:
+            - sample_id (int): db sample id for given ir_id
+            - ir_members (list): list of dicts for each member of pedigree
+
+        Returms:
+            -
+        """
+        # check if members previously saved
+        cursor.execute(
+            "SELECT * FROM member WHERE sample_id='%s'" % (sample_id)
+        )
+        exists = cursor.fetchone()
+
+        if not exists:
+            for member in ir_members:
+                query = """
+                        INSERT INTO member (
+                            fatherID, motherID, sex, participantID,
+                            affectionStatus, yearOfBirth, relation_to_proband,
+                            isProband, sample_id
+                            )
+                        VALUES
+                        (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """
+
+                data = (member["fatherID"], member["motherID"], member["sex"],
+                        member["participantID"], member["affectionStatus"],
+                        member["yearOfBirth"], member["relation_to_proband"],
+                        member["isProband"], sample_id)
+
+                cursor.execute(query, data)
+
+
     def save_sample_panel(self, cursor, sample_id, ir_panel):
         """
         Saves samples original panels to sample_panel table
@@ -224,6 +261,7 @@ class SQLQueries(object):
         Returns: None
         """
         for panel in analysis_panels:
+            print(panel)
             cursor.execute(
                 "INSERT INTO analysis_panel (analysis_sample_id, name, version)\
                     VALUES\
@@ -461,15 +499,6 @@ class SQLQueries(object):
 
         cursor.execute("SELECT * FROM pubmed WHERE PMID='%s'" % (data[0]))
 
-        # cursor.execute("SELECT * FROM sample WHERE ir_id='%s'" % (ir_id))
-        # exists = cursor.fetchone()
-
-        # print(data)
-        # print(query_exist)
-        # print(data[0])
-
-        # cursor.execute(query_exist, data[0])
-
         exists = cursor.fetchone()
 
         if exists:
@@ -502,8 +531,7 @@ class SQLQueries(object):
             - pubmed_list (list): list of dicts of pubmed ids, ref, alt,
               and associated status
 
-        Returns:
-            - pubmed_list_id (int): row id
+        Returns: None
         """
 
         data = (
@@ -513,10 +541,75 @@ class SQLQueries(object):
 
         query_save = """
                     INSERT INTO pubmed_list
-                        (annotation_id, pubmed_id, 
+                        (annotation_id, pubmed_id,
                         associated, term)
                     VALUES
                         (%s, %s, %s, %s)
+                    """
+
+        cursor.execute(query_save, data)
+
+
+    def save_zygosity(self, cursor, zygosity):
+        """
+        Save variant call zygosity with participantID for a variant
+
+        Args:
+            - cursor: MySQL cursor object
+            - zygosity (dict): tuple of zygosity & participantID
+
+        Returns:
+            - zygosity_id (int): row ID
+        """
+
+        data = (
+            zygosity["zygosity"], zygosity["participantId"]
+        )
+        print(data)
+        query_select = """
+                    SELECT * FROM var_zygosity WHERE zygosity=%s AND
+                    participantId=%s
+                    """
+
+        cursor.execute(query_select, data)
+
+        exists = cursor.fetchone()
+
+        if exists:
+            zygosity_id = exists[0]
+        else:
+            query_save = """
+                        INSERT INTO var_zygosity
+                            (zygosity, participantId)
+                        VALUES
+                            (%s, %s)
+                        """
+            cursor.execute(query_save, data)
+
+            zygosity_id = cursor.lastrowid
+
+        return zygosity_id
+
+
+    def save_zygosity_list(self, cursor, annotation_id, zygosity_id):
+        """
+        Save entry to zygosity list table, links variant calls for each
+        participant & the associated zygosity
+
+        Args:
+            - cursor: MySQL cursor object
+            - annotation_id (int): row id for entry in annotation table
+            - zygosity_id (int): row id for entry in zygosity table
+
+        Returns: None
+        """
+        data = (annotation_id, zygosity_id)
+
+        query_save = """
+                    INSERT INTO var_zygosity_list
+                        (annotation_id, var_zygosity_id)
+                    VALUES
+                        (%s, %s)
                     """
 
         cursor.execute(query_save, data)
@@ -555,19 +648,3 @@ class SQLQueries(object):
         variant_annotation_id = cursor.lastrowid
 
         return variant_annotation_id
-
-
-if __name__ == "__main__":
-
-    pass
-
-    # sql = SQLQueries(db_credentials)
-
-    # analysis_run = sql.get_analysis_run(sql.cursor)
-    # sql.save_sample(sql.cursor)
-    # sql.save_analysis(sql.cursor, analysis_run, sample_id)
-
-
-    # analysis_run = SQLQueries(db_credentials)
-    # save_curr_analysis(db, ir_id, analysis_run, local_clinvar_ver,
-    # local_hgmd_ver, variant_list)
