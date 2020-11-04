@@ -285,13 +285,11 @@ class SQLQueries(object):
             - variant_id (int): id of newly inserted variant
         """
         data = (variant["chrom"], variant["pos"],
-                variant["ref"], variant["alt"],
-                variant["consequence"], variant["gene"])
+                variant["ref"], variant["alt"])
         print(data)
         query_exist = """SELECT * FROM variant WHERE
                             chrom=%s AND pos=%s AND
-                            ref=%s AND alt=%s AND
-                            consequence=%s AND gene=%s
+                            ref=%s AND alt=%s
                     """
         cursor.execute(query_exist, data)
 
@@ -304,9 +302,9 @@ class SQLQueries(object):
             # variant record does not exist, insert new record
             query = """
                     INSERT INTO variant
-                        (chrom, pos, ref, alt, consequence, gene)
+                        (chrom, pos, ref, alt)
                     VALUES
-                        (%s, %s, %s, %s, %s, %s)
+                        (%s, %s, %s, %s)
                     """
             cursor.execute(query, data)
 
@@ -657,23 +655,41 @@ class SQLQueries(object):
             - in_silico_predictions_id (int): row id of entry in table
         """
         # check if entry with same af already present
-        cursor.execute(
-            'SELECT * FROM in_silico_predictions WHERE cadd="{}" AND\
-            splice_ai="{}" AND primate_ai="{}"'.format(
-                in_silico["cadd"], in_silico["splice_ai"],
-                in_silico["primate_ai"])
+        data = (
+            in_silico["cadd"], in_silico["revel"], in_silico["splice_ai"],
+            in_silico["splice_ai_cons"], in_silico["primate_ai"]
         )
+
+        # change None if string to NoneType
+        data = [None if x == 'None' else x for x in data]
+
+        # change 0.00 floats to 0, hacky way to make the select of floats
+        # work correctly for SQL
+        data = [float(0) if x == 0.00 else x for x in data]
+        data = tuple(data)
+
+        query_exist = (
+            "SELECT * FROM in_silico_predictions WHERE cadd LIKE %s AND "
+            "revel LIKE %s AND splice_ai LIKE %s AND splice_ai_cons=%s AND "
+            "primate_ai LIKE %s")
+
+        print("query", query_exist)
+
+        cursor.execute(query_exist, data)
+
         exists = cursor.fetchone()
 
         if not exists:
-            cursor.execute(
-                'INSERT INTO in_silico_predictions\
-                    (cadd, splice_ai, primate_ai)\
-                VALUES ("{}", "{}", "{}")'.format(
-                    in_silico["cadd"], in_silico["splice_ai"],
-                    in_silico["primate_ai"]
-                )
-            )
+            query = """
+                    INSERT INTO in_silico_predictions (
+                        cadd, revel, splice_ai, splice_ai_cons, primate_ai
+                    )
+                    VALUES
+                    (%s, %s, %s, %s, %s)
+                    """
+
+            cursor.execute(query, data)
+
             # get id of inserted row to return
             in_silico_predictions_id = cursor.lastrowid
         else:
@@ -682,9 +698,49 @@ class SQLQueries(object):
         return in_silico_predictions_id
 
 
+    def save_variant_attributes(self, cursor, variant):
+        """
+        Save variant attributes to variant_attributes table.
+        Args:
+            - cursor: MySQL cursor object
+
+        Returns:
+            - variant_attributes_id (int): row id of insert
+        """
+        data = (variant["gene"], variant["consequence"], variant["transcript"],
+                variant["c_change"], variant["p_change"])
+
+        query_exist = """SELECT * FROM variant_attributes WHERE
+                        gene=%s AND consequence=%s AND transcript=%s AND
+                        c_change=%s AND p_change=%s
+                    """
+        cursor.execute(query_exist, data)
+
+        exists = cursor.fetchone()
+
+        if exists:
+            # variant record exists, get variant id
+            variant_attributes_id = exists[0]
+        else:
+            # variant record does not exist, insert new record
+            query = """
+                    INSERT INTO variant_attributes
+                        (gene, consequence, transcript, c_change, p_change)
+                    VALUES
+                        (%s, %s, %s, %s, %s)
+                    """
+            cursor.execute(query, data)
+
+            # get id of inserted row to return
+            variant_attributes_id = cursor.lastrowid
+
+        return variant_attributes_id
+
+
     def save_variant_annotation(self, cursor, tier_id, clinvar_id, hgmd_id,
                                 analysis_variant_id, allele_freq_id,
-                                in_silico_predictions_id):
+                                in_silico_predictions_id,
+                                variant_attributes_id):
         """
         Saves variant annotation to link variant to annotation.
 
