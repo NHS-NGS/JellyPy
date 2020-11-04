@@ -8,6 +8,8 @@ jethro.rainford@addenbrookes.nhs.uk
 """
 import requests
 
+from time import sleep
+
 
 def fetch(jsonquery):
     """
@@ -15,11 +17,28 @@ def fetch(jsonquery):
     """
     url = "https://gnomad.broadinstitute.org/api"
     headers = {"Content-Type": "application/json", "charset": "utf-8"}
-    response = requests.post(url, json=jsonquery, headers=headers)
-    json = response.json()
+    response = None
+
+    for i in range(1, 5):
+        try:
+            response = requests.post(url, json=jsonquery, headers=headers)
+        except Exception as e:
+            print("Error in querying gnomAD, try {}/5: ".format(i))
+            print("Error: ", e)
+            sleep(5)
+            continue
+
+    if response is not None:
+        try:
+            json = response.json()
+        except Exception as e:
+            print("Error formatting response: ", e)
+            return None
+    else:
+        return None
 
     if "errors" in json:
-        return
+        return None
 
     return json
 
