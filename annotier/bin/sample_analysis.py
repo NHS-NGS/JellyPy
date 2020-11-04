@@ -27,6 +27,7 @@ from clinvar_query import clinvar_vcf_to_df, get_clinvar_ids, get_clinvar_data
 from hgmd_query import hgmd_vcf_to_df, hgmd_variants
 from paper_scraper import scrapePubmed
 from variants_to_db import SQLQueries
+from variant_validator_query import query_variantvalidator
 
 
 class SampleAnalysis():
@@ -64,7 +65,8 @@ class SampleAnalysis():
         variant_list, position_list = self.json_data.get_tiered_variants(
             ir_json)
 
-        ir_panel = self.json_data.get_panels(variant_list)
+        ir_panel = self.json_data.get_panels(ir_json)
+        print("ir_panels", ir_panel)
 
         # get info on each member of pedigree in JSON
         ir_members = self.json_data.get_members(ir_json)
@@ -83,11 +85,13 @@ class SampleAnalysis():
             # and latest version used
             for pa_panel in all_panels.keys():
                 if all_panels[pa_panel].get_name() == panel[0]:
+                    print("pa panel match: ", all_panels[pa_panel].get_name())
                     panel_genes.extend(all_panels[pa_panel].get_genes())
                     # get latest version of panel
                     ver = all_panels[pa_panel].get_version()
                     analysis_panels.append((panel[0], ver))
 
+        print("analysis panels: ", analysis_panels)
         print("Number of variants before: {}".format(len(position_list)))
 
         # keep variants only in panel genes
@@ -158,13 +162,14 @@ class SampleAnalysis():
         pubmed_df = pd.DataFrame(columns=pubmed_columns)
 
         gnomad_columns = [
-            "chromosome", "pos", "ref", "alt", "af", "cadd",
-            "splice_ai", "primate_ai"
+            "chromosome", "pos", "ref", "alt", "af", "cadd", "revel",
+            "splice_ai", "splice_ai_cons", "primate_ai"
         ]
 
         gnomad_dtypes = {
             "chromosome": str, "pos": int, "ref": str, "alt": str, "af": str,
-            "cadd": str, "splice_ai": str, "primate_ai": str
+            "cadd": float, "revel": float, "splice_ai": float,
+            "splice_ai_cons": str, "primate_ai": float
         }
         # create empty df for adding gnomad entries to
         gnomad_df = pd.DataFrame(columns=gnomad_columns)
@@ -180,7 +185,7 @@ class SampleAnalysis():
             gnomad = gnomad_query(query)
 
             if gnomad is not None:
-                af = str(gnomad["af"])
+                af = float(gnomad["af"])
                 # check if cadd & splice_ai included in the predictions
                 keys = [x["id"] for x in gnomad["in_silico_predictors"]]
                 if "cadd" in keys:
@@ -191,26 +196,40 @@ class SampleAnalysis():
                 else:
                     cadd = None
 
-                if "splice_ai" in keys:
-                    splice_ai = [
+                if "revel" in keys:
+                    revel = [
                         x["value"] for x in gnomad["in_silico_predictors"]
-                        if x["id"] == "splice_ai"
+                        if x["id"] == "revel"
                     ][0]
                 else:
+                    revel = None
+
+                if "splice_ai" in keys:
+                    sa = [x["value"] for x in gnomad["in_silico_predictors"]
+                          if x["id"] == "splice_ai"][0]
+                    sa = sa.split(" ", 1)
+
+                    splice_ai = float(sa[0])
+                    splice_ai_cons = sa[1].strip("()")
+                else:
                     splice_ai = None
+                    splice_ai_cons = None
 
                 if "primate_ai" in keys:
                     primate_ai = [
                         x["value"] for x in gnomad["in_silico_predictors"]
                         if x["id"] == "primate_ai"
                     ][0]
+                    primate_ai = float(primate_ai)
                 else:
                     primate_ai = None
             else:
                 # gnomAD response returned None
                 af = None
                 cadd = None
+                revel = None
                 splice_ai = None
+                splice_ai_cons = None
                 primate_ai = None
 
             # add to gnomad df
@@ -221,15 +240,37 @@ class SampleAnalysis():
                 "alt": var["alt"],
                 "af": af,
                 "cadd": cadd,
+                "revel": revel,
                 "splice_ai": splice_ai,
+                "splice_ai_cons": splice_ai_cons,
                 "primate_ai": primate_ai
             }
 
             gnomad_df = gnomad_df.append(data, ignore_index=True)
 
+            if var["c_change"] is None:
+                # c_change missing from json, use variant validator
+                # to populate
+                query_var = "{}:{}:{}:{}".format(
+                    var["chromosome"], var["position"],
+                    var["ref"], var["alt"]
+                )
+
+                response = query_variantvalidator(
+                    "GRCh38", query_var, "all"
+                )
+
+                # get just key with transcript & c_change
+                tx_key = [x for x in response.keys() if "_" in x]
+                if len(tx_key) != 0:
+                    var["c_change"] = tx_key[0].split(":")[1]
+
+
             if var["c_change"]:
+                print("Searching PubMed for papers")
                 # if c. notation available, search for papers
                 papers = self.scrape_pubmed.main(var, hpo_terms)
+                print("papers: ", papers)
                 if papers:
                     for paper in papers:
                         dict = {
@@ -255,6 +296,7 @@ class SampleAnalysis():
 
         # remove any duplciate rows
         gnomad_df = gnomad_df.drop_duplicates()
+        print(pubmed_df)
 
         return clinvar_summary_df, hgmd_match_df, pubmed_df, gnomad_df
 
@@ -335,8 +377,6 @@ class SampleAnalysis():
             else:
                 pubmed_entries = pd.DataFrame
 
-            print("gnomad df: ", gnomad_df)
-
             if not gnomad_df.empty:
                 # get gnomad results for current variant
                 gnomad_entries = gnomad_df.loc[(
@@ -401,6 +441,7 @@ class SampleAnalysis():
                     hgmd_id = None
 
                 if not gnomad_entries.empty:
+                    # should just be one entry, take first row
                     entry = gnomad_entries.iloc[0]
 
                     # save af to database
@@ -414,11 +455,14 @@ class SampleAnalysis():
                     allele_freq_id = None
                     in_silico_predictions_id = None
 
+
                 # annotation added, add variant and link to annotation
                 variant = {
                     "chrom": var["chromosome"], "pos": var["position"],
                     "tier": var["tier"], "ref": var["ref"], "alt": var["alt"],
-                    "consequence": var["consequence"], "gene": var["gene"]
+                    "consequence": var["consequence"], "gene": var["gene"],
+                    "transcript": var["transcript"],
+                    "c_change": var["c_change"], "p_change": var["p_change"]
                 }
 
                 variant_id = sql.save_variant(sql.cursor, variant)
@@ -431,11 +475,16 @@ class SampleAnalysis():
                     sql.cursor, analysis_sample_id, variant_id
                 )
 
+                # save variant attributes
+                variant_attributes_id = sql.save_variant_attributes(
+                    sql.cursor, variant
+                )
+
                 # link annotation to variant
                 variant_annotation_id = sql.save_variant_annotation(
                     sql.cursor, tier_id, clinvar_id, hgmd_id,
                     analysis_variant_id, allele_freq_id,
-                    in_silico_predictions_id
+                    in_silico_predictions_id, variant_attributes_id
                 )
 
                 # save zygosity of variant calls for var in each member

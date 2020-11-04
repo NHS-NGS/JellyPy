@@ -87,7 +87,7 @@ class ReadJSON():
 
         return ir_members
 
-    def get_panels(self, variant_list):
+    def get_panels(self, ir_json):
         """
         Gets PanelApp panel(s) and versions used for case from each var.
 
@@ -99,11 +99,25 @@ class ReadJSON():
         """
         ir_panel = []
 
-        for var in variant_list:
-            panel = (var["panelName"], var["panelVersion"])
-            if panel[0] is not None and panel not in ir_panel:
-                # get unique list of panels and version
-                ir_panel.append(panel)
+        # get panels & versions from every JSON in variant
+        for interpretation in ir_json["interpreted_genome"]:
+            if "interpreted_genome_data" in interpretation:
+                if "variants" in interpretation["interpreted_genome_data"]:
+                    for variant in interpretation["interpreted_genome_data"][
+                        "variants"
+                    ]:
+                        for event in variant["reportEvents"]:
+                            if not event["genePanel"]:
+                                continue
+                            else:
+                                panel = (
+                                    event["genePanel"]["panelName"],
+                                    event["genePanel"]["panelVersion"]
+                                )
+                                ir_panel.append(panel)
+
+        # get unique list of panels and version
+        ir_panel = list(set(ir_panel))
 
         return ir_panel
 
@@ -176,8 +190,6 @@ class ReadJSON():
                         tier = variant["reportEvents"][0]["tier"]
                         gene = variant["reportEvents"][0][
                             "genomicEntities"][0]["geneSymbol"]
-                        transcript = variant["reportEvents"][0][
-                            "genomicEntities"][0]["ensemblId"]
                         build = variant["variantCoordinates"]["assembly"]
                         penetrance = variant["reportEvents"][0]["penetrance"]
                         denovoQScore = variant["reportEvents"][0][
@@ -190,30 +202,27 @@ class ReadJSON():
                                 if key not in ["zygosity", "participantId"]:
                                     del call[key]
 
-                        # panel not always recorded
-                        if not variant["reportEvents"][0]["genePanel"]:
-                            panelName = None
-                            panelVersion = None
-                        else:
-                            panelName = variant["reportEvents"][0][
-                                "genePanel"]["panelName"]
-                            panelVersion = variant["reportEvents"][0][
-                                "genePanel"]["panelVersion"]
-
-                        if not variant["reportEvents"][0][
-                            "variantConsequences"
-                        ]:
+                        try:
+                            var_type = variant["variantAttributes"][
+                                "additionalTextualVariantAnnotations"
+                                ]["consequence"]
+                        except Exception:
                             var_type = None
-                        else:
-                            var_type = variant["reportEvents"][0][
-                                "variantConsequences"][0]["name"]
 
-                        # check cdna field has been filled
-                        if not variant["variantAttributes"]["cdnaChanges"]:
+                        # get transcript and cDNA change
+                        try:
+                            hgvs = variant["variantAttributes"][
+                                "additionalTextualVariantAnnotations"
+                            ]["hgvs"]
+                            hgvs = hgvs.split(":")
+
+                            transcript = hgvs[1]
+                            c_change = hgvs[2]
+                            p_change = hgvs[3]
+                        except Exception:
+                            transcript = None
                             c_change = None
-                        else:
-                            c_change = variant["variantAttributes"][
-                                "cdnaChanges"][0].split(":")[1]
+                            p_change = None
 
                         variant_list.append({
                             "position": position,
@@ -224,12 +233,11 @@ class ReadJSON():
                             "gene": gene,
                             "consequence": var_type,
                             "c_change": c_change,
+                            "p_change": p_change,
                             "transcript": transcript,
                             "build": build,
                             "penetrance": penetrance,
                             "denovoQScore": denovoQScore,
-                            "panelName": panelName,
-                            "panelVersion": panelVersion,
                             "variantCalls": variantCalls
                         })
 
