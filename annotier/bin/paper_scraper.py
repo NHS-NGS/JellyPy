@@ -129,7 +129,7 @@ class PubmedAnalyzer(entrezpy.base.analyzer.EutilsAnalyzer):
         `entrezpy.base.analyzer.analyze_result`.
         Parse PubMed  XML line by line to extract authors and citations.
         xml.etree.ElementTree.iterparse reads the XML file
-        incrementally. Each p ubmed entry is cleared after processing.
+        incrementally. Each pubmed entry is cleared after processing.
 
         Can be adjusted to include more/different tags to extract.
         Remember to adjust :class:`.PubmedRecord` as well."""
@@ -172,20 +172,39 @@ class PubmedAnalyzer(entrezpy.base.analyzer.EutilsAnalyzer):
                 if elem.tag == 'Article':
                     isArticle = False
                 if elem.tag == 'PMID':
-                    medrec.pmid = elem.text.strip()
+                    if elem.text is not None:
+                        medrec.pmid = elem.text.strip()
+                    else:
+                        medrec.pmid = None
                 if isAuthor and elem.tag == 'LastName':
-                    medrec.authors[-1]['lname'] = elem.text.strip()
+                    if elem.text is not None:
+                        medrec.authors[-1]['lname'] = elem.text.strip()
+                    else:
+                        medrec.authors[-1]['lname'] = None
                 if isAuthor and elem.tag == 'ForeName':
-                    medrec.authors[-1]['fname'] = elem.text.strip()
+                    if elem.text is not None:
+                        medrec.authors[-1]['fname'] = elem.text.strip()
+                    else:
+                        medrec.authors[-1]['fname'] = None
                 if isRef and elem.tag == 'Citation':
-                    medrec.references.append(elem.text.strip())
+                    if elem.text is not None:
+                        medrec.references.append(elem.text.strip())
                 if isArticle and elem.tag == 'AbstractText':
                     if not medrec.abstract:
-                        medrec.abstract = elem.text.strip()
+                        if elem.text is not None:
+                            medrec.abstract = elem.text.strip()
+                        else:
+                            medrec.abstract = None
                     else:
-                        medrec.abstract += elem.text.strip()
+                        if elem.text is not None:
+                            medrec.abstract += elem.text.strip()
+                        else:
+                            medrec.abstract = None
                 if isArticle and elem.tag == 'ArticleTitle':
-                    medrec.title = elem.text.strip()
+                    if elem.text is not None:
+                        medrec.title = elem.text.strip()
+                    else:
+                        medrec.title = None
 
 
 class litVar():
@@ -274,12 +293,12 @@ class litVar():
         if not rsid_data:
             return None
         for entry in rsid_data:
-            print(entry["data"])
             if "genes" in entry["data"]:
                 for gene in entry["data"]["genes"]:
                     if gene["name"] == variant["gene"]:
                         rsid = entry["id"].strip("#")
                         rsids += rsid
+                        rsids += ","
             else:
                 return None
 
@@ -381,7 +400,9 @@ class scrapePubmed():
         fetch_pubmed.add_fetch({
             'db': 'pubmed',
             'id': pmids,
-            'retmod': 'xml'},
+            'retmode': 'xml',
+            'retmax': 30
+        },
             analyzer=PubmedAnalyzer())
 
         a = c.run(fetch_pubmed)
@@ -458,8 +479,6 @@ class scrapePubmed():
                 for end_index, (insert_order, original_value) in A.iter(
                     paper["abstract"]
                 ):
-                    print("original val", original_value)
-
                     print("relevant paper found")
                     papers[counter]["associated"] = True
                     papers[counter]["term"] = original_value
@@ -497,9 +516,11 @@ class scrapePubmed():
 
         if rsids:
             pmids = litvar.get_pmids(rsids)
-
-            # get title and abstract from PubMed via eUtils
-            papers = self.get_papers(pmids, ncbi_credentials)
+            if len(pmids) != 0:
+                # get title and abstract from PubMed via eUtils
+                papers = self.get_papers(pmids, ncbi_credentials)
+            else:
+                return None
 
             # get phenotype terms for sample HPO terms
             hpo_df = self.read_hpo()
