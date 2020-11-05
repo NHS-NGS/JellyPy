@@ -273,9 +273,9 @@ class litVar():
 
         if not rsid_data:
             return None
-
         for entry in rsid_data:
-            if "gene" in entry["data"]:
+            print(entry["data"])
+            if "genes" in entry["data"]:
                 for gene in entry["data"]["genes"]:
                     if gene["name"] == variant["gene"]:
                         rsid = entry["id"].strip("#")
@@ -515,8 +515,7 @@ class scrapePubmed():
 
 if __name__ == "__main__":
 
-    pass
-
-    # scraper = scrapePubmed()
-    # variant = {"gene": "MAN2B1", "change": "c.1830+1G>C"}
-    # scraper.main(variant, hpo_terms)
+    scraper = scrapePubmed()
+    variant = {"gene": "MAN2B1", "c_change": "c.1830+1G>C"}
+    hpo_terms = [{"term": "this"}]
+    scraper.main(variant, hpo_terms)
