@@ -200,17 +200,18 @@ def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
             json_file = os.path.join(json_dir, filename)
 
             # get data from json for analysis
-            ir_id, ir_panel, hpo_terms, disorder_list,\
-            variant_list, position_list, analysis_panels,\
-            total_variants, analysis_variants, ir_members = sample.get_json_data(
-                json_file, all_panels
-            )
+            ir_id, ir_panel, hpo_terms, disorder_list, variant_list,\
+                position_list, analysis_panels, total_variants,\
+                analysis_variants, ir_members = sample.get_json_data(
+                    json_file, all_panels
+                )
 
             # run the analysis
-            clinvar_summary_df, hgmd_match_df, pubmed_df, gnomad_df = sample.run_analysis(
-                clinvar_df, hgmd_df, position_list, variant_list, hpo_terms,
-                disorder_list, hpo_df
-            )
+            clinvar_summary_df, hgmd_match_df, pubmed_df,\
+                gnomad_df = sample.run_analysis(
+                    clinvar_df, hgmd_df, position_list, variant_list,
+                    hpo_terms, disorder_list, hpo_df
+                )
 
             print("Analysis of sample ", ir_id, "finished, saving to database")
 

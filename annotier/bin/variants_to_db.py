@@ -202,13 +202,10 @@ class SQLQueries(object):
         )
         panels = cursor.fetchone()
 
-        print(panels)
-
         if panels:
             # panels already saved
             pass
         else:
-            print("saving panels")
             for panel in ir_panel:
                 # save each panel and version used, link to sample
                 cursor.execute(
@@ -263,7 +260,6 @@ class SQLQueries(object):
         Returns: None
         """
         for panel in analysis_panels:
-            print(panel)
             cursor.execute(
                 "INSERT INTO analysis_panel (analysis_sample_id, name, version)\
                     VALUES\
@@ -286,7 +282,7 @@ class SQLQueries(object):
         """
         data = (variant["chrom"], variant["pos"],
                 variant["ref"], variant["alt"])
-        print(data)
+
         query_exist = """SELECT * FROM variant WHERE
                             chrom=%s AND pos=%s AND
                             ref=%s AND alt=%s
@@ -458,7 +454,6 @@ class SQLQueries(object):
         if exists:
             # hgmd record exists, get hgmd id
             hgmd_id = exists[0]
-            print("hgmd record exists: ", hgmd_id)
         else:
             # variant record does not exist, insert new record
 
@@ -475,7 +470,6 @@ class SQLQueries(object):
 
             # get id of inserted row to return
             hgmd_id = data[0]
-            print("new hgmd record: ", hgmd_id)
 
         return hgmd_id
 
@@ -565,7 +559,7 @@ class SQLQueries(object):
         data = (
             zygosity["zygosity"], zygosity["participantId"]
         )
-        print(data)
+
         query_select = """
                     SELECT * FROM var_zygosity WHERE zygosity=%s AND
                     participantId=%s
@@ -672,8 +666,6 @@ class SQLQueries(object):
             "SELECT * FROM in_silico_predictions WHERE cadd LIKE %s AND "
             "revel LIKE %s AND splice_ai LIKE %s AND splice_ai_cons=%s AND "
             "primate_ai LIKE %s")
-
-        print("query", query_exist)
 
         cursor.execute(query_exist, data)
 
