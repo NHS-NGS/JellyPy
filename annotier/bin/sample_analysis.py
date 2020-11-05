@@ -85,11 +85,27 @@ class SampleAnalysis():
             # and latest version used
             for pa_panel in all_panels.keys():
                 if all_panels[pa_panel].get_name() == panel[0]:
-                    print("pa panel match: ", all_panels[pa_panel].get_name())
                     panel_genes.extend(all_panels[pa_panel].get_genes())
                     # get latest version of panel
+                    panel_name = all_panels[pa_panel].get_name()
                     ver = all_panels[pa_panel].get_version()
-                    analysis_panels.append((panel[0], ver))
+                    analysis_panels.append((panel_name, ver))
+
+            if panel not in analysis_panels:
+                # panel not in names, try getting from disorders
+                # used in cases where panel names changed
+                for pa_panel in all_panels.keys():
+                    disorders = all_panels[pa_panel].get_relevant_disorders()
+                    rel_disorder = [x for x in disorders if x == panel[0]]
+                    if len(rel_disorder) != 0:
+                        # panel found in relevant disorder list
+                        panel_genes.extend(all_panels[pa_panel].get_genes())
+                        # get latest version of panel
+                        panel_name = all_panels[pa_panel].get_name()
+                        ver = all_panels[pa_panel].get_version()
+                        analysis_panels.append((
+                            panel_name, ver
+                        ))
 
         print("analysis panels: ", analysis_panels)
         print("Number of variants before: {}".format(len(position_list)))
@@ -262,15 +278,18 @@ class SampleAnalysis():
 
                 # get just key with transcript & c_change
                 tx_key = [x for x in response.keys() if "_" in x]
-                if len(tx_key) != 0:
-                    var["c_change"] = tx_key[0].split(":")[1]
 
+                if len(tx_key) != 0:
+                    for key in tx_key:                
+                        try:
+                            var["c_change"] = key[0].split(":")[1]
+                        except (IndexError, KeyError):
+                            continue
 
             if var["c_change"]:
                 print("Searching PubMed for papers")
                 # if c. notation available, search for papers
                 papers = self.scrape_pubmed.main(var, hpo_terms)
-                print("papers: ", papers)
                 if papers:
                     for paper in papers:
                         dict = {
@@ -296,7 +315,6 @@ class SampleAnalysis():
 
         # remove any duplciate rows
         gnomad_df = gnomad_df.drop_duplicates()
-        print(pubmed_df)
 
         return clinvar_summary_df, hgmd_match_df, pubmed_df, gnomad_df
 
@@ -516,7 +534,6 @@ class SampleAnalysis():
             else:
                 # no annotation found, go to next variant
                 continue
-
 
 
 if __name__ == "__main__":
