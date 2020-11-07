@@ -405,7 +405,15 @@ class scrapePubmed():
         },
             analyzer=PubmedAnalyzer())
 
-        a = c.run(fetch_pubmed)
+        for i in range(1, 5):
+            try:
+                a = c.run(fetch_pubmed)
+                break
+            except TypeError as e:
+                print("Error in entrezpy: ", e)
+                print("Trying again {}/5".format(i))
+                continue
+
         res = a.get_result()
 
         papers = []
