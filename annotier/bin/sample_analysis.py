@@ -288,8 +288,20 @@ class SampleAnalysis():
 
             if var["c_change"]:
                 print("Searching PubMed for papers")
+                papers = None
                 # if c. notation available, search for papers
-                papers = self.scrape_pubmed.main(var, hpo_terms)
+                for i in range(0, 5):
+                    try:
+                        # various potential bugs in entrezpy package
+                        # use try except to catch and retry, else
+                        # continue with no papers
+                        papers = self.scrape_pubmed.main(var, hpo_terms)
+                        break
+                    except Exception as e:
+                        print("Error in entrezpy returning papers: ", e)
+                        print("Retrying, try {}/5".format(i))
+                        continue
+
                 if papers:
                     for paper in papers:
                         dict = {
