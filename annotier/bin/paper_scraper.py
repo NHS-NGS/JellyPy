@@ -407,12 +407,19 @@ class scrapePubmed():
 
         for i in range(1, 5):
             try:
+                # various potential bugs in entrezpy package use try except to
+                # catch and retry, else continue with no papers
                 a = c.run(fetch_pubmed)
                 break
             except TypeError as e:
                 print("Error in entrezpy: ", e)
                 print("Trying again {}/5".format(i))
+                a = None
                 continue
+
+        if a is None:
+            # failed after 5 tries, return none to continue
+            return None
 
         res = a.get_result()
 
@@ -533,9 +540,10 @@ class scrapePubmed():
             # get phenotype terms for sample HPO terms
             hpo_df = self.read_hpo()
 
-            # get relevant phenotype terms and search against papers
-            phenotypes = self.hpo_to_phenotype(hpo_df, hpo_terms)
-            papers = self.scrape_paper(papers, phenotypes)
+            if papers is not None:
+                # get relevant phenotype terms and search against papers
+                phenotypes = self.hpo_to_phenotype(hpo_df, hpo_terms)
+                papers = self.scrape_paper(papers, phenotypes)
         else:
             papers = None
 
