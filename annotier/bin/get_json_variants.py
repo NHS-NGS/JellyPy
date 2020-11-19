@@ -99,7 +99,7 @@ class ReadJSON():
         """
         ir_panel = []
 
-        # get panels & versions from every JSON in variant
+        # get panels & versions from every variant in JSON
         for interpretation in ir_json["interpreted_genome"]:
             if "interpreted_genome_data" in interpretation:
                 if "variants" in interpretation["interpreted_genome_data"]:
