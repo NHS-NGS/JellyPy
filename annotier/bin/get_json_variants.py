@@ -190,6 +190,8 @@ class ReadJSON():
                         tier = variant["reportEvents"][0]["tier"]
                         gene = variant["reportEvents"][0][
                             "genomicEntities"][0]["geneSymbol"]
+                        ensemblId = variant["reportEvents"][0][
+                            "genomicEntities"][0]["ensemblId"]
                         build = variant["variantCoordinates"]["assembly"]
                         penetrance = variant["reportEvents"][0]["penetrance"]
                         denovoQScore = variant["reportEvents"][0][
@@ -231,6 +233,7 @@ class ReadJSON():
                             "alt": alt,
                             "tier": tier,
                             "gene": gene,
+                            "ensemblId": ensemblId,
                             "consequence": var_type,
                             "c_change": c_change,
                             "p_change": p_change,
