@@ -19,6 +19,8 @@ import os
 import pandas as pd
 import pprint
 import entrezpy.esummary.esummarizer
+import entrezpy.efetch.efetcher
+
 
 try:
     from ncbi_credentials import ncbi_credentials
@@ -92,15 +94,26 @@ def get_clinvar_ids(clinvar_df, position_list):
         clinvar_df[['#CHROM', 'POS']].apply(tuple, axis=1).isin(position_list)
     ]
 
+    clinsig = ["CLNSIG=Pathogenic", "CLNSIG=Likely_pathogenic"]
+
     for row in match_df.itertuples():
-        clinsig = ["CLNSIG=Pathogenic", "CLNSIG=Likely_pathogenic"]
+        try:
+            # get molecular consequence from VCF INFO field as it is not
+            # in the API reponse
+            mol_cons = [x for x in row.INFO.split(';') if x.startswith('MC')][0]
+            mol_cons = mol_cons.split('|')[1].split(',')[0]
+        except Exception:
+            # molecular consequence field probably missing
+            mol_cons = None
+
         if any(x in row.INFO for x in clinsig):
             # add variant ID if classified as pathogenic or
             # likely pathogenic
             clinvar_id_list.append({
                 "clinvar_id": row.ID,
                 "ref": row.REF,
-                "alt": row.ALT
+                "alt": row.ALT,
+                "mol_cons": mol_cons
             })
 
         if "CLNSIG=Conflicting_interpretations_of_pathogenicity" in row.INFO:
@@ -114,7 +127,8 @@ def get_clinvar_ids(clinvar_df, position_list):
                 clinvar_id_list.append({
                     "clinvar_id": row.ID,
                     "ref": row.REF,
-                    "alt": row.ALT
+                    "alt": row.ALT,
+                    "mol_cons": mol_cons
                 })
 
     if len(clinvar_id_list) == 0:
@@ -170,7 +184,7 @@ def get_clinvar_data(clinvar_id_list):
                 summaries = a.get_result().summaries
                 clinvar_summaries.update(summaries)
                 break
-            except (BaseException, ValueError) as e:
+            except Exception as e:
                 print("Error in entrezpy, try: {}/5".format(i))
                 print("Error: {}".format(e))
                 time.sleep(2)
@@ -186,6 +200,8 @@ def get_clinvar_data(clinvar_id_list):
             (item for item in clinvar_id_list if item["clinvar_id"] == key),
             None
         )
+
+        mol_cons = id_match["mol_cons"]
 
         if id_match is not None:
             # check in case ref and alt were missing
@@ -226,7 +242,9 @@ def get_clinvar_data(clinvar_id_list):
 
                 "alt": alt,
 
-                "protein_change": value["protein_change"]
+                "protein_change": value["protein_change"],
+
+                "mol_cons": mol_cons
             }
         )
 
@@ -245,7 +263,9 @@ def get_clinvar_data(clinvar_id_list):
 
 if __name__ == "__main__":
 
-    clinvar_df = clinvar_vcf_to_df()
+    clinvar_df, local_clinvar_ver = clinvar_vcf_to_df()
+
+    position_list = [('11', 64758458)]
 
     clinvar_id_list = get_clinvar_ids(clinvar_df, position_list)
 
