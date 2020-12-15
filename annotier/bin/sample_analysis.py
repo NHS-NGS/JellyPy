@@ -326,7 +326,7 @@ class SampleAnalysis():
                     "GRCh38", query_var, "all"
                 )
 
-                if response.keys() is not None:
+                if response is not None:
                     # get just key with transcript & c_change
                     tx_key = [x for x in response.keys() if "_" in x]
 
