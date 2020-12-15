@@ -188,6 +188,10 @@ class ReadJSON():
                         ref = variant["variantCoordinates"]["reference"]
                         alt = variant["variantCoordinates"]["alternate"]
                         tier = variant["reportEvents"][0]["tier"]
+                        modeOfInheritance = variant["reportEvents"][0][
+                            "modeOfInheritance"]
+                        segregationPattern = variant["reportEvents"][0][
+                            "segregationPattern"]
                         gene = variant["reportEvents"][0][
                             "genomicEntities"][0]["geneSymbol"]
                         ensemblId = variant["reportEvents"][0][
@@ -232,6 +236,8 @@ class ReadJSON():
                             "ref": ref,
                             "alt": alt,
                             "tier": tier,
+                            "modeOfInheritance": modeOfInheritance,
+                            "segregationPattern": segregationPattern,
                             "gene": gene,
                             "ensemblId": ensemblId,
                             "consequence": var_type,

@@ -45,8 +45,24 @@ class dbQueries(object):
     def analysis_variants(self, cursor, run):
         """
         """
-        pass
 
+        cursor.execute("SELECT * FROM run_variants")
+        vars = cursor.fetchall()
+
+
+        for v in vars:
+            if not v[2]:
+                print(v)
+                v[2] = "None"
+                print(v)
+
+        header = ["ir_id", "sample_variants", "analysis_variants"]
+
+        analysis_variants = pd.DataFrame(vars)
+
+        print(analysis_variants)
+
+        sys.exit()
 
     def run_variants_clinvar_and_hgmd(self, cursor):
         """
@@ -56,7 +72,7 @@ class dbQueries(object):
         vars = cursor.fetchall()
 
         header = [
-            "ir_id", "chr", "position", "ref", "alt", "tier", "sp_name",
+            "ir_id", "isProband", "chr", "position", "ref", "alt", "tier", "sp_name",
             "sp_version", "ap_name", "ap_version", "clinvar_id", "clinvar_sig",
             "hgmd_id", "hgmd_rs", "pmid", "pmid_rel", "term", "af", "zygosity",
             "participant_id", "cadd", "revel", "splice_ai", "splice_ai_cons",
@@ -65,7 +81,8 @@ class dbQueries(object):
 
         # create df with returned database object
         run_vars = pd.DataFrame(vars, columns=header)
-
+        print(run_vars)
+        sys.exit()
         # set pmid to int to remove .0
         run_vars["pmid"] = run_vars["pmid"].fillna(0.0).astype(int)
         run_vars.astype('str').dtypes
@@ -112,10 +129,11 @@ class dbQueries(object):
         new = pd.pivot_table(
             run_vars, index=[
                 "ir_id", "chr", "position", "ref",
-                "alt", "participant_id", "zygosity"
+                "alt", "participant_id", "isProband", "zygosity"
             ], values=vals,
             aggfunc=lambda x: ' / '.join([str(v) for v in x]))
-
+        print(new)
+        sys.exit()
         # change column order
         new = new[[
             "s_panel", "a_panel",
@@ -145,6 +163,7 @@ class dbQueries(object):
         with pd.option_context('display.max_rows', None):
             print(new["pmid"])
 
+
         # write to file
         new.to_excel("100k_variants.xlsx")
 
@@ -159,10 +178,10 @@ def parse_args():
         'get_variants', help='Get total and analysed variants for all cases on\
         an analysis run.'
     )
-    parser_1.add_argument(
-        '--run', type=str, help='Analysis run to retrieve variants from.\
-            Default: most recent.', default=None
-    )
+    # parser_1.add_argument(
+    #     '--run', type=str, help='Analysis run to retrieve variants from.\
+    #         Default: most recent.', default=None
+    # )
     parser_1.set_defaults(query='variants')
 
     parser_2 = subparsers.add_parser(
@@ -185,10 +204,7 @@ def main():
 
 
     if query == "variants":
-        if not args.run:
-            run = None
-        else:
-            run = args.run
+        run = None
 
         sql.analysis_variants(sql.cursor, run)
 

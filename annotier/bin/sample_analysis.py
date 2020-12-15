@@ -37,7 +37,7 @@ class SampleAnalysis():
         self.scrape_pubmed = scrapePubmed()
 
 
-    def get_json_data(self, json_file, all_panels):
+    def get_json_data(self, json_file, all_panels, hgnc_df):
         """
         Call functions from get_json_variants to get HPO terms and
         tiered variants for analysis
@@ -78,40 +78,90 @@ class SampleAnalysis():
         print("checking panelapp panels")
 
         analysis_panels = []
-        panel_genes = []
+        panel_dicts = []
 
         for panel in ir_panel:
             # for each panel from JSON, get green genes from entry in PA
             # and latest version used
             for pa_panel in all_panels.keys():
                 if all_panels[pa_panel].get_name() == panel[0]:
-                    panel_genes.extend(all_panels[pa_panel].get_genes())
+                    # panel name still a valid panel
+
                     # get latest version of panel
                     panel_name = all_panels[pa_panel].get_name()
                     ver = all_panels[pa_panel].get_version()
                     analysis_panels.append((panel_name, ver))
 
-            if panel not in analysis_panels:
-                # panel not in names, try getting from disorders
-                # used in cases where panel names changed
+                    # returns list of dicts for each gene with symbol,
+                    # hgnc id and ensembl ID
+                    panel_dict = {}
+                    panel_dict[panel_name] = all_panels[pa_panel].get_genes()
+                    panel_dicts.append(panel_dict)  
+
+            if panel[0] not in analysis_panels:
+                print("Panel not in keys")
+                # panel not in names, try getting from disorders, used
+                # in cases where panel names changed / panels merge etc.
                 for pa_panel in all_panels.keys():
                     disorders = all_panels[pa_panel].get_relevant_disorders()
                     rel_disorder = [x for x in disorders if x == panel[0]]
                     if len(rel_disorder) != 0:
                         # panel found in relevant disorder list
-                        panel_genes.extend(all_panels[pa_panel].get_genes())
                         # get latest version of panel
                         panel_name = all_panels[pa_panel].get_name()
                         ver = all_panels[pa_panel].get_version()
                         analysis_panels.append((
                             panel_name, ver
                         ))
+                        panel_dict = {}
+                        panel_dict[panel_name] = all_panels[
+                            pa_panel].get_genes()
+                        panel_dicts.append(panel_dict)
 
         print("analysis panels: ", analysis_panels)
         print("Number of variants before: {}".format(len(position_list)))
 
+        # build simple lists for variant matching
+        ensembl_ids = []
+        hgnc_ids = []
+        gene_symbols = []
+
+        for panel in panel_dicts:
+            for k, v in panel.items():
+                ensembl_ids.extend([x["ensembl_id"]["GRCh38"] for x in v])
+                gene_symbols.extend([x["symbol"] for x in v])
+                hgnc_ids.extend([x["hgnc_id"] for x in v])
+
         # keep variants only in panel genes
-        variant_list = [x for x in variant_list if x['gene'] in panel_genes]
+        panel_variants = []
+
+        for var in variant_list:
+            # check if variant is in gene by ensembl id, gene symbol,
+            # hgnc id
+            if var["ensemblId"] in ensembl_ids:
+                panel_variants.append(var)
+            elif var["gene"] in gene_symbols:
+                panel_variants.append(var)
+            else:
+                # hgnc not in JSONs, get from hgnc txt file to match
+                # against panel hgnc ids
+                hgnc_id = hgnc_df[hgnc_df["symbol"] == var["gene"]]
+
+                if hgnc_id.empty:
+                    # hgnc id not identified from symbol, check in prev
+                    # symbols
+                    hgnc_id = hgnc_df[hgnc_df[
+                        "prev_symbol"].astype(str).str.contains(var["gene"])]
+
+                if not hgnc_id.empty:
+                    # found hgnc id from current or porevious symbol
+                    hgnc_id = hgnc_id.iloc[0]["hgnc_id"].split(':')[1]
+
+                    if hgnc_id in hgnc_ids:
+                        # id found, check against panel gene ids
+                        panel_variants.append(var)
+
+        variant_list = panel_variants
 
         # build simple list of chrom & pos for analysis
         position_list = []
@@ -280,7 +330,7 @@ class SampleAnalysis():
                 tx_key = [x for x in response.keys() if "_" in x]
 
                 if len(tx_key) != 0:
-                    for key in tx_key:                
+                    for key in tx_key:      
                         try:
                             var["c_change"] = key[0].split(":")[1]
                         except (IndexError, KeyError):
@@ -290,17 +340,7 @@ class SampleAnalysis():
                 print("Searching PubMed for papers")
                 papers = None
                 # if c. notation available, search for papers
-                for i in range(0, 5):
-                    try:
-                        # various potential bugs in entrezpy package
-                        # use try except to catch and retry, else
-                        # continue with no papers
-                        papers = self.scrape_pubmed.main(var, hpo_terms)
-                        break
-                    except Exception as e:
-                        print("Error in entrezpy returning papers: ", e)
-                        print("Retrying, try {}/5".format(i))
-                        continue
+                papers = self.scrape_pubmed.main(var, hpo_terms)
 
                 if papers:
                     for paper in papers:
@@ -373,6 +413,7 @@ class SampleAnalysis():
         # for each variant in variant list, check if some annotation
         # is found for position if yes, save variant, if not then it
         # is passed
+
         for var in variant_list:
 
             if clinvar_summary_df is not None:
@@ -434,6 +475,7 @@ class SampleAnalysis():
                             "date_last_reviewed": row["date_last_rev"],
                             "review_status": row["review_status"],
                             "var_type": row["var_type"],
+                            "mol_cons": row["mol_cons"],
                             "supporting_submissions": row["supporting_subs"],
                             "chrom": row["chrom"], "pos": row["start_pos"],
                             "ref": row["ref"], "alt": row["alt"]
@@ -492,7 +534,10 @@ class SampleAnalysis():
                     "tier": var["tier"], "ref": var["ref"], "alt": var["alt"],
                     "consequence": var["consequence"], "gene": var["gene"],
                     "transcript": var["transcript"],
-                    "c_change": var["c_change"], "p_change": var["p_change"]
+                    "c_change": var["c_change"], "p_change": var["p_change"],
+                    "ensemblId": var["ensemblId"],
+                    "segregationPattern": var["segregationPattern"],
+                    "modeOfInheritance": var["modeOfInheritance"]
                 }
 
                 variant_id = sql.save_variant(sql.cursor, variant)
