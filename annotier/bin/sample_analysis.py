@@ -326,11 +326,11 @@ class SampleAnalysis():
                     "GRCh38", query_var, "all"
                 )
 
-                # get just key with transcript & c_change
-                tx_key = [x for x in response.keys() if "_" in x]
+                if response.keys() is not None:
+                    # get just key with transcript & c_change
+                    tx_key = [x for x in response.keys() if "_" in x]
 
-                if len(tx_key) != 0:
-                    for key in tx_key:      
+                    for key in tx_key:
                         try:
                             var["c_change"] = key[0].split(":")[1]
                         except (IndexError, KeyError):
