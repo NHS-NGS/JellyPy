@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     json_dir, json_total = check_json()
     sql = connect_db()
-    # check_clinvar_ver()
+    check_clinvar_ver()
     clinvar_df, clinvar_ver = read_clinvar()
     hgnc_df = read_hgnc()
     hgmd_df, hgmd_ver = read_hgmd()
