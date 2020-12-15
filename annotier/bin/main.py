@@ -151,6 +151,25 @@ def get_panels():
     return all_panels
 
 
+def read_hgnc():
+    """
+    Read in HGNC txt file from /data/hgnc, provides gene symbol -> hgnc
+    id for filtering variants
+
+    Args: None
+
+    Returns:
+        - hgnc_df (df): df of hgnc txt file
+    """
+    print("Reading HGNC file")
+    hgnc_file = os.path.join(
+        os.path.dirname(__file__), "../data/hgnc/hgnc_complete_set.txt")
+
+    hgnc_df = pd.read_csv(hgnc_file, sep="\t")
+
+    return hgnc_df
+
+
 def new_analysis(sql, clinvar_ver, hgmd_ver):
     """
     Create new analysis run entry in database.
@@ -173,7 +192,7 @@ def new_analysis(sql, clinvar_ver, hgmd_ver):
 
 
 def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
-                 clinvar_df, hgmd_df, hpo_df):
+                 clinvar_df, hgmd_df, hpo_df, hgnc_df):
     """
     Go through each JSON in /data/ir_json and perform analysis,
     then save to database
@@ -203,7 +222,7 @@ def run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
             ir_id, ir_panel, hpo_terms, disorder_list, variant_list,\
                 position_list, analysis_panels, total_variants,\
                 analysis_variants, ir_members = sample.get_json_data(
-                    json_file, all_panels
+                    json_file, all_panels, hgnc_df
                 )
 
             # run the analysis
@@ -238,6 +257,7 @@ if __name__ == "__main__":
     sql = connect_db()
     # check_clinvar_ver()
     clinvar_df, clinvar_ver = read_clinvar()
+    hgnc_df = read_hgnc()
     hgmd_df, hgmd_ver = read_hgmd()
     hpo_df = scrapePubmed().read_hpo()
     all_panels = get_panels()
@@ -249,4 +269,4 @@ if __name__ == "__main__":
     ###
     print("Starting sample analysis")
     run_analysis(sql, all_panels, analysis_id, json_dir, json_total,
-                 clinvar_df, hgmd_df, hpo_df)
+                 clinvar_df, hgmd_df, hpo_df, hgnc_df)
