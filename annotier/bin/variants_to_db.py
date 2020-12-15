@@ -197,17 +197,14 @@ class SQLQueries(object):
 
         Returns: None
         """
-        cursor.execute(
-            "SELECT * FROM sample_panel WHERE sample_id='%s'" % (sample_id)
-        )
-        panels = cursor.fetchone()
+        for panel in ir_panel:
+            cursor.execute(
+                "SELECT * FROM sample_panel WHERE sample_id='%s' AND\
+                name='%s' AND version='%s'" % (sample_id, panel[0], panel[1])
+            )
+            db_panel = cursor.fetchone()
 
-        if panels:
-            # panels already saved
-            pass
-        else:
-            for panel in ir_panel:
-                # save each panel and version used, link to sample
+            if not db_panel:
                 cursor.execute(
                     "INSERT INTO sample_panel (sample_id, name, version)\
                         VALUES\
@@ -382,12 +379,12 @@ class SQLQueries(object):
         Returns:
             - clinvar_id (int): row id of clinvar annotation
         """
-
         data = (
             clinvar["clinvar_id"], clinvar["clin_signficance"],
             clinvar["date_last_reviewed"], clinvar["review_status"],
             clinvar["var_type"], clinvar["supporting_submissions"],
-            clinvar["chrom"], clinvar["pos"], clinvar["ref"], clinvar["alt"]
+            clinvar["chrom"], clinvar["pos"], clinvar["ref"], clinvar["alt"],
+            clinvar["mol_cons"]
         )
 
         id = (data[0],)
@@ -408,9 +405,9 @@ class SQLQueries(object):
                         (clinvar_id, clin_significance,
                         date_last_reviewed, review_status,
                         var_type, supporting_submissions,
-                        chrom, pos, ref, alt)
+                        chrom, pos, ref, alt, molecular_cons)
                     VALUES
-                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """
 
             cursor.execute(query, data)
@@ -700,11 +697,13 @@ class SQLQueries(object):
             - variant_attributes_id (int): row id of insert
         """
         data = (variant["gene"], variant["consequence"], variant["transcript"],
-                variant["c_change"], variant["p_change"])
+                variant["c_change"], variant["p_change"], variant["ensemblId"],
+                variant["segregationPattern"], variant["modeOfInheritance"])
 
         query_exist = """SELECT * FROM variant_attributes WHERE
                         gene=%s AND consequence=%s AND transcript=%s AND
-                        c_change=%s AND p_change=%s
+                        c_change=%s AND p_change=%s AND ensemblId=%s AND
+                        segregationPattern=%s AND modeOfInheritance=%s
                     """
         cursor.execute(query_exist, data)
 
@@ -717,9 +716,11 @@ class SQLQueries(object):
             # variant record does not exist, insert new record
             query = """
                     INSERT INTO variant_attributes
-                        (gene, consequence, transcript, c_change, p_change)
+                        (gene, consequence, transcript, c_change,
+                        p_change, ensemblId, segregationPattern,
+                        modeOfInheritance)
                     VALUES
-                        (%s, %s, %s, %s, %s)
+                        (%s, %s, %s, %s, %s, %s, %s, %s)
                     """
             cursor.execute(query, data)
 
