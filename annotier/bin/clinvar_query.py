@@ -93,6 +93,9 @@ def get_clinvar_ids(clinvar_df, position_list):
     match_df = clinvar_df[
         clinvar_df[['#CHROM', 'POS']].apply(tuple, axis=1).isin(position_list)
     ]
+    print("Matching ClinVar entries: ", match_df)
+    for i, row in match_df.iterrows():
+        print(row["INFO"])
 
     clinsig = ["CLNSIG=Pathogenic", "CLNSIG=Likely_pathogenic"]
 
@@ -201,14 +204,13 @@ def get_clinvar_data(clinvar_id_list):
             None
         )
 
-        mol_cons = id_match["mol_cons"]
-
         if id_match is not None:
             # check in case ref and alt were missing
             ref = id_match["ref"]
             alt = id_match["alt"]
+            mol_cons = id_match["mol_cons"]
         else:
-            ref, alt = None, None
+            ref, alt, mol_cons = None, None, None
 
         row_dict = {}
 
