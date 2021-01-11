@@ -96,7 +96,7 @@ class SampleAnalysis():
                     # hgnc id and ensembl ID
                     panel_dict = {}
                     panel_dict[panel_name] = all_panels[pa_panel].get_genes()
-                    panel_dicts.append(panel_dict)  
+                    panel_dicts.append(panel_dict)
 
             if panel[0] not in analysis_panels:
                 print("Panel not in keys")
@@ -114,8 +114,7 @@ class SampleAnalysis():
                             panel_name, ver
                         ))
                         panel_dict = {}
-                        panel_dict[panel_name] = all_panels[
-                            pa_panel].get_genes()
+                        panel_dict[panel_name] = all_panels[pa_panel].get_genes()
                         panel_dicts.append(panel_dict)
 
         print("analysis panels: ", analysis_panels)
@@ -315,6 +314,7 @@ class SampleAnalysis():
             gnomad_df = gnomad_df.append(data, ignore_index=True)
 
             if var["c_change"] is None:
+                continue
                 # c_change missing from json, use variant validator
                 # to populate
                 query_var = "{}:{}:{}:{}".format(
