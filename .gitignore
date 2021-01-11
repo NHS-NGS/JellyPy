@@ -130,3 +130,4 @@ pyCIPAPI/jellypy/annotier/bin/ncbi_credentials.py
 pyCIPAPI/jellypy/annotier/bin/db_credentials.py
 annotier/bin/db_credentials.py
 annotier/data/hpo/phenotype.hpoa
+annotier/*.xlsx
