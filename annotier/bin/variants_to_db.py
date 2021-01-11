@@ -752,13 +752,14 @@ class SQLQueries(object):
         query = """
                 INSERT INTO variant_annotation
                     (tier_id, clinvar_id, hgmd_id, analysis_variant_id,
-                    allele_freq_id, in_silico_predictions_id)
+                    allele_freq_id, in_silico_predictions_id,
+                    variant_attributes_id)
                 VALUES
-                    (%s, %s, %s, %s, %s, %s)
+                    (%s, %s, %s, %s, %s, %s, %s)
                 """
         data = (
             tier_id, clinvar_id, hgmd_id, analysis_variant_id, allele_freq_id,
-            in_silico_predictions_id
+            in_silico_predictions_id, variant_attributes_id
         )
         cursor.execute(query, data)
 
