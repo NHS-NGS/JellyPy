@@ -5,7 +5,7 @@ README = ( pathlib.Path(__file__).parent / 'pypi_readme.md').read_text()
 
 setup(
     name='jellypy_tierup',
-    version='0.3.1',
+    version='0.3.2',
     author="NHS Bioinformatics Group",
     author_email="nana.mensah1@nhs.net",
     description='Reanalyse Tier 3 variants',
@@ -19,7 +19,7 @@ setup(
     install_requires=[
         'click==7.0',
         'jsonschema==3.2.0',
-        'jellypy-pyCIPAPI==0.2.3'
+        'jellypy-pyCIPAPI==0.2.4'
     ],
     entry_points = {
         'console_scripts': 'tierup=jellypy.tierup.interface:cli'

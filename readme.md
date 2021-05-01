@@ -26,9 +26,11 @@ To develop a new function or feature, please take a look at the issues raised. I
 * 0.2.1 - Support legacy authentication by allowing AD to be toggled on/off in config file
 * 0.2.2 - Add sub-heading to README changelog
 * 0.2.3 - Update live 100K url. Display response on API errors. Add tests for auth api calls.
+* 0.2.4 - Fix pandas install error by using version 1.2.4
 
 ### jellypy-tierup
 
 * 0.2.0 - TierUp development release with pyCIPAPI 0.2.3
 * 0.3.0 - Use ensembl identifiers to query panel app. Implement mode of inheritance check.
 * 0.3.1 - Add version string to cli arguments. Fix GeLPanel.query docstring.
+* 0.3.2 - Use jellypy-pyCIPAPI 0.2.4
