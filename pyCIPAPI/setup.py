@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='jellypy_pyCIPAPI',
-    version='0.2.3',
+    version='0.2.4',
     author="NHS Bioinformatics Group",
     author_email="joowook.ahn@nhs.net",
     description='Python client library the Genomics England CIPAPI',
@@ -19,7 +19,7 @@ setup(
         'maya == 0.6.1',
         'PyJWT == 1.7.1',
         'requests == 2.22.0',
-        'pandas == 0.25.1',
+        'pandas == 1.2.4',
         'openpyxl == 2.6.3'
     ]
 )
