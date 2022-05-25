@@ -17,7 +17,7 @@ setup(
         'docopt == 0.6.2',
         'GelReportModels == 7.2.10',
         'maya == 0.6.1',
-        'PyJWT == 1.7.1',
+        'PyJWT == 2.4.0',
         'requests == 2.22.0',
         'pandas == 1.2.4',
         'openpyxl == 2.6.3'
